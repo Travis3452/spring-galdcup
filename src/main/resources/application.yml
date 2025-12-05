@@ -1,0 +1,43 @@
+spring.application.name=galdcup
+
+datasource:
+  url: jdbc:mysql://localhost:3306/game_calendar?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+  username: root
+  password: root1234!!
+  driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # ?? ????? update, ????? validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  redis:
+    host: localhost
+    port: 6379
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ID
+            client-secret: SECRET
+            scope:
+              - email
+              - profile
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+
+jwt:
+  secret: ${JWT_SECRET_KEY}   # JWT ??? ??? (????? ?? ??)
+  expiration: 3600000       # ?? ???? (1??)
+
+server:
+  port: 8080
