@@ -20,11 +20,11 @@ public class Post {
 
     // 작성자
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", nullable = false)
-    private User createdBy;
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
 
     // 제목
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 50)
     private String title;
 
     // 내용
