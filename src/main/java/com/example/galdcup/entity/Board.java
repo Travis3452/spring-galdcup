@@ -10,18 +10,27 @@ import java.util.List;
 @Entity
 @Table(name = "boards")
 @Getter
-@Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Board {
 
     public enum Status { OPEN, CLOSED }
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     // 어떤 Topic에 속하는 Board인지 (1:1)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id", nullable = false, unique = true)
-    private GaldcupTopic topic;
+    private GaldcupTopic galdcupTopic;
+
+    // 게시판 생성자 (관리자)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", nullable = false)
+    private User admin;
 
     // 게시판 상태 (OPEN, CLOSED)
     @Enumerated(EnumType.STRING)
