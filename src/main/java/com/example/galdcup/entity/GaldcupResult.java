@@ -13,7 +13,7 @@ public class GaldcupResult {
 
     // 어떤 투표 세션의 결과인지
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vote_session_id", nullable = false, unique = true)
+    @JoinColumn(name = "voteSession_id", nullable = false, unique = true)
     private VoteSession voteSession;
 
     // 총 투표 수
@@ -21,7 +21,6 @@ public class GaldcupResult {
     private Long totalVotes;
 
     // 옵션별 집계 결과 (구조화된 JSON 배열)
-    // 예: [{"optionId":1,"label":"손흥민","votes":120},{"optionId":2,"label":"박지성","votes":80}]
     @Column(columnDefinition = "TEXT")
     private String optionBreakdownJson;
 }
