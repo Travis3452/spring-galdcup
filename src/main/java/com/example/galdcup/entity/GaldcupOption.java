@@ -20,7 +20,7 @@ public class GaldcupOption {
 
     // 어떤 투표 세션에 속하는지
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vote_session_id", nullable = false)
+    @JoinColumn(name = "voteSession_id", nullable = false)
     private VoteSession voteSession;
 
     // 선택지 이름 (예: 손흥민, 박지성)
@@ -32,6 +32,6 @@ public class GaldcupOption {
     private String description;
 
     // 해당 옵션에 대한 투표들
-    @OneToMany(mappedBy = "option", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "galdcupOption", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> votes;
 }
