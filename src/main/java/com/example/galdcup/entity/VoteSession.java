@@ -15,8 +15,8 @@ public class VoteSession {
 
     // 어떤 주제에 속하는 투표 세션인지
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "topic_id", nullable = false, unique = true)
-    private GaldcupTopic topic;
+    @JoinColumn(name = "galdcupTopic_id", nullable = false, unique = true)
+    private GaldcupTopic galdcupTopic;
 
     // 세션 시작/종료 시간
     @Column(nullable = false)
@@ -35,7 +35,7 @@ public class VoteSession {
 
     // 결과 (투표 종료 후 집계)
     @OneToOne(mappedBy = "voteSession", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private GaldcupResult result;
+    private GaldcupResult galdcupResult;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
