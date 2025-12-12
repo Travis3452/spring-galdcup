@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-
 
 @Entity
 @Table(name = "boards")
@@ -22,9 +22,9 @@ public class Board {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 어떤 Topic에 속하는 Board인지 (1:1)
+    // 어떤 GaldcupTopic에 속하는 Board인지 (1:1)
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "topic_id", nullable = false, unique = true)
+    @JoinColumn(name = "galdcupTopic_id", nullable = false, unique = true)
     private GaldcupTopic galdcupTopic;
 
     // 게시판 생성자 (관리자)
@@ -38,7 +38,7 @@ public class Board {
     private Status status;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Post> posts;
+    private List<Post> posts = new ArrayList<>();
 
     private LocalDateTime createdAt;
 
