@@ -15,7 +15,7 @@ public record BoardDto(
     public static BoardDto from(Board board) {
         return BoardDto.builder()
                 .id(board.getId())
-                .topicId(board.getTopic().getId())
+                .topicId(board.getGaldcupTopic().getId())
                 .status(board.getStatus())
                 .createdAt(board.getCreatedAt())
                 .build();
