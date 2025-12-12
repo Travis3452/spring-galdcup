@@ -26,8 +26,8 @@ public class SecurityConfig {
 
                 // OAuth2 로그인만 허용
                 .oauth2Login(oauth -> oauth
-                        .loginPage("")
-                        .defaultSuccessUrl("", true)
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/", true)
                 )
 
                 // 세션 관리 (JWT 기반이면 stateless로)
