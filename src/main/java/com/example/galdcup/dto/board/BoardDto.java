@@ -8,14 +8,14 @@ import java.time.LocalDateTime;
 @Builder
 public record BoardDto(
         Long id,
-        Long topicId,
+        String topic,
         Board.Status status,
         LocalDateTime createdAt
 ) {
     public static BoardDto from(Board board) {
         return BoardDto.builder()
                 .id(board.getId())
-                .topicId(board.getGaldcupTopic().getId())
+                .topic(board.getTopic())
                 .status(board.getStatus())
                 .createdAt(board.getCreatedAt())
                 .build();

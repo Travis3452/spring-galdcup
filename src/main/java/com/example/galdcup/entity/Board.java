@@ -9,36 +9,30 @@ import java.util.List;
 
 @Entity
 @Table(name = "boards")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Board {
 
     public enum Status { OPEN, CLOSED }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 어떤 GaldcupTopic에 속하는 Board인지 (1:1)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "galdcupTopic_id", nullable = false, unique = true)
-    private GaldcupTopic galdcupTopic;
+    @Column(nullable = false, length = 100)
+    private String topic;
 
-    // 게시판 생성자 (관리자)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id", nullable = false)
     private User admin;
 
-    // 게시판 상태 (OPEN, CLOSED)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts = new ArrayList<>();
+
+    @OneToOne(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private VoteSession voteSession;
 
     private LocalDateTime createdAt;
 
@@ -48,7 +42,6 @@ public class Board {
         status = Status.OPEN;
     }
 
-    // 게시판 닫기 로직
     public void closeBoard() {
         this.status = Status.CLOSED;
     }
