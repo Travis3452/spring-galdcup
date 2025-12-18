@@ -1,7 +1,6 @@
 package com.example.galdcup.controller;
 
 import com.example.galdcup.dto.user.*;
-import com.example.galdcup.entity.User;
 import com.example.galdcup.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,29 +21,31 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable Long id) {
-        Optional<User> userOpt = userService.findById(id);
-        return userOpt.map(u -> ResponseEntity.ok(UserDto.from(u)))
+        Optional<UserDto> userOpt = userService.findById(id);
+        return userOpt.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody CreateUserRequest request) {
-        User saved = userService.create(User.builder()
-                .oauthId(request.oauthId())
-                .email(request.email())
-                .nickname(request.nickname())
-                .role(User.Role.USER)
-                .build());
+        UserDto saved = userService.create(
+                com.example.galdcup.entity.User.builder()
+                        .oauthId(request.oauthId())
+                        .email(request.email())
+                        .nickname(request.nickname())
+                        .role(com.example.galdcup.entity.User.Role.USER)
+                        .build()
+        );
 
-        return ResponseEntity.created(URI.create("/api/users/" + saved.getId()))
-                .body(UserDto.from(saved));
+        return ResponseEntity.created(URI.create("/api/users/" + saved.id()))
+                .body(saved);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserDto> updateUser(@PathVariable Long id,
                                               @Valid @RequestBody UpdateUserRequest request) {
-        User updated = userService.updateProfile(id, request.email(), request.nickname());
-        return ResponseEntity.ok(UserDto.from(updated));
+        UserDto updated = userService.updateProfile(id, request.email(), request.nickname());
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
@@ -55,8 +56,8 @@ public class UserController {
 
     @PostMapping("/oauth/signin")
     public ResponseEntity<UserDto> oauthSignIn(@Valid @RequestBody OauthSignInRequest request) {
-        User user = userService.oauthSignIn(request.oauthId(), request.email(), request.nickname());
-        return ResponseEntity.ok(UserDto.from(user));
+        UserDto user = userService.oauthSignIn(request.oauthId(), request.email(), request.nickname());
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/me")
@@ -67,7 +68,7 @@ public class UserController {
         String email = principal.getAttribute("email");
         String nickname = principal.getAttribute("nickname");
 
-        User user = userService.oauthSignIn(oauthId, email, nickname);
-        return ResponseEntity.ok(UserDto.from(user));
+        UserDto user = userService.oauthSignIn(oauthId, email, nickname);
+        return ResponseEntity.ok(user);
     }
 }
