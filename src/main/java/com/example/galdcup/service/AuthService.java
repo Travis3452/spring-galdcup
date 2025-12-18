@@ -8,6 +8,7 @@ import com.example.galdcup.repository.RefreshTokenRepository;
 import com.example.galdcup.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +21,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final GoogleOAuthClient googleClient;
 
+    @Transactional
     public AuthDto handleGoogleCallback(String code, String redirectUri) {
         var tokens = googleClient.exchangeCodeForToken(code, redirectUri);
         var profile = googleClient.fetchUserProfile(tokens.accessToken());
@@ -38,6 +40,7 @@ public class AuthService {
     /**
      * 로그인/갱신 시 토큰 발급
      */
+    @Transactional
     public AuthDto createTokens(User user) {
         refreshTokenRepository.deleteByUser(user);
 
@@ -54,6 +57,7 @@ public class AuthService {
         return AuthDto.of(access, refresh, jwtService.getRefreshTokenMaxAgeSeconds());
     }
 
+    @Transactional
     public AuthDto refreshTokens(String refreshToken) {
         var claims = jwtService.parseRefreshToken(refreshToken);
         Long userId = Long.valueOf(claims.getSubject());

@@ -1,5 +1,6 @@
 package com.example.galdcup.service;
 
+import com.example.galdcup.dto.user.UserDto;
 import com.example.galdcup.entity.User;
 import com.example.galdcup.repository.UserRepository;
 import com.example.galdcup.security.AES256Encryptor;
@@ -24,34 +25,34 @@ public class UserService {
         this.encryptor = AES256Encryptor.fromBase64Key(base64Key);
     }
 
-    public Optional<User> findById(Long id) {
-        Optional<User> userOpt = userRepository.findById(id);
-        userOpt.ifPresent(this::decryptSensitiveFields);
-        return userOpt;
+    public Optional<UserDto> findById(Long id) {
+        return userRepository.findById(id)
+                .map(this::decryptToDto);
     }
 
-    public Optional<User> findByOauthId(String oauthId) {
+    public Optional<UserDto> findByOauthId(String oauthId) {
         String encryptedOauthId = encryptor.encrypt(oauthId);
-        Optional<User> userOpt = userRepository.findByOauthId(encryptedOauthId);
-        userOpt.ifPresent(this::decryptSensitiveFields);
-        return userOpt;
+        return userRepository.findByOauthId(encryptedOauthId)
+                .map(this::decryptToDto);
     }
 
     @Transactional
-    public User create(User user) {
+    public UserDto create(User user) {
         encryptSensitiveFields(user);
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        return decryptToDto(saved);
     }
 
     @Transactional
-    public User updateProfile(Long id, String email, String nickname) {
+    public UserDto updateProfile(Long id, String email, String nickname) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + id));
 
         if (email != null) user.setEmail(encryptor.encrypt(email));
         if (nickname != null) user.setNickname(nickname);
 
-        return userRepository.save(user);
+        User updated = userRepository.save(user);
+        return decryptToDto(updated);
     }
 
     @Transactional
@@ -60,15 +61,18 @@ public class UserService {
     }
 
     @Transactional
-    public User oauthSignIn(String oauthId, String email, String nickname) {
+    public UserDto oauthSignIn(String oauthId, String email, String nickname) {
         String encryptedOauthId = encryptor.encrypt(oauthId);
-        return userRepository.findByOauthId(encryptedOauthId)
-                .orElseGet(() -> create(User.builder()
+
+        User user = userRepository.findByOauthId(encryptedOauthId)
+                .orElseGet(() -> userRepository.save(User.builder()
                         .oauthId(encryptedOauthId)
                         .email(encryptor.encrypt(email))
                         .nickname(nickname)
                         .role(User.Role.USER)
                         .build()));
+
+        return decryptToDto(user);
     }
 
     private void encryptSensitiveFields(User user) {
@@ -80,12 +84,14 @@ public class UserService {
         }
     }
 
-    private void decryptSensitiveFields(User user) {
-        if (user.getEmail() != null) {
-            user.setEmail(encryptor.decrypt(user.getEmail()));
-        }
-        if (user.getOauthId() != null) {
-            user.setOauthId(encryptor.decrypt(user.getOauthId()));
-        }
+    private UserDto decryptToDto(User user) {
+        String decryptedEmail = user.getEmail() != null ? encryptor.decrypt(user.getEmail()) : null;
+
+        return new UserDto(
+                user.getId(),
+                decryptedEmail,
+                user.getNickname(),
+                user.getRole().name()
+        );
     }
 }

@@ -20,7 +20,7 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long expirationMillis;
 
-    @Value("${jwt.refresh-expiration-days:7}")
+    @Value("${jwt.refresh-expiration-days}")
     @Getter
     private int refreshExpDays;
 
@@ -28,6 +28,7 @@ public class JwtService {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
+    // AccessToken 생성
     public String createAccessToken(Object principal) {
         return Jwts.builder()
                 .setSubject(principal.toString())
@@ -37,24 +38,27 @@ public class JwtService {
                 .compact();
     }
 
+    // RefreshToken 생성
     public String createRefreshToken(Object principal) {
         long refreshMillis = System.currentTimeMillis() + (refreshExpDays * 24L * 60L * 60L * 1000L);
         return Jwts.builder()
                 .setSubject(principal.toString())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(refreshMillis))
-                .signWith(secretKey, SignatureAlgorithm.HS256) // 최신 방식
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
+    // RefreshToken 파싱
     public Claims parseRefreshToken(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(secretKey) // parserBuilder 사용
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
+    // RefreshToken MaxAge (초 단위)
     public int getRefreshTokenMaxAgeSeconds() {
         return refreshExpDays * 24 * 60 * 60;
     }
