@@ -11,6 +11,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -26,8 +28,20 @@ public class VoteService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        // 중복 투표 방지
         if (voteRepository.findByVoteSessionAndUser(session, user).isPresent()) {
             throw new IllegalStateException("이미 해당 게시판에 투표하였습니다.");
+        }
+
+        // 투표 시간 검증
+        LocalDateTime now = LocalDateTime.now();
+        if (now.isBefore(session.getStartTime()) || now.isAfter(session.getEndTime())) {
+            throw new IllegalStateException("현재는 투표 가능 시간이 아닙니다.");
+        }
+
+        // 옵션 인덱스 검증
+        if (selectedOptionIndex < 0 || selectedOptionIndex >= session.getOptions().size()) {
+            throw new IllegalArgumentException("잘못된 투표 옵션입니다.");
         }
 
         Vote vote = voteRepository.save(
@@ -39,11 +53,5 @@ public class VoteService {
         );
 
         return VoteDto.from(vote);
-    }
-
-    public long countVotes(Long voteSessionId, int selectedOptionIndex) {
-        VoteSession session = voteSessionRepository.findById(voteSessionId)
-                .orElseThrow(() -> new IllegalArgumentException("투표 세션을 찾을 수 없습니다."));
-        return voteRepository.countByVoteSessionAndSelectedOptionIndex(session, selectedOptionIndex);
     }
 }
