@@ -5,6 +5,8 @@ import com.example.galdcup.entity.Post;
 import com.example.galdcup.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,23 +21,21 @@ public class PostController {
 
     private final PostService postService;
 
-    // 특정 게시판의 게시글 전체 조회
+    // 특정 게시판의 게시글 전체 조회 (페이지네이션 적용)
     @GetMapping("/board/{boardId}")
-    public ResponseEntity<List<PostDto>> getPostsByBoard(@PathVariable Long boardId) {
-        List<PostDto> posts = postService.findByBoard(boardId)
-                .stream()
-                .map(PostDto::from)
-                .toList();
+    public ResponseEntity<Page<PostDto>> getPostsByBoard(@PathVariable Long boardId,
+                                                         Pageable pageable) {
+        Page<PostDto> posts = postService.findByBoard(boardId, pageable)
+                .map(PostDto::from);
         return ResponseEntity.ok(posts);
     }
 
-    // 특정 사용자가 작성한 게시글 조회
+    // 특정 사용자가 작성한 게시글 조회 (페이지네이션 적용)
     @GetMapping("/user/{nickname}")
-    public ResponseEntity<List<PostDto>> getPostsByUser(@PathVariable String nickname) {
-        List<PostDto> posts = postService.findByAuthorNickname(nickname)
-                .stream()
-                .map(PostDto::from)
-                .toList();
+    public ResponseEntity<Page<PostDto>> getPostsByUser(@PathVariable String nickname,
+                                                        Pageable pageable) {
+        Page<PostDto> posts = postService.findByAuthorNickname(nickname, pageable)
+                .map(PostDto::from);
         return ResponseEntity.ok(posts);
     }
 

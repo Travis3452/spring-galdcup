@@ -7,6 +7,8 @@ import com.example.galdcup.repository.BoardRepository;
 import com.example.galdcup.repository.PostRepository;
 import com.example.galdcup.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,16 +41,16 @@ public class PostService {
         return postRepository.save(post);
     }
 
-    // 특정 게시판의 게시글 조회
+    // 특정 게시판의 게시글 조회 (페이지네이션 적용)
     @Transactional(readOnly = true)
-    public List<Post> findByBoard(Long boardId) {
-        return postRepository.findByBoardId(boardId);
+    public Page<Post> findByBoard(Long boardId, Pageable pageable) {
+        return postRepository.findByBoardId(boardId, pageable);
     }
 
-    // 특정 사용자의 게시글 조회
+    // 특정 사용자의 게시글 조회 (페이지네이션 적용)
     @Transactional(readOnly = true)
-    public List<Post> findByAuthorNickname(String nickname) {
-        return postRepository.findByAuthorNickname(nickname);
+    public Page<Post> findByAuthorNickname(String nickname, Pageable pageable) {
+        return postRepository.findByAuthorNickname(nickname, pageable);
     }
 
     // 게시글 조회
