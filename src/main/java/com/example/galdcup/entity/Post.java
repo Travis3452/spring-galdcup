@@ -13,27 +13,34 @@ public class Post {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 어떤 Board에 속하는지
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
-    // 작성자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-    // 제목
     @Column(nullable = false, length = 50)
     private String title;
 
-    // 내용
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    // 댓글들
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
+
+    // 조회수
+    @Column(nullable = false)
+    private long view = 0;
+
+    // 좋아요 수
+    @Column(nullable = false)
+    private long like = 0;
+
+    // 싫어요 수
+    @Column(nullable = false)
+    private long dislike = 0;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
