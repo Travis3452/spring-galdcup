@@ -6,12 +6,13 @@ import com.example.galdcup.security.CustomUserDetails;
 import com.example.galdcup.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -23,21 +24,19 @@ public class CommentController {
 
     // 게시글의 댓글 조회
     @GetMapping("/post/{postId}")
-    public ResponseEntity<List<CommentDto>> getCommentsByPost(@PathVariable Long postId) {
-        List<CommentDto> comments = commentService.findByPost(postId)
-                .stream()
-                .map(CommentDto::from)
-                .toList();
+    public ResponseEntity<Page<CommentDto>> getCommentsByPost(@PathVariable Long postId,
+                                                              Pageable pageable) {
+        Page<CommentDto> comments = commentService.findByPost(postId, pageable)
+                .map(CommentDto::from);
         return ResponseEntity.ok(comments);
     }
 
     // 사용자가 작성한 댓글 조회
     @GetMapping("/user/{nickname}")
-    public ResponseEntity<List<CommentDto>> getCommentsByUser(@PathVariable String nickname) {
-        List<CommentDto> comments = commentService.findByAuthorNickname(nickname)
-                .stream()
-                .map(CommentDto::from)
-                .toList();
+    public ResponseEntity<Page<CommentDto>> getCommentsByUser(@PathVariable String nickname,
+                                                              Pageable pageable) {
+        Page<CommentDto> comments = commentService.findByAuthorNickname(nickname, pageable)
+                .map(CommentDto::from);
         return ResponseEntity.ok(comments);
     }
 

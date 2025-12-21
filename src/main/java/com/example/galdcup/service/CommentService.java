@@ -7,10 +7,11 @@ import com.example.galdcup.repository.CommentRepository;
 import com.example.galdcup.repository.PostRepository;
 import com.example.galdcup.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -23,14 +24,14 @@ public class CommentService {
 
     // 게시글의 댓글 전체 조회
     @Transactional(readOnly = true)
-    public List<Comment> findByPost(Long postId) {
-        return commentRepository.findByPostId(postId);
+    public Page<Comment> findByPost(Long postId, Pageable pageable) {
+        return commentRepository.findByPostId(postId, pageable);
     }
 
     // 사용자의 댓글 전체 조회 (nickname 기반)
     @Transactional(readOnly = true)
-    public List<Comment> findByAuthorNickname(String nickname) {
-        return commentRepository.findByAuthorNickname(nickname);
+    public Page<Comment> findByAuthorNickname(String nickname, Pageable pageable) {
+        return commentRepository.findByAuthorNickname(nickname, pageable);
     }
 
     // 특정 댓글 조회
