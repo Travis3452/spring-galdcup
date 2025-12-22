@@ -31,7 +31,4 @@ public class VoteSession {
 
     @OneToMany(mappedBy = "voteSession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> votes;
-
-    @Column(columnDefinition = "TEXT")
-    private String galdcupResultJson;
 }
