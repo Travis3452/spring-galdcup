@@ -40,14 +40,6 @@ public class CommentController {
         return ResponseEntity.ok(comments);
     }
 
-    // 특정 댓글 조회
-    @GetMapping("/{id}")
-    public ResponseEntity<CommentDto> getComment(@PathVariable Long id) {
-        Optional<Comment> comment = commentService.findById(id);
-        return comment.map(c -> ResponseEntity.ok(CommentDto.from(c)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
     // 댓글 작성
     @PostMapping
     public ResponseEntity<CommentDto> createComment(

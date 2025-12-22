@@ -54,12 +54,6 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/oauth/signin")
-    public ResponseEntity<UserDto> oauthSignIn(@Valid @RequestBody OauthSignInRequest request) {
-        UserDto user = userService.oauthSignIn(request.oauthId(), request.email(), request.nickname());
-        return ResponseEntity.ok(user);
-    }
-
     @GetMapping("/me")
     public ResponseEntity<UserDto> me(@AuthenticationPrincipal OAuth2User principal) {
         if (principal == null) return ResponseEntity.status(401).build();

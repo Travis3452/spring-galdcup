@@ -34,12 +34,6 @@ public class CommentService {
         return commentRepository.findByAuthorNickname(nickname, pageable);
     }
 
-    // 특정 댓글 조회
-    @Transactional(readOnly = true)
-    public Optional<Comment> findById(Long id) {
-        return commentRepository.findById(id);
-    }
-
     // 댓글 작성 (인증 필요)
     @Transactional
     public Comment create(Long postId, String oauthId, String content) {
