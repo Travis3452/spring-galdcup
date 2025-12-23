@@ -19,10 +19,10 @@ public class PostReactionService {
     private final UserRepository userRepository;
     private final PostReactionRepository reactionRepository;
 
-    public void addReaction(Long postId, Long userId, PostReaction.ReactionType type) {
+    public void addReaction(Long postId, Long currentUserId, PostReaction.ReactionType type) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         if (reactionRepository.findByPostAndUser(post, user).isPresent()) {

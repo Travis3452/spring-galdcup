@@ -9,6 +9,7 @@ import com.example.galdcup.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,9 +62,13 @@ public class PostService {
 
     // 게시글 수정
     @Transactional
-    public Post update(Long id, String title, String content) {
+    public Post update(Long id, Long authorId, String title, String content) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        if (!post.getAuthor().getId().equals(authorId)) {
+            throw new AccessDeniedException("이 게시글의 작성자가 아닙니다.");
+        }
 
         post.setTitle(title);
         post.setContent(content);
@@ -72,10 +77,14 @@ public class PostService {
 
     // 게시글 삭제
     @Transactional
-    public void delete(Long id) {
-        if (!postRepository.existsById(id)) {
-            throw new IllegalArgumentException("게시글을 찾을 수 없습니다.");
+    public void delete(Long id, Long authorId) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        if (!post.getAuthor().getId().equals(authorId)) {
+            throw new AccessDeniedException("이 게시글의 작성자가 아닙니다.");
         }
+
         postRepository.deleteById(id);
     }
 }

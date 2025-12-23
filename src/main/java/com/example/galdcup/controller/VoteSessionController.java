@@ -7,6 +7,7 @@ import com.example.galdcup.security.CustomUserDetails;
 import com.example.galdcup.service.VoteSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ public class VoteSessionController {
 
     private final VoteSessionService voteSessionService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<VoteSessionDto> createVoteSession(
             @PathVariable Long boardId,

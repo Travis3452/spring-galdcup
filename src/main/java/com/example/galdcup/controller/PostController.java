@@ -1,17 +1,20 @@
 package com.example.galdcup.controller;
 
-import com.example.galdcup.dto.post.*;
+import com.example.galdcup.dto.post.CreatePostRequest;
+import com.example.galdcup.dto.post.PostDto;
+import com.example.galdcup.dto.post.UpdatePostRequest;
 import com.example.galdcup.entity.Post;
+import com.example.galdcup.security.CustomUserDetails;
 import com.example.galdcup.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -49,8 +52,9 @@ public class PostController {
 
     // 게시글 작성
     @PostMapping
-    public ResponseEntity<PostDto> createPost(@Valid @RequestBody CreatePostRequest request) {
-        Post saved = postService.create(request.boardId(), request.authorId(), request.title(), request.content());
+    public ResponseEntity<PostDto> createPost(@Valid @RequestBody CreatePostRequest request,
+                                              @AuthenticationPrincipal CustomUserDetails principal) {
+        Post saved = postService.create(request.boardId(), principal.getId(), request.title(), request.content());
         return ResponseEntity.created(URI.create("/api/posts/" + saved.getId()))
                 .body(PostDto.from(saved));
     }
@@ -58,15 +62,17 @@ public class PostController {
     // 게시글 수정
     @PutMapping("/{id}")
     public ResponseEntity<PostDto> updatePost(@PathVariable Long id,
-                                              @Valid @RequestBody UpdatePostRequest request) {
-        Post updated = postService.update(id, request.title(), request.content());
+                                              @Valid @RequestBody UpdatePostRequest request,
+                                              @AuthenticationPrincipal CustomUserDetails principal) {
+        Post updated = postService.update(id, principal.getId(), request.title(), request.content());
         return ResponseEntity.ok(PostDto.from(updated));
     }
 
     // 게시글 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
-        postService.delete(id);
+    public ResponseEntity<Void> deletePost(@PathVariable Long id,
+                                           @AuthenticationPrincipal CustomUserDetails principal) {
+        postService.delete(id, principal.getId());
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,9 @@
 package com.example.galdcup.controller;
 
-import com.example.galdcup.dto.user.*;
+import com.example.galdcup.dto.user.CreateUserRequest;
+import com.example.galdcup.dto.user.UpdateUserRequest;
+import com.example.galdcup.dto.user.UserDto;
+import com.example.galdcup.security.CustomUserDetails;
 import com.example.galdcup.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ public class UserController {
 
     private final UserService userService;
 
+    // 특정 사용자 조회 (공개)
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable Long id) {
         Optional<UserDto> userOpt = userService.findById(id);
@@ -26,6 +30,7 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // 회원가입 (공개)
     @PostMapping
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody CreateUserRequest request) {
         UserDto saved = userService.create(
@@ -41,28 +46,39 @@ public class UserController {
                 .body(saved);
     }
 
+    // 프로필 수정 (본인만 가능)
     @PutMapping("/{id}")
     public ResponseEntity<UserDto> updateUser(@PathVariable Long id,
-                                              @Valid @RequestBody UpdateUserRequest request) {
-        UserDto updated = userService.updateProfile(id, request.email(), request.nickname());
+                                              @Valid @RequestBody UpdateUserRequest request,
+                                              @AuthenticationPrincipal CustomUserDetails principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        UserDto updated = userService.updateProfile(id, request.nickname(), principal.getId());
         return ResponseEntity.ok(updated);
     }
 
+    // 사용자 삭제 (본인만 가능)
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.delete(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id,
+                                           @AuthenticationPrincipal CustomUserDetails principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        userService.delete(id, principal.getId());
+
         return ResponseEntity.noContent().build();
     }
 
+    // 현재 로그인한 사용자 정보 조회
     @GetMapping("/me")
     public ResponseEntity<UserDto> me(@AuthenticationPrincipal OAuth2User principal) {
         if (principal == null) return ResponseEntity.status(401).build();
 
-        String oauthId = principal.getName();
-        String email = principal.getAttribute("email");
-        String nickname = principal.getAttribute("nickname");
-
-        UserDto user = userService.oauthSignIn(oauthId, email, nickname);
-        return ResponseEntity.ok(user);
+        return userService.findByOauthId(principal.getName())
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

@@ -1,6 +1,8 @@
 package com.example.galdcup.controller;
 
-import com.example.galdcup.dto.comment.*;
+import com.example.galdcup.dto.comment.CommentDto;
+import com.example.galdcup.dto.comment.CreateCommentRequest;
+import com.example.galdcup.dto.comment.UpdateCommentRequest;
 import com.example.galdcup.entity.Comment;
 import com.example.galdcup.security.CustomUserDetails;
 import com.example.galdcup.service.CommentService;
@@ -13,7 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/comments")

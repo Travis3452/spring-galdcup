@@ -44,11 +44,13 @@ public class UserService {
     }
 
     @Transactional
-    public UserDto updateProfile(Long id, String email, String nickname) {
+    public UserDto updateProfile(Long id, String nickname, Long currentUserId) {
+        if (!id.equals(currentUserId)) {
+            throw new IllegalArgumentException("본인만 프로필을 수정할 수 있습니다.");
+        }
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + id));
 
-        if (email != null) user.setEmail(encryptor.encrypt(email));
         if (nickname != null) user.setNickname(nickname);
 
         User updated = userRepository.save(user);
@@ -56,23 +58,11 @@ public class UserService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(Long id, Long currentUserId) {
+        if (!id.equals(currentUserId)) {
+            throw new IllegalArgumentException("본인 계정만 삭제할 수 있습니다.");
+        }
         userRepository.deleteById(id);
-    }
-
-    @Transactional
-    public UserDto oauthSignIn(String oauthId, String email, String nickname) {
-        String encryptedOauthId = encryptor.encrypt(oauthId);
-
-        User user = userRepository.findByOauthId(encryptedOauthId)
-                .orElseGet(() -> userRepository.save(User.builder()
-                        .oauthId(encryptedOauthId)
-                        .email(encryptor.encrypt(email))
-                        .nickname(nickname)
-                        .role(User.Role.USER)
-                        .build()));
-
-        return decryptToDto(user);
     }
 
     private void encryptSensitiveFields(User user) {
