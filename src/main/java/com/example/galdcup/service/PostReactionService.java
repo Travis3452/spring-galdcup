@@ -36,9 +36,9 @@ public class PostReactionService {
                 .build());
 
         if (type == PostReaction.ReactionType.LIKE) {
-            post.setLike(post.getLike() + 1);
+            post.setLikeCount(post.getLikeCount() + 1);
         } else {
-            post.setDislike(post.getDislike() + 1);
+            post.setDislikeCount(post.getDislikeCount() + 1);
         }
     }
 }
