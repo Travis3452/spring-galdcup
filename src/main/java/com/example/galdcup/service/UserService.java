@@ -5,7 +5,6 @@ import com.example.galdcup.entity.User;
 import com.example.galdcup.repository.UserRepository;
 import com.example.galdcup.security.AES256Encryptor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,12 +17,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final AES256Encryptor encryptor;
-
-    public UserService(UserRepository userRepository,
-                       @Value("${aes256.key}") String base64Key) {
-        this.userRepository = userRepository;
-        this.encryptor = AES256Encryptor.fromBase64Key(base64Key);
-    }
 
     public Optional<UserDto> findById(Long id) {
         return userRepository.findById(id)
