@@ -29,9 +29,9 @@ public class JwtService {
     }
 
     // AccessToken 생성
-    public String createAccessToken(Object principal) {
+    public String createAccessToken(Long userId) {
         return Jwts.builder()
-                .setSubject(principal.toString())
+                .setSubject(userId.toString())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMillis))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
@@ -39,10 +39,10 @@ public class JwtService {
     }
 
     // RefreshToken 생성
-    public String createRefreshToken(Object principal) {
+    public String createRefreshToken(Long userId) {
         long refreshMillis = System.currentTimeMillis() + (refreshExpDays * 24L * 60L * 60L * 1000L);
         return Jwts.builder()
-                .setSubject(principal.toString())
+                .setSubject(userId.toString())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(refreshMillis))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
