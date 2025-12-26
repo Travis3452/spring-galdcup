@@ -21,26 +21,20 @@ public class Post {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 100)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments;
+    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private long view;
 
-    // 조회수
-    @Column(nullable = false)
-    private long view = 0;
+    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private long likeCount;
 
-    // 좋아요 수
-    @Column(nullable = false)
-    private long like = 0;
-
-    // 싫어요 수
-    @Column(nullable = false)
-    private long dislike = 0;
+    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private long dislikeCount;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
