@@ -12,9 +12,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final BoardRepository boardRepository;
     private final UserRepository userRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
     // 게시글 생성
     @Transactional
@@ -57,7 +59,17 @@ public class PostService {
     // 게시글 조회
     @Transactional(readOnly = true)
     public Optional<Post> findById(Long id) {
-        return postRepository.findById(id);
+        Optional<Post> postOpt = postRepository.findById(id);
+        postOpt.ifPresent(post -> incrementViewCount(post.getId()));
+        return postOpt;
+    }
+
+    // Redis에 조회수 증가 기록
+    private void incrementViewCount(Long postId) {
+        String key = "post:view:" + postId;
+        redisTemplate.opsForValue().increment(key);
+
+        redisTemplate.expire(key, 1, TimeUnit.DAYS);
     }
 
     // 게시글 수정
@@ -86,5 +98,6 @@ public class PostService {
         }
 
         postRepository.deleteById(id);
+        redisTemplate.delete("post:view:" + id); // Redis 캐시도 삭제
     }
 }
