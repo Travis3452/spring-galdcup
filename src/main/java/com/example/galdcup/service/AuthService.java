@@ -2,24 +2,23 @@ package com.example.galdcup.service;
 
 import com.example.galdcup.client.GoogleOAuthClient;
 import com.example.galdcup.dto.auth.AuthDto;
-import com.example.galdcup.entity.RefreshToken;
 import com.example.galdcup.entity.User;
-import com.example.galdcup.repository.RefreshTokenRepository;
 import com.example.galdcup.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.redis.core.RedisTemplate;
 
-import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final GoogleOAuthClient googleClient;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Transactional
     public AuthDto handleGoogleCallback(String code, String redirectUri) {
@@ -42,25 +41,31 @@ public class AuthService {
      */
     @Transactional
     public AuthDto createTokens(User user) {
-        refreshTokenRepository.deleteByUser(user);
+        redisTemplate.delete("refresh:" + user.getId());
 
-        String refresh = jwtService.createRefreshToken(user);
-        RefreshToken entity = RefreshToken.builder()
-                .user(user)
-                .token(refresh)
-                .expiryDate(LocalDateTime.now().plusDays(jwtService.getRefreshExpDays()))
-                .build();
-        refreshTokenRepository.save(entity);
+        String refreshToken = jwtService.createRefreshToken(user.getId());
+        redisTemplate.opsForValue().set(
+                "refreshToken:" + user.getId(),
+                refreshToken,
+                jwtService.getRefreshTokenMaxAgeSeconds(),
+                TimeUnit.SECONDS
+        );
 
-        String access = jwtService.createAccessToken(user);
+        String accessToken = jwtService.createAccessToken(user.getId());
 
-        return AuthDto.of(access, refresh, jwtService.getRefreshTokenMaxAgeSeconds());
+        return AuthDto.of(accessToken, refreshToken, jwtService.getRefreshTokenMaxAgeSeconds());
     }
 
     @Transactional
     public AuthDto refreshTokens(String refreshToken) {
         var claims = jwtService.parseRefreshToken(refreshToken);
         Long userId = Long.valueOf(claims.getSubject());
+
+        String storedToken = redisTemplate.opsForValue().get("refresh:" + userId);
+        if (storedToken == null || !storedToken.equals(refreshToken)) {
+            throw new IllegalArgumentException("Invalid or expired refresh token");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
