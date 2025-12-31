@@ -30,7 +30,7 @@ public class BoardController {
             @Valid @RequestBody CreateBoardRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        BoardDto saved = boardService.create(request.topic(), principal.getUsername());
+        BoardDto saved = boardService.create(request.topic(), request.description(), principal.getUsername());
         return ResponseEntity.created(URI.create("/api/boards/" + saved.id()))
                 .body(saved);
     }
@@ -40,6 +40,14 @@ public class BoardController {
     public ResponseEntity<Page<BoardDto>> getBoards(Pageable pageable) {
         Page<BoardDto> boards = boardService.findAll(pageable);
         return ResponseEntity.ok(boards);
+    }
+
+    // 특정 게시판 조회
+    @GetMapping("/{id}")
+    public ResponseEntity<BoardDto> getBoard(@PathVariable Long id) {
+        return boardService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // 게시판 상태 변경
