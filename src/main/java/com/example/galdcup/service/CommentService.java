@@ -36,10 +36,10 @@ public class CommentService {
 
     // 댓글 작성 (인증 필요)
     @Transactional
-    public Comment create(Long postId, String oauthId, String content) {
+    public Comment create(Long postId, Long authorId, String content) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        User author = userRepository.findByOauthId(oauthId)
+        User author = userRepository.findById(authorId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Comment comment = Comment.builder()
@@ -53,11 +53,11 @@ public class CommentService {
 
     // 댓글 수정
     @Transactional
-    public Comment update(Long id, String oauthId, String content) {
+    public Comment update(Long id, Long authorId, String content) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
 
-        if (!comment.getAuthor().getOauthId().equals(oauthId)) {
+        if (!comment.getAuthor().getId().equals(authorId)) {
             throw new SecurityException("본인이 작성한 댓글만 수정할 수 있습니다.");
         }
 
@@ -67,11 +67,11 @@ public class CommentService {
 
     // 댓글 삭제
     @Transactional
-    public void delete(Long id, String oauthId) {
+    public void delete(Long id, Long authorId) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
 
-        if (!comment.getAuthor().getOauthId().equals(oauthId)) {
+        if (!comment.getAuthor().getId().equals(authorId)) {
             throw new SecurityException("본인이 작성한 댓글만 삭제할 수 있습니다.");
         }
 

@@ -48,7 +48,7 @@ public class CommentController {
             @AuthenticationPrincipal CustomUserDetails principal) {
         Comment comment = commentService.create(
                 request.postId(),
-                principal.getUsername(),
+                principal.getId(),
                 request.content()
         );
 
@@ -63,7 +63,7 @@ public class CommentController {
             @Valid @RequestBody UpdateCommentRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        Comment comment = commentService.update(id, principal.getUsername(), request.content());
+        Comment comment = commentService.update(id, principal.getId(), request.content());
         return ResponseEntity.ok(CommentDto.from(comment));
     }
 
@@ -73,7 +73,7 @@ public class CommentController {
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        commentService.delete(id, principal.getUsername());
+        commentService.delete(id, principal.getId());
         return ResponseEntity.noContent().build();
     }
 }
