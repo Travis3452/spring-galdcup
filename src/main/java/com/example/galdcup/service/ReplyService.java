@@ -22,10 +22,10 @@ public class ReplyService {
 
     // 대댓글 작성
     @Transactional
-    public Reply create(Long commentId, String oauthId, String content) {
+    public Reply create(Long commentId, Long authorId, String content) {
         Comment parentComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("부모 댓글을 찾을 수 없습니다."));
-        User author = userRepository.findByOauthId(oauthId)
+        User author = userRepository.findById(authorId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Reply reply = Reply.builder()
@@ -45,11 +45,11 @@ public class ReplyService {
 
     // 대댓글 수정
     @Transactional
-    public Reply update(Long replyId, String oauthId, String content) {
+    public Reply update(Long replyId, Long authorId, String content) {
         Reply reply = replyRepository.findById(replyId)
                 .orElseThrow(() -> new IllegalArgumentException("대댓글을 찾을 수 없습니다."));
 
-        if (!reply.getCreatedBy().getOauthId().equals(oauthId)) {
+        if (!reply.getCreatedBy().getId().equals(authorId)) {
             throw new SecurityException("본인이 작성한 대댓글만 수정할 수 있습니다.");
         }
 
