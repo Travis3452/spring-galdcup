@@ -55,19 +55,19 @@ public class BoardService {
 
     // 게시판 생성
     @Transactional
-    public BoardDto create(String topic, String adminOauthId) {
+    public BoardDto create(String topic, String description, String adminOauthId) {
         User admin = userRepository.findByOauthId(adminOauthId)
                 .orElseThrow(() -> new IllegalArgumentException("관리자를 찾을 수 없습니다."));
 
         Board board = Board.builder()
                 .topic(topic)
+                .description(description)
                 .admin(admin)
                 .status(Board.Status.OPEN)
                 .build();
 
         Board saved = boardRepository.save(board);
 
-        // 캐시 무효화 (목록 캐시 삭제)
         redisTemplate.delete(BOARD_PAGE_KEY_PREFIX + "*");
 
         return BoardDto.from(saved);
