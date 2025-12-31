@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public record PostDto(
         Long id,
         Long boardId,
-        Long authorId,
+        String authorNickname,
         String title,
         String content,
         LocalDateTime createdAt
@@ -18,7 +18,7 @@ public record PostDto(
         return PostDto.builder()
                 .id(post.getId())
                 .boardId(post.getBoard().getId())
-                .authorId(post.getAuthor().getId())
+                .authorNickname(post.getAuthor().getNickname())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .createdAt(post.getCreatedAt())
