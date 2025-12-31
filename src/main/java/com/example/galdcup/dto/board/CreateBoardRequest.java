@@ -4,5 +4,5 @@ import jakarta.validation.constraints.NotNull;
 
 public record CreateBoardRequest(
         @NotNull String topic,
-        @NotNull Long authorId
+        String description
 ) {}
