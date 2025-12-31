@@ -5,7 +5,7 @@ spring:
   data:
     web:
       pageable:
-        default-page-size: 20
+        default-page-size: 30
         max-page-size: 50
 
   datasource:
@@ -33,6 +33,7 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: http://localhost:8080/api/auth/callback/google
             scope:
               - email
               - profile
