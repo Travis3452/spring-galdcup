@@ -1,12 +1,16 @@
 package com.example.galdcup.controller;
 
 import com.example.galdcup.dto.auth.AuthDto;
+import com.example.galdcup.security.CustomUserDetails;
 import com.example.galdcup.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -15,18 +19,14 @@ public class AuthController {
 
     private final AuthService authService;
 
-    /**
-     * 구글 OAuth 콜백 처리
-     */
+    // 구글 OAuth 콜백 처리
     @GetMapping("/callback/google")
-    public ResponseEntity<AuthDto> googleCallback(
+    public void googleCallback(
             @RequestParam("code") String code,
-            @RequestParam("redirect_uri") String redirectUri,
             HttpServletResponse response
-    ) {
-        AuthDto result = authService.handleGoogleCallback(code, redirectUri);
+    ) throws IOException {
+        AuthDto result = authService.handleGoogleCallback(code);
 
-        // RefreshToken 쿠키 설정
         Cookie refreshCookie = new Cookie("refreshToken", result.refreshToken());
         refreshCookie.setHttpOnly(true);
         refreshCookie.setSecure(true);
@@ -35,12 +35,10 @@ public class AuthController {
         refreshCookie.setAttribute("SameSite", "Strict");
         response.addCookie(refreshCookie);
 
-        return ResponseEntity.ok(result);
+        response.sendRedirect("http://localhost:5173/auth/callback/google");
     }
 
-    /**
-     * RefreshToken으로 AccessToken 갱신
-     */
+    // RefreshToken으로 AccessToken 갱신
     @PostMapping("/refresh")
     public ResponseEntity<AuthDto> refresh(
             @CookieValue(value = "refreshToken", required = false) String refreshToken,
@@ -57,5 +55,23 @@ public class AuthController {
         response.addCookie(refreshCookie);
 
         return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @AuthenticationPrincipal CustomUserDetails user,
+            HttpServletResponse response
+    ) {
+        authService.deleteRefreshTokens(user.getId());
+
+        Cookie refreshCookie = new Cookie("refreshToken", null);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(true);
+        refreshCookie.setPath("/");
+        refreshCookie.setMaxAge(0);
+        refreshCookie.setAttribute("SameSite", "None");
+        response.addCookie(refreshCookie);
+
+        return ResponseEntity.noContent().build();
     }
 }
