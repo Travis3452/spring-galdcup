@@ -6,13 +6,15 @@ import lombok.Builder;
 public record AuthDto(
         String accessToken,
         String refreshToken,
-        int refreshTokenMaxAge
+        int refreshTokenMaxAge,
+        String nickname
 ) {
-    public static AuthDto of(String accessToken, String refreshToken, int refreshTokenMaxAge) {
+    public static AuthDto of(String accessToken, String refreshToken, int maxAge, String nickname) {
         return AuthDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .refreshTokenMaxAge(refreshTokenMaxAge)
+                .refreshTokenMaxAge(maxAge)
+                .nickname(nickname)
                 .build();
     }
 }

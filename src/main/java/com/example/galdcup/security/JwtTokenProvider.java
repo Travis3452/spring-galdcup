@@ -1,37 +1,44 @@
-package com.example.galdcup.service;
+package com.example.galdcup.security;
 
+import com.example.galdcup.entity.User;
+import com.example.galdcup.repository.UserRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 
 @Service
-public class JwtService {
+public class JwtTokenProvider {
 
+    private final UserRepository userRepository;
     private final SecretKey secretKey;
 
     @Value("${jwt.expiration}")
     private long expirationMillis;
 
     @Value("${jwt.refresh-expiration-days}")
-    @Getter
     private int refreshExpDays;
 
-    public JwtService(@Value("${jwt.secret}") String secret) {
+    public JwtTokenProvider(UserRepository userRepository, @Value("${jwt.secret}") String secret) {
+        this.userRepository = userRepository;
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // AccessToken 생성
-    public String createAccessToken(Long userId) {
+    // AccessToken 생성 (권한 포함)
+    public String createAccessToken(Long userId, List<String> roles) {
         return Jwts.builder()
                 .setSubject(userId.toString())
+                .claim("roles", roles)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMillis))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
@@ -49,8 +56,31 @@ public class JwtService {
                 .compact();
     }
 
-    // RefreshToken 파싱
-    public Claims parseRefreshToken(String token) {
+    // 토큰 유효성 검사
+    public boolean validateToken(String token) {
+        try {
+            parseClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    // 토큰에서 Authentication 객체 추출
+    public Authentication getAuthentication(String token) {
+        Claims claims = parseClaims(token);
+        Long userId = Long.parseLong(claims.getSubject());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+
+        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    }
+
+    // Claims 파싱
+    public Claims parseClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
@@ -61,5 +91,10 @@ public class JwtService {
     // RefreshToken MaxAge (초 단위)
     public int getRefreshTokenMaxAgeSeconds() {
         return refreshExpDays * 24 * 60 * 60;
+    }
+
+    // RefreshToken 파싱
+    public Claims parseRefreshToken(String token) {
+        return parseClaims(token);
     }
 }
