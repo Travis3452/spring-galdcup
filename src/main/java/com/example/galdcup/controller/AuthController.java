@@ -30,9 +30,9 @@ public class AuthController {
         Cookie refreshCookie = new Cookie("refreshToken", result.refreshToken());
         refreshCookie.setHttpOnly(true);
         refreshCookie.setSecure(true);
-        refreshCookie.setPath("/api/auth");
+        refreshCookie.setPath("/");
         refreshCookie.setMaxAge(result.refreshTokenMaxAge());
-        refreshCookie.setAttribute("SameSite", "Strict");
+        refreshCookie.setAttribute("SameSite", "None");
         response.addCookie(refreshCookie);
 
         response.sendRedirect("http://localhost:5173/auth/callback/google");
@@ -49,9 +49,9 @@ public class AuthController {
         Cookie refreshCookie = new Cookie("refreshToken", result.refreshToken());
         refreshCookie.setHttpOnly(true);
         refreshCookie.setSecure(true);
-        refreshCookie.setPath("/api/auth");
+        refreshCookie.setPath("/");
         refreshCookie.setMaxAge(result.refreshTokenMaxAge());
-        refreshCookie.setAttribute("SameSite", "Strict");
+        refreshCookie.setAttribute("SameSite", "None");
         response.addCookie(refreshCookie);
 
         return ResponseEntity.ok(result);
