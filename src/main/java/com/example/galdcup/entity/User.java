@@ -30,7 +30,7 @@ public class User {
 
     @NotBlank
     @Size(min = 2, max = 20)
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String nickname;
 
     @Enumerated(EnumType.STRING)

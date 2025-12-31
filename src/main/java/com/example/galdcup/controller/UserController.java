@@ -22,7 +22,7 @@ public class UserController {
 
     private final UserService userService;
 
-    // 특정 사용자 조회 (공개)
+    // 특정 사용자 조회
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable Long id) {
         Optional<UserDto> userOpt = userService.findById(id);
@@ -30,7 +30,7 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // 회원가입 (공개)
+    // 회원가입
     @PostMapping
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody CreateUserRequest request) {
         UserDto saved = userService.create(
