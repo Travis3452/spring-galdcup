@@ -17,9 +17,9 @@ public class ViewSyncScheduler {
     private final PostRepository postRepository;
 
     /**
-     * 1분마다 Redis 조회수를 DB에 반영
+     * 10초마다 Redis 조회수를 DB에 반영
      */
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 10000)
     @Transactional
     public void syncViewsToDb() {
         Set<String> keys = redisTemplate.keys("post:view:*");
