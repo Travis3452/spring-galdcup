@@ -17,18 +17,20 @@ public class AES256Encryptor {
     private final SecretKey secretKey;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public AES256Encryptor(byte[] keyBytes) {
+    private AES256Encryptor(byte[] keyBytes) {
         if (keyBytes == null || keyBytes.length != KEY_SIZE) {
             throw new IllegalArgumentException("AES-256은 32바이트 키가 필요합니다.");
         }
         this.secretKey = new SecretKeySpec(keyBytes, ALGORITHM);
     }
 
+    /** Base64 인코딩된 키로 Encryptor 생성 */
     public static AES256Encryptor fromBase64Key(String base64Key) {
         byte[] keyBytes = Base64.getDecoder().decode(base64Key);
         return new AES256Encryptor(keyBytes);
     }
 
+    /** 암호화 */
     public String encrypt(String plainText) {
         try {
             byte[] iv = new byte[IV_SIZE];
@@ -49,6 +51,7 @@ public class AES256Encryptor {
         }
     }
 
+    /** 복호화 */
     public String decrypt(String base64IvAndCipherText) {
         try {
             byte[] ivPlusCipher = Base64.getDecoder().decode(base64IvAndCipherText);
