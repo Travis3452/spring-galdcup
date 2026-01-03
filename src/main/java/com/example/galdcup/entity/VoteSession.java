@@ -29,6 +29,11 @@ public class VoteSession {
     @Column(name = "label", nullable = false)
     private List<String> options = new ArrayList<>();
 
+    @ElementCollection
+    @CollectionTable(name = "vote_session_option_images", joinColumns = @JoinColumn(name = "vote_session_id"))
+    @Column(name = "image_url", nullable = false)
+    private List<String> optionImages = new ArrayList<>();
+
     @OneToMany(mappedBy = "voteSession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> votes;
 }

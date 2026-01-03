@@ -30,9 +30,16 @@ public class VoteSessionController {
                 principal.getId(),
                 request.startTime(),
                 request.endTime(),
-                request.options()
+                request.options(),
+                request.optionImages()
         );
 
+        return ResponseEntity.ok(VoteSessionDto.from(voteSession));
+    }
+
+    @GetMapping
+    public ResponseEntity<VoteSessionDto> getVoteSession(@PathVariable Long boardId) {
+        VoteSession voteSession = voteSessionService.getVoteSession(boardId);
         return ResponseEntity.ok(VoteSessionDto.from(voteSession));
     }
 }

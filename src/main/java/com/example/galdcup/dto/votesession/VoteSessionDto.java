@@ -1,7 +1,6 @@
 package com.example.galdcup.dto.votesession;
 
 import com.example.galdcup.entity.VoteSession;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,7 +9,8 @@ public record VoteSessionDto(
         Long boardId,
         LocalDateTime startTime,
         LocalDateTime endTime,
-        List<String> options
+        List<String> options,
+        List<String> optionImages
 ) {
     public static VoteSessionDto from(VoteSession voteSession) {
         return new VoteSessionDto(
@@ -18,8 +18,8 @@ public record VoteSessionDto(
                 voteSession.getBoard().getId(),
                 voteSession.getStartTime(),
                 voteSession.getEndTime(),
-                voteSession.getOptions()
+                voteSession.getOptions(),
+                voteSession.getOptionImages()
         );
     }
 }
-
