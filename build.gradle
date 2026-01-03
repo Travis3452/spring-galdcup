@@ -46,6 +46,8 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+    implementation 'commons-codec:commons-codec:1.16.0'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
