@@ -6,5 +6,6 @@ import java.util.List;
 public record CreateVoteSessionRequest(
         LocalDateTime startTime,
         LocalDateTime endTime,
-        List<String> options
+        List<String> options,
+        List<String> optionImages
 ) {}
