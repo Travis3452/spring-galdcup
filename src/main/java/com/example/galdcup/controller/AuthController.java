@@ -11,6 +11,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,13 +31,20 @@ public class AuthController {
 
         Cookie refreshCookie = new Cookie("refreshToken", result.refreshToken());
         refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true);
+        refreshCookie.setSecure(false);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(result.refreshTokenMaxAge());
         refreshCookie.setAttribute("SameSite", "None");
         response.addCookie(refreshCookie);
 
-        response.sendRedirect("http://localhost:5173/auth/callback/google");
+        String redirectUrl = String.format(
+                "http://localhost:5173/auth/callback/google?accessToken=%s&nickname=%s",
+                URLEncoder.encode(result.accessToken(), StandardCharsets.UTF_8),
+                URLEncoder.encode(result.nickname(), StandardCharsets.UTF_8)
+        );
+
+
+        response.sendRedirect(redirectUrl);
     }
 
     // RefreshToken으로 AccessToken 갱신
@@ -48,7 +57,7 @@ public class AuthController {
 
         Cookie refreshCookie = new Cookie("refreshToken", result.refreshToken());
         refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true);
+        refreshCookie.setSecure(false);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(result.refreshTokenMaxAge());
         refreshCookie.setAttribute("SameSite", "None");
@@ -66,7 +75,7 @@ public class AuthController {
 
         Cookie refreshCookie = new Cookie("refreshToken", null);
         refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true);
+        refreshCookie.setSecure(false);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(0);
         refreshCookie.setAttribute("SameSite", "None");
