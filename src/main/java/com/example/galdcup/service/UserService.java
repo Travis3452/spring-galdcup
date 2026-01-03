@@ -5,6 +5,7 @@ import com.example.galdcup.entity.User;
 import com.example.galdcup.repository.UserRepository;
 import com.example.galdcup.security.AES256Encryptor;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,24 +19,21 @@ public class UserService {
     private final UserRepository userRepository;
     private final AES256Encryptor encryptor;
 
+    /** ID로 사용자 조회 후 DTO 반환 */
     public Optional<UserDto> findById(Long id) {
         return userRepository.findById(id)
                 .map(this::decryptToDto);
     }
 
-    public Optional<UserDto> findByOauthId(String oauthId) {
-        String encryptedOauthId = encryptor.encrypt(oauthId);
-        return userRepository.findByOauthId(encryptedOauthId)
+    /** 평문 OAuth ID로 사용자 조회 (복호화 후 비교) */
+    public Optional<UserDto> findByOauthId(String oauthIdPlain) {
+        return userRepository.findAll().stream()
+                .filter(user -> oauthIdPlain.equals(encryptor.decrypt(user.getOauthIdEncrypted())))
+                .findFirst()
                 .map(this::decryptToDto);
     }
 
-    @Transactional
-    public UserDto create(User user) {
-        encryptSensitiveFields(user);
-        User saved = userRepository.save(user);
-        return decryptToDto(saved);
-    }
-
+    /** 사용자 프로필 수정 (본인만 가능) */
     @Transactional
     public UserDto updateProfile(Long id, String nickname, Long currentUserId) {
         if (!id.equals(currentUserId)) {
@@ -50,6 +48,7 @@ public class UserService {
         return decryptToDto(updated);
     }
 
+    /** 사용자 삭제 (본인만 가능) */
     @Transactional
     public void delete(Long id, Long currentUserId) {
         if (!id.equals(currentUserId)) {
@@ -58,17 +57,11 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    private void encryptSensitiveFields(User user) {
-        if (user.getEmail() != null) {
-            user.setEmail(encryptor.encrypt(user.getEmail()));
-        }
-        if (user.getOauthId() != null) {
-            user.setOauthId(encryptor.encrypt(user.getOauthId()));
-        }
-    }
-
+    /** 엔티티를 DTO로 변환 (이메일, OAuth ID 복호화 포함) */
     private UserDto decryptToDto(User user) {
-        String decryptedEmail = user.getEmail() != null ? encryptor.decrypt(user.getEmail()) : null;
+        String decryptedEmail = user.getEmailEncrypted() != null
+                ? encryptor.decrypt(user.getEmailEncrypted())
+                : null;
 
         return new UserDto(
                 user.getId(),

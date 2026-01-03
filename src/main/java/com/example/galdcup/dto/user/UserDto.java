@@ -1,10 +1,13 @@
 package com.example.galdcup.dto.user;
 
+import com.example.galdcup.entity.User;
+
 public record UserDto(Long id, String email, String nickname, String role) {
-    public static UserDto from(com.example.galdcup.entity.User user) {
+
+    public static UserDto from(User user, String decryptedEmail) {
         return new UserDto(
                 user.getId(),
-                user.getEmail(),
+                decryptedEmail,
                 user.getNickname(),
                 user.getRole().name()
         );

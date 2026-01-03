@@ -1,6 +1,5 @@
 package com.example.galdcup.controller;
 
-import com.example.galdcup.dto.user.CreateUserRequest;
 import com.example.galdcup.dto.user.UpdateUserRequest;
 import com.example.galdcup.dto.user.UserDto;
 import com.example.galdcup.security.CustomUserDetails;
@@ -12,7 +11,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.Optional;
 
 @RestController
@@ -22,7 +20,7 @@ public class UserController {
 
     private final UserService userService;
 
-    // 특정 사용자 조회
+    /** 특정 사용자 조회 */
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable Long id) {
         Optional<UserDto> userOpt = userService.findById(id);
@@ -30,23 +28,7 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // 회원가입
-    @PostMapping
-    public ResponseEntity<UserDto> createUser(@Valid @RequestBody CreateUserRequest request) {
-        UserDto saved = userService.create(
-                com.example.galdcup.entity.User.builder()
-                        .oauthId(request.oauthId())
-                        .email(request.email())
-                        .nickname(request.nickname())
-                        .role(com.example.galdcup.entity.User.Role.USER)
-                        .build()
-        );
-
-        return ResponseEntity.created(URI.create("/api/users/" + saved.id()))
-                .body(saved);
-    }
-
-    // 프로필 수정 (본인만 가능)
+    /** 프로필 수정 (본인만 가능) */
     @PutMapping("/{id}")
     public ResponseEntity<UserDto> updateUser(@PathVariable Long id,
                                               @Valid @RequestBody UpdateUserRequest request,
@@ -59,7 +41,7 @@ public class UserController {
         return ResponseEntity.ok(updated);
     }
 
-    // 사용자 삭제 (본인만 가능)
+    /** 사용자 삭제 (본인만 가능) */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id,
                                            @AuthenticationPrincipal CustomUserDetails principal) {
@@ -68,11 +50,10 @@ public class UserController {
         }
 
         userService.delete(id, principal.getId());
-
         return ResponseEntity.noContent().build();
     }
 
-    // 현재 로그인한 사용자 정보 조회
+    /** 현재 로그인한 사용자 정보 조회 */
     @GetMapping("/me")
     public ResponseEntity<UserDto> me(@AuthenticationPrincipal OAuth2User principal) {
         if (principal == null) return ResponseEntity.status(401).build();

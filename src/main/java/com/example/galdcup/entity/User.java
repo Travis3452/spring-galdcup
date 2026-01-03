@@ -1,63 +1,32 @@
 package com.example.galdcup.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
-@Table(name = "users")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Size(max = 100)
-    @Column(nullable = false, unique = true)
-    private String oauthId;
+    private String emailEncrypted;   // AES 암호화된 이메일
+    private String emailHash;        // SHA-256 해시된 이메일
 
-    @Email
-    @Size(max = 50)
-    @Column(unique = true)
-    private String email;
+    private String oauthIdEncrypted; // AES 암호화된 OAuth ID
+    private String oauthIdHash;      // SHA-256 해시된 OAuth ID
 
-    @NotBlank
-    @Size(min = 2, max = 20)
-    @Column(nullable = false)
     private String nickname;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Role role;
 
-    public enum Role { USER, ADMIN }
-
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Post> posts = new ArrayList<>();
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private RefreshToken refreshToken;
-
-    @PrePersist
-    public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
-        role = role == null ? Role.USER : role;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
+    public enum Role {
+        USER, ADMIN
     }
 }
