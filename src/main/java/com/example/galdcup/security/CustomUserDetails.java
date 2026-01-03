@@ -17,23 +17,27 @@ public class CustomUserDetails implements UserDetails {
         this.user = user;
     }
 
+    /** 사용자 PK 반환 */
     public Long getId() {
         return user.getId();
     }
 
+    /** 권한(Role) 반환 */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(() -> "ROLE_" + user.getRole().name());
     }
 
+    /** OAuth 로그인이라 비밀번호는 없음 */
     @Override
     public String getPassword() {
-        return ""; // OAuth로 로그인 하기 때문에 비밀번호 없음
+        return "";
     }
 
+    /** username은 PK(Long id)를 문자열로 반환 */
     @Override
     public String getUsername() {
-        return user.getOauthId();
+        return String.valueOf(user.getId()); // ✅ subject와 일치
     }
 
     @Override

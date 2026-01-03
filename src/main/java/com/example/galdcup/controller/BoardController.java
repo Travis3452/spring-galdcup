@@ -14,40 +14,32 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-
 @RestController
-@RequestMapping("/api/boards")
 @RequiredArgsConstructor
+@RequestMapping("/api/boards")
 public class BoardController {
 
     private final BoardService boardService;
 
-    // 게시판 생성
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<BoardDto> createBoard(
-            @Valid @RequestBody CreateBoardRequest request,
-            @AuthenticationPrincipal CustomUserDetails principal) {
-
-        BoardDto saved = boardService.create(request.topic(), request.description(), principal.getUsername());
-        return ResponseEntity.created(URI.create("/api/boards/" + saved.id()))
-                .body(saved);
-    }
-
-    // 게시판 전체 조회
     @GetMapping
     public ResponseEntity<Page<BoardDto>> getBoards(Pageable pageable) {
         Page<BoardDto> boards = boardService.findAll(pageable);
         return ResponseEntity.ok(boards);
     }
 
-    // 특정 게시판 조회
     @GetMapping("/{id}")
     public ResponseEntity<BoardDto> getBoard(@PathVariable Long id) {
         return boardService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 게시판 생성
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    public BoardDto createBoard(@RequestBody CreateBoardRequest request,
+                                @AuthenticationPrincipal CustomUserDetails principal) {
+        return boardService.create(request.topic(), request.description(), principal.getId());
     }
 
     // 게시판 상태 변경
@@ -58,7 +50,7 @@ public class BoardController {
             @Valid @RequestBody UpdateBoardRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        BoardDto updated = boardService.updateStatus(id, request.status(), principal.getUsername());
+        BoardDto updated = boardService.updateStatus(id, request.status(), principal.getId());
         return ResponseEntity.ok(updated);
     }
 
@@ -69,7 +61,7 @@ public class BoardController {
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        boardService.delete(id, principal.getUsername());
+        boardService.delete(id, principal.getId());
         return ResponseEntity.noContent().build();
     }
 }

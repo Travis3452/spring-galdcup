@@ -53,10 +53,10 @@ public class BoardService {
         return boardRepository.findById(id).map(BoardDto::from);
     }
 
-    // 게시판 생성
+    // 게시판 생성 (관리자 PK 기반)
     @Transactional
-    public BoardDto create(String topic, String description, String adminOauthId) {
-        User admin = userRepository.findByOauthId(adminOauthId)
+    public BoardDto create(String topic, String description, Long adminId) {
+        User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new IllegalArgumentException("관리자를 찾을 수 없습니다."));
 
         Board board = Board.builder()
@@ -73,13 +73,13 @@ public class BoardService {
         return BoardDto.from(saved);
     }
 
-    // 게시판 상태 변경
+    // 게시판 상태 변경 (현재 사용자 PK 기반)
     @Transactional
-    public BoardDto updateStatus(Long boardId, Board.Status newStatus, String currentUserOauthId) {
+    public BoardDto updateStatus(Long boardId, Board.Status newStatus, Long currentUserId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
 
-        if (!board.getAdmin().getOauthId().equals(currentUserOauthId)) {
+        if (!board.getAdmin().getId().equals(currentUserId)) {
             throw new AccessDeniedException("이 게시판의 관리자가 아닙니다.");
         }
 
@@ -92,14 +92,18 @@ public class BoardService {
         return BoardDto.from(updated);
     }
 
-    // 게시판 삭제
+    // 게시판 삭제 (현재 사용자 PK 기반)
     @Transactional
-    public void delete(Long id, String oauthId) {
-        User admin = userRepository.findByOauthId(oauthId)
+    public void delete(Long id, Long currentUserId) {
+        User admin = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+
+        if (!board.getAdmin().getId().equals(admin.getId())) {
+            throw new AccessDeniedException("이 게시판의 관리자가 아닙니다.");
+        }
 
         boardRepository.delete(board);
 

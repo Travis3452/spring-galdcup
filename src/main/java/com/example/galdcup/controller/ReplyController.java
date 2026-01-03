@@ -57,7 +57,7 @@ public class ReplyController {
     public ResponseEntity<Void> deleteReply(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails principal) {
-        replyService.delete(id, principal.getUsername());
+        replyService.delete(id, principal.getId());
         return ResponseEntity.noContent().build();
     }
 }

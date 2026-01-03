@@ -59,11 +59,11 @@ public class ReplyService {
 
     // 대댓글 삭제
     @Transactional
-    public void delete(Long replyId, String oauthId) {
+    public void delete(Long replyId, Long authorId) {
         Reply reply = replyRepository.findById(replyId)
                 .orElseThrow(() -> new IllegalArgumentException("대댓글을 찾을 수 없습니다."));
 
-        if (!reply.getCreatedBy().getOauthId().equals(oauthId)) {
+        if (!reply.getCreatedBy().getId().equals(authorId)) {
             throw new SecurityException("본인이 작성한 대댓글만 삭제할 수 있습니다.");
         }
 
