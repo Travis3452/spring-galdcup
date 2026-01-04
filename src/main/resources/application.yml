@@ -2,14 +2,8 @@ spring:
   application:
     name: galdcup
 
-  data:
-    web:
-      pageable:
-        default-page-size: 30
-        max-page-size: 50
-
   datasource:
-    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${MYSQLUSER}
     password: ${MYSQLPASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -22,11 +16,12 @@ spring:
       hibernate:
         format_sql: true
 
-  redis:
-    host: ${REDISHOST}
-    port: ${REDISPORT}
-    username: ${REDISUSER}
-    password: ${REDISPASSWORD}
+  data:
+    redis:
+      host: ${REDISHOST}
+      port: ${REDISPORT}
+      username: ${REDISUSER}
+      password: ${REDISPASSWORD}
 
   security:
     oauth2:
