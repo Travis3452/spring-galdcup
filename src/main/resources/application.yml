@@ -49,5 +49,8 @@ jwt:
   expiration: 3600000
   refresh-expiration-days: 7
 
+frontend:
+  url: https://galdcup-frontend.onrender.com
+
 server:
   port: 8080

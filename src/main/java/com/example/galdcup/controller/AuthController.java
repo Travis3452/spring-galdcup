@@ -6,6 +6,7 @@ import com.example.galdcup.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,9 @@ import java.nio.charset.StandardCharsets;
 public class AuthController {
 
     private final AuthService authService;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     // 구글 OAuth 콜백 처리
     @GetMapping("/callback/google")
@@ -38,11 +42,11 @@ public class AuthController {
         response.addCookie(refreshCookie);
 
         String redirectUrl = String.format(
-                "http://localhost:5173/auth/callback/google?accessToken=%s&nickname=%s",
+                "%s/auth/callback/google?accessToken=%s&nickname=%s",
+                frontendUrl,
                 URLEncoder.encode(result.accessToken(), StandardCharsets.UTF_8),
                 URLEncoder.encode(result.nickname(), StandardCharsets.UTF_8)
         );
-
 
         response.sendRedirect(redirectUrl);
     }
