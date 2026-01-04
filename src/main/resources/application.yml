@@ -9,9 +9,9 @@ spring:
         max-page-size: 50
 
   datasource:
-    url: jdbc:mysql://localhost:3306/galdcup?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
-    username: root
-    password: root1234!!
+    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    username: ${MYSQLUSER}
+    password: ${MYSQLPASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -23,8 +23,10 @@ spring:
         format_sql: true
 
   redis:
-    host: localhost
-    port: 6379
+    host: ${REDISHOST}
+    port: ${REDISPORT}
+    username: ${REDISUSER}
+    password: ${REDISPASSWORD}
 
   security:
     oauth2:
@@ -33,7 +35,7 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: http://localhost:8080/api/auth/callback/google
+            redirect-uri: https://galdcup-api.onrender.com/api/auth/callback/google
             scope:
               - email
               - profile
