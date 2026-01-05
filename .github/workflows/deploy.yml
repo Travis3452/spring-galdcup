@@ -28,4 +28,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/Travis3452/spring-galdcup:latest
+          tags: ghcr.io/travis3452/spring-galdcup:latest
