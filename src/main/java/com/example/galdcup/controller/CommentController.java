@@ -23,7 +23,9 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    // 게시글의 댓글 조회
+    /**
+     * 게시글의 댓글 조회
+     */
     @GetMapping("/post/{postId}")
     public ResponseEntity<Page<CommentDto>> getCommentsByPost(@PathVariable Long postId,
                                                               Pageable pageable) {
@@ -32,7 +34,9 @@ public class CommentController {
         return ResponseEntity.ok(comments);
     }
 
-    // 사용자가 작성한 댓글 조회
+    /**
+     * 사용자가 작성한 댓글 조회
+     */
     @GetMapping("/user/{nickname}")
     public ResponseEntity<Page<CommentDto>> getCommentsByUser(@PathVariable String nickname,
                                                               Pageable pageable) {
@@ -41,7 +45,9 @@ public class CommentController {
         return ResponseEntity.ok(comments);
     }
 
-    // 댓글 작성
+    /**
+     * 댓글 작성
+     */
     @PostMapping
     public ResponseEntity<CommentDto> createComment(
             @Valid @RequestBody CreateCommentRequest request,
@@ -56,7 +62,9 @@ public class CommentController {
                 .body(CommentDto.from(comment));
     }
 
-    // 댓글 수정
+    /**
+     * 댓글 수정
+     */
     @PutMapping("/{id}")
     public ResponseEntity<CommentDto> updateComment(
             @PathVariable Long id,
@@ -67,7 +75,9 @@ public class CommentController {
         return ResponseEntity.ok(CommentDto.from(comment));
     }
 
-    // 댓글 삭제
+    /**
+     * 댓글 삭제
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long id,

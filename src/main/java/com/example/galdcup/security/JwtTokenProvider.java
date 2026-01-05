@@ -34,7 +34,9 @@ public class JwtTokenProvider {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // AccessToken 생성 (권한 포함)
+    /**
+     * AccessToken 생성
+     */
     public String createAccessToken(Long userId, List<String> roles) {
         return Jwts.builder()
                 .setSubject(userId.toString())
@@ -45,7 +47,9 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // RefreshToken 생성
+    /**
+     * RefreshToken 생성
+     */
     public String createRefreshToken(Long userId) {
         long refreshMillis = System.currentTimeMillis() + (refreshExpDays * 24L * 60L * 60L * 1000L);
         return Jwts.builder()
@@ -56,7 +60,9 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // 토큰 유효성 검사
+    /**
+     * 토큰 유효성 검사
+     */
     public boolean validateToken(String token) {
         try {
             parseClaims(token);
@@ -66,7 +72,9 @@ public class JwtTokenProvider {
         }
     }
 
-    // 토큰에서 Authentication 객체 추출
+    /**
+     * 토큰에서 Authentication 추출
+     */
     public Authentication getAuthentication(String token) {
         Claims claims = parseClaims(token);
         Long userId = Long.parseLong(claims.getSubject());
@@ -79,7 +87,9 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 
-    // Claims 파싱
+    /**
+     * Claims 파싱
+     */
     public Claims parseClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
@@ -88,12 +98,16 @@ public class JwtTokenProvider {
                 .getBody();
     }
 
-    // RefreshToken MaxAge (초 단위)
+    /**
+     * RefreshToken 유효기간 반환
+     */
     public int getRefreshTokenMaxAgeSeconds() {
         return refreshExpDays * 24 * 60 * 60;
     }
 
-    // RefreshToken 파싱
+    /**
+     * RefreshToken 파싱
+     */
     public Claims parseRefreshToken(String token) {
         return parseClaims(token);
     }

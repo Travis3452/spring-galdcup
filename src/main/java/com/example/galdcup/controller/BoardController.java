@@ -21,12 +21,18 @@ public class BoardController {
 
     private final BoardService boardService;
 
+    /**
+     * 게시판 목록 조회
+     */
     @GetMapping
     public ResponseEntity<Page<BoardDto>> getBoards(Pageable pageable) {
         Page<BoardDto> boards = boardService.findAll(pageable);
         return ResponseEntity.ok(boards);
     }
 
+    /**
+     * 게시판 단건 조회
+     */
     @GetMapping("/{id}")
     public ResponseEntity<BoardDto> getBoard(@PathVariable Long id) {
         return boardService.findById(id)
@@ -34,7 +40,9 @@ public class BoardController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // 게시판 생성
+    /**
+     * 게시판 생성
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public BoardDto createBoard(@RequestBody CreateBoardRequest request,
@@ -42,7 +50,9 @@ public class BoardController {
         return boardService.create(request.topic(), request.description(), principal.getId());
     }
 
-    // 게시판 상태 변경
+    /**
+     * 게시판 상태 변경
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<BoardDto> updateStatus(
@@ -54,7 +64,9 @@ public class BoardController {
         return ResponseEntity.ok(updated);
     }
 
-    // 게시판 삭제
+    /**
+     * 게시판 삭제
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBoard(

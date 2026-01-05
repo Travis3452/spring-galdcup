@@ -3,7 +3,7 @@ spring:
     name: galdcup
 
   datasource:
-    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
     username: ${MYSQLUSER}
     password: ${MYSQLPASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -15,6 +15,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  jackson:
+    time-zone: Asia/Seoul
 
   data:
     redis:
@@ -30,7 +33,7 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: https://galdcup-api.onrender.com/api/auth/callback/google
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
             scope:
               - email
               - profile
@@ -50,10 +53,7 @@ jwt:
   refresh-expiration-days: 7
 
 frontend:
-  url: https://galdcup.onrender.com
+  url: ${FRONTEND_URL}
 
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,https://galdcup.onrender.com}
-
-server:
-  port: 8080
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}

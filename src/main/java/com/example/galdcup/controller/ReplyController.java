@@ -22,7 +22,9 @@ public class ReplyController {
 
     private final ReplyService replyService;
 
-    // 대댓글 작성
+    /**
+     * 대댓글 작성
+     */
     @PostMapping
     public ResponseEntity<ReplyDto> createReply(
             @Valid @RequestBody CreateReplyRequest request,
@@ -32,7 +34,9 @@ public class ReplyController {
                 .body(ReplyDto.from(reply));
     }
 
-    // 특정 댓글의 대댓글 조회
+    /**
+     * 특정 댓글의 대댓글 조회
+     */
     @GetMapping("/comment/{commentId}")
     public ResponseEntity<List<ReplyDto>> getRepliesByComment(@PathVariable Long commentId) {
         List<ReplyDto> replies = replyService.findByComment(commentId)
@@ -42,7 +46,9 @@ public class ReplyController {
         return ResponseEntity.ok(replies);
     }
 
-    // 대댓글 수정
+    /**
+     * 대댓글 수정
+     */
     @PutMapping("/{id}")
     public ResponseEntity<ReplyDto> updateReply(
             @PathVariable Long id,
@@ -52,7 +58,9 @@ public class ReplyController {
         return ResponseEntity.ok(ReplyDto.from(reply));
     }
 
-    // 대댓글 삭제
+    /**
+     * 대댓글 삭제
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReply(
             @PathVariable Long id,

@@ -26,7 +26,9 @@ public class PostService {
     private final UserRepository userRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
-    // 게시글 생성
+    /**
+     * 게시글 생성
+     */
     @Transactional
     public Post create(Long boardId, Long authorId, String title, String content) {
         Board board = boardRepository.findById(boardId)
@@ -44,19 +46,25 @@ public class PostService {
         return postRepository.save(post);
     }
 
-    // 특정 게시판의 게시글 조회 (페이지네이션 적용)
+    /**
+     * 게시판별 게시글 조회
+     */
     @Transactional(readOnly = true)
     public Page<Post> findByBoard(Long boardId, Pageable pageable) {
         return postRepository.findByBoardId(boardId, pageable);
     }
 
-    // 특정 사용자의 게시글 조회 (페이지네이션 적용)
+    /**
+     * 사용자별 게시글 조회
+     */
     @Transactional(readOnly = true)
     public Page<Post> findByAuthorNickname(String nickname, Pageable pageable) {
         return postRepository.findByAuthorNickname(nickname, pageable);
     }
 
-    // 게시글 조회
+    /**
+     * 게시글 단건 조회 (조회수 증가 포함)
+     */
     @Transactional(readOnly = true)
     public Optional<Post> findById(Long id) {
         Optional<Post> postOpt = postRepository.findById(id);
@@ -64,15 +72,18 @@ public class PostService {
         return postOpt;
     }
 
-    // Redis에 조회수 증가 기록
+    /**
+     * Redis 조회수 증가 기록
+     */
     private void incrementViewCount(Long postId) {
         String key = "post:view:" + postId;
         redisTemplate.opsForValue().increment(key);
-
         redisTemplate.expire(key, 1, TimeUnit.DAYS);
     }
 
-    // 게시글 수정
+    /**
+     * 게시글 수정
+     */
     @Transactional
     public Post update(Long id, Long authorId, String title, String content) {
         Post post = postRepository.findById(id)
@@ -87,7 +98,9 @@ public class PostService {
         return postRepository.save(post);
     }
 
-    // 게시글 삭제
+    /**
+     * 게시글 삭제
+     */
     @Transactional
     public void delete(Long id, Long authorId) {
         Post post = postRepository.findById(id)
@@ -98,6 +111,6 @@ public class PostService {
         }
 
         postRepository.deleteById(id);
-        redisTemplate.delete("post:view:" + id); // Redis 캐시도 삭제
+        redisTemplate.delete("post:view:" + id);
     }
 }

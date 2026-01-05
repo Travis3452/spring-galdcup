@@ -22,6 +22,9 @@ public class VoteService {
     private final VoteSessionRepository voteSessionRepository;
     private final UserRepository userRepository;
 
+    /**
+     * 투표 생성
+     */
     public VoteDto createVote(Long voteSessionId, Long userId, int selectedOptionIndex) {
         VoteSession session = voteSessionRepository.findById(voteSessionId)
                 .orElseThrow(() -> new IllegalArgumentException("투표 세션을 찾을 수 없습니다."));

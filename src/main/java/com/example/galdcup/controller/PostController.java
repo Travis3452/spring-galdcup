@@ -24,7 +24,9 @@ public class PostController {
 
     private final PostService postService;
 
-    // 특정 게시판의 게시글 전체 조회 (페이지네이션 적용)
+    /**
+     * 게시판별 게시글 목록 조회
+     */
     @GetMapping("/board/{boardId}")
     public ResponseEntity<Page<PostDto>> getPostsByBoard(@PathVariable Long boardId,
                                                          Pageable pageable) {
@@ -33,7 +35,9 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-    // 특정 사용자가 작성한 게시글 조회 (페이지네이션 적용)
+    /**
+     * 사용자별 게시글 목록 조회
+     */
     @GetMapping("/user/{nickname}")
     public ResponseEntity<Page<PostDto>> getPostsByUser(@PathVariable String nickname,
                                                         Pageable pageable) {
@@ -42,7 +46,9 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-    // 특정 게시글 조회
+    /**
+     * 게시글 단건 조회
+     */
     @GetMapping("/{id}")
     public ResponseEntity<PostDto> getPost(@PathVariable Long id) {
         Optional<Post> postOpt = postService.findById(id);
@@ -50,7 +56,9 @@ public class PostController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // 게시글 작성
+    /**
+     * 게시글 작성
+     */
     @PostMapping
     public ResponseEntity<PostDto> createPost(@Valid @RequestBody CreatePostRequest request,
                                               @AuthenticationPrincipal CustomUserDetails principal) {
@@ -59,7 +67,9 @@ public class PostController {
                 .body(PostDto.from(saved));
     }
 
-    // 게시글 수정
+    /**
+     * 게시글 수정
+     */
     @PutMapping("/{id}")
     public ResponseEntity<PostDto> updatePost(@PathVariable Long id,
                                               @Valid @RequestBody UpdatePostRequest request,
@@ -68,7 +78,9 @@ public class PostController {
         return ResponseEntity.ok(PostDto.from(updated));
     }
 
-    // 게시글 삭제
+    /**
+     * 게시글 삭제
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable Long id,
                                            @AuthenticationPrincipal CustomUserDetails principal) {

@@ -19,6 +19,9 @@ public class PostReactionService {
     private final UserRepository userRepository;
     private final PostReactionRepository reactionRepository;
 
+    /**
+     * 게시글에 좋아요/싫어요 추가
+     */
     public void addReaction(Long postId, Long currentUserId, PostReaction.ReactionType type) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));

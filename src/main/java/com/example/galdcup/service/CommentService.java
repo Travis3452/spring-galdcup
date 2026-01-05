@@ -22,19 +22,25 @@ public class CommentService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    // 게시글의 댓글 전체 조회
+    /**
+     * 게시글의 댓글 조회
+     */
     @Transactional(readOnly = true)
     public Page<Comment> findByPost(Long postId, Pageable pageable) {
         return commentRepository.findByPostId(postId, pageable);
     }
 
-    // 사용자의 댓글 전체 조회 (nickname 기반)
+    /**
+     * 사용자별 댓글 조회
+     */
     @Transactional(readOnly = true)
     public Page<Comment> findByAuthorNickname(String nickname, Pageable pageable) {
         return commentRepository.findByAuthorNickname(nickname, pageable);
     }
 
-    // 댓글 작성 (인증 필요)
+    /**
+     * 댓글 작성
+     */
     @Transactional
     public Comment create(Long postId, Long authorId, String content) {
         Post post = postRepository.findById(postId)
@@ -51,7 +57,9 @@ public class CommentService {
         return commentRepository.save(comment);
     }
 
-    // 댓글 수정
+    /**
+     * 댓글 수정
+     */
     @Transactional
     public Comment update(Long id, Long authorId, String content) {
         Comment comment = commentRepository.findById(id)
@@ -65,7 +73,9 @@ public class CommentService {
         return commentRepository.save(comment);
     }
 
-    // 댓글 삭제
+    /**
+     * 댓글 삭제
+     */
     @Transactional
     public void delete(Long id, Long authorId) {
         Comment comment = commentRepository.findById(id)

@@ -25,7 +25,9 @@ public class AuthController {
     @Value("${frontend.url}")
     private String frontendUrl;
 
-    // 구글 OAuth 콜백 처리
+    /**
+     * 구글 OAuth 콜백 처리
+     */
     @GetMapping("/callback/google")
     public void googleCallback(
             @RequestParam("code") String code,
@@ -51,7 +53,9 @@ public class AuthController {
         response.sendRedirect(redirectUrl);
     }
 
-    // RefreshToken으로 AccessToken 갱신
+    /**
+     * RefreshToken으로 AccessToken 갱신
+     */
     @PostMapping("/refresh")
     public ResponseEntity<AuthDto> refresh(
             @CookieValue(value = "refreshToken", required = false) String refreshToken,
@@ -70,6 +74,9 @@ public class AuthController {
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * 로그아웃
+     */
     @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(
             @AuthenticationPrincipal CustomUserDetails user,

@@ -19,7 +19,9 @@ public class VoteController {
 
     private final VoteService voteService;
 
-    // 투표하기
+    /**
+     * 투표 생성
+     */
     @PostMapping
     public ResponseEntity<VoteDto> createVote(
             @RequestBody CreateVoteRequest request,

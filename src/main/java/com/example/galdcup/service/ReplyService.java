@@ -20,7 +20,9 @@ public class ReplyService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
 
-    // 대댓글 작성
+    /**
+     * 대댓글 작성
+     */
     @Transactional
     public Reply create(Long commentId, Long authorId, String content) {
         Comment parentComment = commentRepository.findById(commentId)
@@ -37,13 +39,17 @@ public class ReplyService {
         return replyRepository.save(reply);
     }
 
-    // 대댓글 조회
+    /**
+     * 대댓글 조회
+     */
     @Transactional(readOnly = true)
     public List<Reply> findByComment(Long commentId) {
         return replyRepository.findByParentCommentId(commentId);
     }
 
-    // 대댓글 수정
+    /**
+     * 대댓글 수정
+     */
     @Transactional
     public Reply update(Long replyId, Long authorId, String content) {
         Reply reply = replyRepository.findById(replyId)
@@ -57,7 +63,9 @@ public class ReplyService {
         return replyRepository.save(reply);
     }
 
-    // 대댓글 삭제
+    /**
+     * 대댓글 삭제
+     */
     @Transactional
     public void delete(Long replyId, Long authorId) {
         Reply reply = replyRepository.findById(replyId)

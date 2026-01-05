@@ -26,34 +26,38 @@ public class BoardService {
 
     private static final String BOARD_PAGE_KEY_PREFIX = "boards:page:";
 
-    // 전체 게시판 조회
+    /**
+     * 전체 게시판 조회 (캐시 적용)
+     */
     @Transactional(readOnly = true)
     public Page<BoardDto> findAll(Pageable pageable) {
         String key = BOARD_PAGE_KEY_PREFIX + pageable.getPageNumber() + ":"
                 + pageable.getPageSize() + ":"
                 + pageable.getSort();
 
-        // Redis 캐시 조회
         Page<BoardDto> cachedPage = (Page<BoardDto>) redisTemplate.opsForValue().get(key);
         if (cachedPage != null) {
             return cachedPage;
         }
 
-        // DB 조회 후 캐싱
         Page<Board> boards = boardRepository.findAll(pageable);
         Page<BoardDto> dtoPage = boards.map(BoardDto::from);
 
-        redisTemplate.opsForValue().set(key, dtoPage, 10, TimeUnit.MINUTES); // TTL 10분
+        redisTemplate.opsForValue().set(key, dtoPage, 10, TimeUnit.MINUTES);
         return dtoPage;
     }
 
-    // 특정 게시판 조회
+    /**
+     * 특정 게시판 조회
+     */
     @Transactional(readOnly = true)
     public Optional<BoardDto> findById(Long id) {
         return boardRepository.findById(id).map(BoardDto::from);
     }
 
-    // 게시판 생성 (관리자 PK 기반)
+    /**
+     * 게시판 생성
+     */
     @Transactional
     public BoardDto create(String topic, String description, Long adminId) {
         User admin = userRepository.findById(adminId)
@@ -73,7 +77,9 @@ public class BoardService {
         return BoardDto.from(saved);
     }
 
-    // 게시판 상태 변경 (현재 사용자 PK 기반)
+    /**
+     * 게시판 상태 변경
+     */
     @Transactional
     public BoardDto updateStatus(Long boardId, Board.Status newStatus, Long currentUserId) {
         Board board = boardRepository.findById(boardId)
@@ -86,13 +92,14 @@ public class BoardService {
         board.setStatus(newStatus);
         Board updated = boardRepository.save(board);
 
-        // 캐시 무효화
         redisTemplate.delete(BOARD_PAGE_KEY_PREFIX + "*");
 
         return BoardDto.from(updated);
     }
 
-    // 게시판 삭제 (현재 사용자 PK 기반)
+    /**
+     * 게시판 삭제
+     */
     @Transactional
     public void delete(Long id, Long currentUserId) {
         User admin = userRepository.findById(currentUserId)
@@ -107,7 +114,6 @@ public class BoardService {
 
         boardRepository.delete(board);
 
-        // 캐시 무효화
         redisTemplate.delete(BOARD_PAGE_KEY_PREFIX + "*");
     }
 }

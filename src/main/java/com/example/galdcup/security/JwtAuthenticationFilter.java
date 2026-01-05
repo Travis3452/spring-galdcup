@@ -22,6 +22,9 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends GenericFilterBean {
     private final JwtTokenProvider jwtTokenProvider;
 
+    /**
+     * JWT 인증 필터 처리
+     */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         try {
@@ -39,7 +42,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         }
     }
 
-
+    /**
+     * Authorization 헤더에서 JWT 토큰 추출
+     */
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
@@ -48,4 +53,3 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         return null;
     }
 }
-

@@ -18,6 +18,9 @@ public class VoteSessionController {
 
     private final VoteSessionService voteSessionService;
 
+    /**
+     * 투표 세션 생성
+     */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<VoteSessionDto> createVoteSession(
@@ -37,6 +40,9 @@ public class VoteSessionController {
         return ResponseEntity.ok(VoteSessionDto.from(voteSession));
     }
 
+    /**
+     * 투표 세션 조회
+     */
     @GetMapping
     public ResponseEntity<VoteSessionDto> getVoteSession(@PathVariable Long boardId) {
         VoteSession voteSession = voteSessionService.getVoteSession(boardId);

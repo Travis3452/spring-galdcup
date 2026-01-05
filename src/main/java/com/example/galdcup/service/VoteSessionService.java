@@ -19,6 +19,9 @@ public class VoteSessionService {
     private final BoardRepository boardRepository;
     private final VoteSessionRepository voteSessionRepository;
 
+    /**
+     * VoteSession 생성
+     */
     public VoteSession createVoteSession(Long boardId, Long adminId,
                                          LocalDateTime startTime,
                                          LocalDateTime endTime,
@@ -56,6 +59,9 @@ public class VoteSessionService {
         return voteSessionRepository.save(voteSession);
     }
 
+    /**
+     * VoteSession 조회
+     */
     public VoteSession getVoteSession(Long boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));

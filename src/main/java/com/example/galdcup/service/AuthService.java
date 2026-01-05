@@ -79,7 +79,7 @@ public class AuthService {
         );
     }
 
-    /** 리프레시 토큰으로 새 토큰 발급 */
+    /** RefreshToken으로 새 토큰 발급 */
     @Transactional
     public AuthDto refreshTokens(String refreshToken) {
         var claims = jwtTokenProvider.parseRefreshToken(refreshToken);
@@ -96,7 +96,7 @@ public class AuthService {
         return createTokens(user);
     }
 
-    /** 리프레시 토큰 삭제 */
+    /** RefreshToken 삭제 */
     @Transactional
     public void deleteRefreshTokens(Long userId) {
         redisTemplate.delete("refreshToken:" + userId);
