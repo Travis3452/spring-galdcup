@@ -1,0 +1,31 @@
+name: Build and Push to GHCR
+
+on:
+  push:
+    branches:
+      - main   # main 브랜치에 push될 때 실행
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 코드 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # 2. Docker 로그인 (GHCR)
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. Docker 이미지 빌드 & Push
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/Travis3452/spring-galdcup:latest
