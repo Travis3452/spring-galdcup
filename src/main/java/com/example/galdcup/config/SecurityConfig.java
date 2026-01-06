@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -47,9 +49,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/boards/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH, "/api/boards/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/boards/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/boards/**").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/boards/**").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/boards/**").hasRole("MANAGER")
 
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/comments/**").authenticated()
@@ -60,6 +62,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/posts/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/posts/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/posts/**").authenticated()
+
+                        .requestMatchers(HttpMethod.GET, "/api/replies/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/replies/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/replies/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/replies/**").authenticated()
+
+                        .requestMatchers(HttpMethod.POST, "/api/role-changes").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/role-changes").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/role-changes/*/approve").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/role-changes/*/deny").hasRole("ADMIN")
 
                         .anyRequest().permitAll()
                 )

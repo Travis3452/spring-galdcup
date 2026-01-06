@@ -3,6 +3,7 @@ package com.example.galdcup.security;
 import com.example.galdcup.entity.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -25,7 +26,8 @@ public class CustomUserDetails implements UserDetails {
     /** 권한(Role) 반환 */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(() -> "ROLE_" + user.getRole().name());
+        String roleName = "ROLE_" + user.getRole().name();
+        return List.of(new SimpleGrantedAuthority(roleName));
     }
 
     /** OAuth 로그인이라 비밀번호는 없음 */
