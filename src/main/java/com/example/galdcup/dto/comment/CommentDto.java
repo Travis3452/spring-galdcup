@@ -4,6 +4,7 @@ import com.example.galdcup.entity.Comment;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Builder
 public record CommentDto(
@@ -12,8 +13,8 @@ public record CommentDto(
         Long authorId,
         String authorNickname,
         String content,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt
 ) {
     public static CommentDto from(Comment comment) {
         return CommentDto.builder()

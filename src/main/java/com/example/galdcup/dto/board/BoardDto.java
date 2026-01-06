@@ -5,6 +5,7 @@ import lombok.Builder;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Builder
 public record BoardDto(
@@ -12,7 +13,7 @@ public record BoardDto(
         String topic,
         String description,
         Board.Status status,
-        LocalDateTime createdAt
+        OffsetDateTime createdAt
 ) implements Serializable {
     public static BoardDto from(Board board) {
         return BoardDto.builder()

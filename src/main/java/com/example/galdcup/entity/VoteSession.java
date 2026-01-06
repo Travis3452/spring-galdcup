@@ -2,7 +2,7 @@ package com.example.galdcup.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,10 +19,10 @@ public class VoteSession {
     private Board board;
 
     @Column(nullable = false)
-    private LocalDateTime startTime;
+    private OffsetDateTime startTime;
 
     @Column(nullable = false)
-    private LocalDateTime endTime;
+    private OffsetDateTime endTime;
 
     @ElementCollection
     @CollectionTable(name = "vote_session_options", joinColumns = @JoinColumn(name = "vote_session_id"))

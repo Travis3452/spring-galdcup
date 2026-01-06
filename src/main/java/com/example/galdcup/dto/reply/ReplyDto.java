@@ -4,6 +4,7 @@ import com.example.galdcup.entity.Reply;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Builder
 public record ReplyDto(
@@ -12,8 +13,8 @@ public record ReplyDto(
         Long authorId,
         String authorNickname,
         String content,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt
 ) {
     public static ReplyDto from(Reply reply) {
         return ReplyDto.builder()

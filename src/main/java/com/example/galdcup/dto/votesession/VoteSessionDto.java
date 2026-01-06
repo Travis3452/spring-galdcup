@@ -1,14 +1,14 @@
 package com.example.galdcup.dto.votesession;
 
 import com.example.galdcup.entity.VoteSession;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 public record VoteSessionDto(
         Long id,
         Long boardId,
-        LocalDateTime startTime,
-        LocalDateTime endTime,
+        OffsetDateTime startTime,
+        OffsetDateTime endTime,
         List<String> options,
         List<String> optionImages
 ) {

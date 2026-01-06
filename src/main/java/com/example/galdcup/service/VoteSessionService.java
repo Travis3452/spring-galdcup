@@ -8,7 +8,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -23,8 +24,8 @@ public class VoteSessionService {
      * VoteSession 생성
      */
     public VoteSession createVoteSession(Long boardId, Long adminId,
-                                         LocalDateTime startTime,
-                                         LocalDateTime endTime,
+                                         OffsetDateTime startTime,
+                                         OffsetDateTime endTime,
                                          List<String> options,
                                          List<String> optionImages) {
         Board board = boardRepository.findById(boardId)
@@ -46,10 +47,14 @@ public class VoteSessionService {
             throw new IllegalArgumentException("투표 옵션은 최소 2개, 최대 50개까지 가능합니다.");
         }
 
+        // 서울 타임존으로 보정 (필요 시)
+        OffsetDateTime start = startTime.withOffsetSameInstant(ZoneId.of("Asia/Seoul").getRules().getOffset(startTime.toInstant()));
+        OffsetDateTime end = endTime.withOffsetSameInstant(ZoneId.of("Asia/Seoul").getRules().getOffset(endTime.toInstant()));
+
         VoteSession voteSession = VoteSession.builder()
                 .board(board)
-                .startTime(startTime)
-                .endTime(endTime)
+                .startTime(start)
+                .endTime(end)
                 .options(options)
                 .optionImages(optionImages)
                 .build();

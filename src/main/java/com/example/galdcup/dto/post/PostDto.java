@@ -4,6 +4,7 @@ import com.example.galdcup.entity.Post;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Builder
 public record PostDto(
@@ -16,7 +17,7 @@ public record PostDto(
         String content,
         Long likeCount,
         Long dislikeCount,
-        LocalDateTime createdAt
+        OffsetDateTime createdAt
 ) {
     public static PostDto from(Post post) {
         return PostDto.builder()

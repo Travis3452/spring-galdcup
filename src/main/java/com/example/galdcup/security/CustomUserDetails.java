@@ -39,7 +39,7 @@ public class CustomUserDetails implements UserDetails {
     /** username은 PK(Long id)를 문자열로 반환 */
     @Override
     public String getUsername() {
-        return String.valueOf(user.getId()); // ✅ subject와 일치
+        return String.valueOf(user.getId());
     }
 
     @Override

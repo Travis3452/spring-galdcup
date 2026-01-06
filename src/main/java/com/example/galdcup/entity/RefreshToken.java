@@ -3,7 +3,7 @@ package com.example.galdcup.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "refresh_tokens",
@@ -22,5 +22,5 @@ public class RefreshToken {
     private String token;
 
     @Column(nullable = false)
-    private LocalDateTime expiryDate;
+    private OffsetDateTime expiryDate;
 }

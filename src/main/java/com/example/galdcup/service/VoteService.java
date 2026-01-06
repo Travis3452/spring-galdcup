@@ -11,7 +11,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +38,7 @@ public class VoteService {
         }
 
         // 투표 시간 검증
-        LocalDateTime now = LocalDateTime.now();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
         if (now.isBefore(session.getStartTime()) || now.isAfter(session.getEndTime())) {
             throw new IllegalStateException("현재는 투표 가능 시간이 아닙니다.");
         }

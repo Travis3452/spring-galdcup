@@ -3,7 +3,8 @@ package com.example.galdcup.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "post_reactions",
@@ -28,10 +29,10 @@ public class PostReaction {
     @Column(nullable = false)
     private ReactionType type;
 
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
-        createdAt = LocalDateTime.now();
+        createdAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 }
