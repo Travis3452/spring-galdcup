@@ -49,9 +49,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/boards/**").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/boards/**").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/boards/**").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.POST, "/api/boards/**").hasAnyRole("ADMIN","MANAGER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/boards/**").hasAnyRole("ADMIN","MANAGER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/boards/**").hasAnyRole("ADMIN","MANAGER")
 
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/comments/**").authenticated()
@@ -75,6 +75,7 @@ public class SecurityConfig {
 
                         .anyRequest().permitAll()
                 )
+
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)
                 );

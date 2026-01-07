@@ -21,18 +21,14 @@ public class BoardController {
 
     private final BoardService boardService;
 
-    /**
-     * 게시판 목록 조회
-     */
+    /** 게시판 목록 조회 */
     @GetMapping
     public ResponseEntity<Page<BoardDto>> getBoards(Pageable pageable) {
         Page<BoardDto> boards = boardService.findAll(pageable);
         return ResponseEntity.ok(boards);
     }
 
-    /**
-     * 게시판 단건 조회
-     */
+    /** 게시판 단건 조회 */
     @GetMapping("/{id}")
     public ResponseEntity<BoardDto> getBoard(@PathVariable Long id) {
         return boardService.findById(id)
@@ -40,20 +36,19 @@ public class BoardController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * 게시판 생성
-     */
-    @PreAuthorize("hasRole('ADMIN')")
+    /** 게시판 생성 */
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping
-    public BoardDto createBoard(@RequestBody CreateBoardRequest request,
-                                @AuthenticationPrincipal CustomUserDetails principal) {
-        return boardService.create(request.topic(), request.description(), principal.getId());
+    public ResponseEntity<BoardDto> createBoard(
+            @Valid @RequestBody CreateBoardRequest request,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+
+        BoardDto created = boardService.create(request.topic(), request.description(), principal.getId());
+        return ResponseEntity.ok(created);
     }
 
-    /**
-     * 게시판 상태 변경
-     */
-    @PreAuthorize("hasRole('ADMIN')")
+    /** 게시판 상태 변경 */
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PatchMapping("/{id}/status")
     public ResponseEntity<BoardDto> updateStatus(
             @PathVariable Long id,
@@ -64,10 +59,8 @@ public class BoardController {
         return ResponseEntity.ok(updated);
     }
 
-    /**
-     * 게시판 삭제
-     */
-    @PreAuthorize("hasRole('ADMIN')")
+    /** 게시판 삭제 */
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBoard(
             @PathVariable Long id,
