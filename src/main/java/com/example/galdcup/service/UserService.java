@@ -25,14 +25,6 @@ public class UserService {
                 .map(this::decryptToDto);
     }
 
-    /** 평문 OAuth ID로 사용자 조회 (복호화 후 비교) */
-    public Optional<UserDto> findByOauthId(String oauthIdPlain) {
-        return userRepository.findAll().stream()
-                .filter(user -> oauthIdPlain.equals(encryptor.decrypt(user.getOauthIdEncrypted())))
-                .findFirst()
-                .map(this::decryptToDto);
-    }
-
     /** 사용자 프로필 수정 (본인만 가능) */
     @Transactional
     public UserDto updateProfile(Long id, String nickname, Long currentUserId) {

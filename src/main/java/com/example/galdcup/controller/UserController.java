@@ -55,10 +55,10 @@ public class UserController {
 
     /** 현재 로그인한 사용자 정보 조회 */
     @GetMapping("/me")
-    public ResponseEntity<UserDto> me(@AuthenticationPrincipal OAuth2User principal) {
+    public ResponseEntity<UserDto> me(@AuthenticationPrincipal CustomUserDetails principal) {
         if (principal == null) return ResponseEntity.status(401).build();
 
-        return userService.findByOauthId(principal.getName())
+        return userService.findById(principal.getId())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
