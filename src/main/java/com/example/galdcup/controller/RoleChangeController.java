@@ -2,7 +2,6 @@ package com.example.galdcup.controller;
 
 import com.example.galdcup.dto.rolechange.CreateRoleChangeRequest;
 import com.example.galdcup.dto.rolechange.RoleChangeDto;
-import com.example.galdcup.entity.RoleChange;
 import com.example.galdcup.security.CustomUserDetails;
 import com.example.galdcup.service.RoleChangeService;
 import lombok.RequiredArgsConstructor;
@@ -27,18 +26,15 @@ public class RoleChangeController {
             @AuthenticationPrincipal CustomUserDetails principal,
             @RequestBody CreateRoleChangeRequest request) {
 
-        RoleChange roleChange = roleChangeService.requestRoleChange(principal.getId(), request.requestedRole());
-        return ResponseEntity.ok(RoleChangeDto.from(roleChange));
+        RoleChangeDto roleChangeDto = roleChangeService.requestRoleChange(principal.getId(), request.requestedRole());
+        return ResponseEntity.ok(roleChangeDto);
     }
 
     /** ADMIN → 요청 목록 조회 */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<RoleChangeDto>> getPendingRequests() {
-        List<RoleChangeDto> requests = roleChangeService.getPendingRequests()
-                .stream()
-                .map(RoleChangeDto::from)
-                .toList();
+        List<RoleChangeDto> requests = roleChangeService.getPendingRequests();
         return ResponseEntity.ok(requests);
     }
 
