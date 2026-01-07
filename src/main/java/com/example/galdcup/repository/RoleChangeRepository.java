@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface RoleChangeRepository extends JpaRepository<RoleChange, Long> {
     List<RoleChange> findByStatus(RoleChange.Status status);
+
+    boolean existsByUserIdAndStatus(Long userId, RoleChange.Status status);
 }
