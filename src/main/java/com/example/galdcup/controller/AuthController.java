@@ -25,9 +25,9 @@ public class AuthController {
     @Value("${frontend.url}")
     private String frontendUrl;
 
-    /**
-     * 구글 OAuth 콜백 처리
-     */
+    @Value("${cookie.secure}")
+    private boolean cookieSecure;
+
     @GetMapping("/callback/google")
     public void googleCallback(
             @RequestParam("code") String code,
@@ -37,7 +37,7 @@ public class AuthController {
 
         Cookie refreshCookie = new Cookie("refreshToken", result.refreshToken());
         refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true);
+        refreshCookie.setSecure(cookieSecure);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(result.refreshTokenMaxAge());
         refreshCookie.setAttribute("SameSite", "None");
@@ -53,9 +53,6 @@ public class AuthController {
         response.sendRedirect(redirectUrl);
     }
 
-    /**
-     * RefreshToken으로 AccessToken 갱신
-     */
     @PostMapping("/refresh")
     public ResponseEntity<AuthDto> refresh(
             @CookieValue(value = "refreshToken", required = false) String refreshToken,
@@ -65,7 +62,7 @@ public class AuthController {
 
         Cookie refreshCookie = new Cookie("refreshToken", result.refreshToken());
         refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true);
+        refreshCookie.setSecure(cookieSecure);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(result.refreshTokenMaxAge());
         refreshCookie.setAttribute("SameSite", "None");
@@ -74,9 +71,6 @@ public class AuthController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * 로그아웃
-     */
     @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(
             @AuthenticationPrincipal CustomUserDetails user,
@@ -86,7 +80,7 @@ public class AuthController {
 
         Cookie refreshCookie = new Cookie("refreshToken", null);
         refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true);
+        refreshCookie.setSecure(cookieSecure);   // ✅ 환경별 분리
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(0);
         refreshCookie.setAttribute("SameSite", "None");
