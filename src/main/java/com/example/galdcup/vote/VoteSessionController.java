@@ -29,10 +29,7 @@ public class VoteSessionController {
         VoteSession voteSession = voteSessionService.createVoteSession(
                 boardId,
                 principal.getId(),
-                request.startTime(),
-                request.endTime(),
-                request.options(),
-                request.optionImages()
+                request
         );
 
         return ResponseEntity.ok(VoteSessionDto.from(voteSession));

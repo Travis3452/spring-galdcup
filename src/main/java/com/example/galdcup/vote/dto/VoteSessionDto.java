@@ -10,8 +10,7 @@ public record VoteSessionDto(
         Long boardId,
         OffsetDateTime startTime,
         OffsetDateTime endTime,
-        List<String> options,
-        List<String> optionImages
+        List<VoteOptionDto> options
 ) {
     public static VoteSessionDto from(VoteSession voteSession) {
         return new VoteSessionDto(
@@ -19,8 +18,9 @@ public record VoteSessionDto(
                 voteSession.getBoard().getId(),
                 voteSession.getStartTime(),
                 voteSession.getEndTime(),
-                voteSession.getOptions(),
-                voteSession.getOptionImages()
+                voteSession.getOptions().stream()
+                        .map(VoteOptionDto::from)
+                        .toList()
         );
     }
 }

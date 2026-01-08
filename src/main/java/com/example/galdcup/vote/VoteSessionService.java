@@ -2,12 +2,14 @@ package com.example.galdcup.vote;
 
 import com.example.galdcup.board.Board;
 import com.example.galdcup.board.BoardRepository;
+import com.example.galdcup.vote.dto.CreateVoteSessionRequest;
+import com.example.galdcup.vote.embedded.VoteOption;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -21,11 +23,7 @@ public class VoteSessionService {
     /**
      * VoteSession 생성
      */
-    public VoteSession createVoteSession(Long boardId, Long adminId,
-                                         OffsetDateTime startTime,
-                                         OffsetDateTime endTime,
-                                         List<String> options,
-                                         List<String> optionImages) {
+    public VoteSession createVoteSession(Long boardId, Long adminId, CreateVoteSessionRequest request) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
 
@@ -37,24 +35,34 @@ public class VoteSessionService {
             throw new IllegalStateException("이미 투표 세션이 존재합니다.");
         }
 
+        OffsetDateTime startTime = request.startTime();
+        OffsetDateTime endTime = request.endTime();
+
         if (startTime == null || endTime == null || !startTime.isBefore(endTime)) {
             throw new IllegalArgumentException("투표 시작/종료 시간이 올바르지 않습니다.");
         }
+
+        List<String> options = request.options();
+        List<String> optionImages = request.optionImages();
 
         if (options == null || options.size() < 2 || options.size() > 50) {
             throw new IllegalArgumentException("투표 옵션은 최소 2개, 최대 50개까지 가능합니다.");
         }
 
-        // 서울 타임존으로 보정 (필요 시)
-        OffsetDateTime start = startTime.withOffsetSameInstant(ZoneId.of("Asia/Seoul").getRules().getOffset(startTime.toInstant()));
-        OffsetDateTime end = endTime.withOffsetSameInstant(ZoneId.of("Asia/Seoul").getRules().getOffset(endTime.toInstant()));
+        if (optionImages == null || optionImages.size() != options.size()) {
+            throw new IllegalArgumentException("옵션 이미지 개수는 옵션 개수와 동일해야 합니다.");
+        }
+
+        List<VoteOption> voteOptions = new ArrayList<>();
+        for (int i = 0; i < options.size(); i++) {
+            voteOptions.add(new VoteOption(options.get(i), optionImages.get(i)));
+        }
 
         VoteSession voteSession = VoteSession.builder()
                 .board(board)
-                .startTime(start)
-                .endTime(end)
-                .options(options)
-                .optionImages(optionImages)
+                .startTime(startTime)
+                .endTime(endTime)
+                .options(voteOptions)
                 .build();
 
         board.setVoteSession(voteSession);
