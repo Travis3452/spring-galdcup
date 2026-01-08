@@ -18,9 +18,12 @@ public class CustomUserDetails implements UserDetails {
         this.user = user;
     }
 
-    /** 사용자 PK 반환 */
     public Long getId() {
         return user.getId();
+    }
+
+    public String getNickname() {
+        return user.getNickname();
     }
 
     /** 권한(Role) 반환 */
