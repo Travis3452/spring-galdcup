@@ -28,8 +28,7 @@ public class PostController {
     @GetMapping("/board/{boardId}")
     public ResponseEntity<Page<PostDto>> getPostsByBoard(@PathVariable Long boardId,
                                                          Pageable pageable) {
-        Page<PostDto> posts = postService.findByBoard(boardId, pageable)
-                .map(PostDto::from);
+        Page<PostDto> posts = postService.findByBoard(boardId, pageable);
         return ResponseEntity.ok(posts);
     }
 
@@ -39,8 +38,7 @@ public class PostController {
     @GetMapping("/user/{nickname}")
     public ResponseEntity<Page<PostDto>> getPostsByUser(@PathVariable String nickname,
                                                         Pageable pageable) {
-        Page<PostDto> posts = postService.findByAuthorNickname(nickname, pageable)
-                .map(PostDto::from);
+        Page<PostDto> posts = postService.findByAuthorNickname(nickname, pageable);
         return ResponseEntity.ok(posts);
     }
 
@@ -49,8 +47,8 @@ public class PostController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<PostDto> getPost(@PathVariable Long id) {
-        Optional<Post> postOpt = postService.findById(id);
-        return postOpt.map(p -> ResponseEntity.ok(PostDto.from(p)))
+        Optional<PostDto> postOpt = postService.findById(id);
+        return postOpt.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -60,9 +58,15 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostDto> createPost(@Valid @RequestBody CreatePostRequest request,
                                               @AuthenticationPrincipal CustomUserDetails principal) {
-        Post saved = postService.create(request.boardId(), principal.getId(), request.title(), request.content());
-        return ResponseEntity.created(URI.create("/api/posts/" + saved.getId()))
-                .body(PostDto.from(saved));
+        PostDto saved = postService.create(
+                request.boardId(),
+                principal.getId(),
+                principal.getNickname(),
+                request.title(),
+                request.content()
+        );
+        return ResponseEntity.created(URI.create("/api/posts/" + saved.id()))
+                .body(saved);
     }
 
     /**
@@ -72,8 +76,8 @@ public class PostController {
     public ResponseEntity<PostDto> updatePost(@PathVariable Long id,
                                               @Valid @RequestBody UpdatePostRequest request,
                                               @AuthenticationPrincipal CustomUserDetails principal) {
-        Post updated = postService.update(id, principal.getId(), request.title(), request.content());
-        return ResponseEntity.ok(PostDto.from(updated));
+        PostDto updated = postService.update(id, principal.getId(), request.title(), request.content());
+        return ResponseEntity.ok(updated);
     }
 
     /**

@@ -27,7 +27,14 @@ public class ReplyController {
     public ResponseEntity<ReplyDto> createReply(
             @Valid @RequestBody CreateReplyRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
-        ReplyDto reply = replyService.create(request.commentId(), principal.getId(), request.content());
+
+        ReplyDto reply = replyService.create(
+                request.commentId(),
+                principal.getId(),
+                principal.getNickname(),
+                request.content()
+        );
+
         return ResponseEntity.created(URI.create("/api/replies/" + reply.id()))
                 .body(reply);
     }
@@ -49,6 +56,7 @@ public class ReplyController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateReplyRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
+
         ReplyDto reply = replyService.update(id, principal.getId(), request.content());
         return ResponseEntity.ok(reply);
     }
@@ -60,6 +68,7 @@ public class ReplyController {
     public ResponseEntity<ReplyDto> deleteReply(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails principal) {
+
         ReplyDto reply = replyService.delete(id, principal.getId());
         return ResponseEntity.ok(reply);
     }

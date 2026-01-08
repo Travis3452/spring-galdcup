@@ -1,7 +1,7 @@
 package com.example.galdcup.post;
 
 import com.example.galdcup.board.Board;
-import com.example.galdcup.user.User;
+import com.example.galdcup.post.embedded.Author;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,9 +22,8 @@ public class Post {
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
-    private User author;
+    @Embedded
+    private Author author;
 
     @Column(nullable = false, length = 100)
     private String title;
@@ -61,5 +60,4 @@ public class Post {
 
     public void addLike() { this.likeCount++; }
     public void addDislike() { this.dislikeCount++; }
-    public void increaseView() { this.view++; }
 }

@@ -1,7 +1,7 @@
 package com.example.galdcup.comment;
 
 import com.example.galdcup.post.Post;
-import com.example.galdcup.user.User;
+import com.example.galdcup.comment.embedded.Author;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,13 +22,13 @@ public class Comment {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
-    private User author;
+    @Embedded
+    private Author author;
 
     @Column(nullable = false, length = 300)
     private String content;
 
+    @Builder.Default
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reply> replies = new ArrayList<>();
 
@@ -50,11 +50,12 @@ public class Comment {
 
     public void delete() {
         this.deletedAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
-        this.author = null; // 작성자 정보 숨김
         this.content = "삭제된 댓글입니다.";
+        this.author = new Author(null, "알 수 없는 사용자");
     }
 
     public boolean isDeleted() {
         return this.deletedAt != null;
     }
 }
+

@@ -2,14 +2,13 @@ package com.example.galdcup.comment;
 
 import com.example.galdcup.post.Post;
 import com.example.galdcup.post.PostRepository;
-import com.example.galdcup.user.User;
-import com.example.galdcup.user.UserRepository;
+import com.example.galdcup.comment.embedded.Author;
+import com.example.galdcup.comment.dto.CommentDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 @Service
 @RequiredArgsConstructor
@@ -17,36 +16,39 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
 
+    /** 게시글별 댓글 조회 */
     @Transactional(readOnly = true)
-    public Page<Comment> findByPost(Long postId, Pageable pageable) {
-        return commentRepository.findByPostId(postId, pageable);
+    public Page<CommentDto> findByPost(Long postId, Pageable pageable) {
+        return commentRepository.findByPostId(postId, pageable)
+                .map(CommentDto::from);
     }
 
+    /** 작성자 닉네임으로 댓글 조회 */
     @Transactional(readOnly = true)
-    public Page<Comment> findByAuthorNickname(String nickname, Pageable pageable) {
-        return commentRepository.findByAuthorNickname(nickname, pageable);
+    public Page<CommentDto> findByAuthorNickname(String nickname, Pageable pageable) {
+        return commentRepository.findByAuthorNickname(nickname, pageable)
+                .map(CommentDto::from);
     }
 
+    /** 댓글 작성 */
     @Transactional
-    public Comment create(Long postId, Long authorId, String content) {
+    public CommentDto create(Long postId, Long authorId, String authorNickname, String content) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        User author = userRepository.findById(authorId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Comment comment = Comment.builder()
                 .post(post)
-                .author(author)
+                .author(new Author(authorId, authorNickname))
                 .content(content)
                 .build();
 
-        return commentRepository.save(comment);
+        return CommentDto.from(commentRepository.save(comment));
     }
 
+    /** 댓글 수정 */
     @Transactional
-    public Comment update(Long id, Long authorId, String content) {
+    public CommentDto update(Long id, Long authorId, String content) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
 
@@ -59,11 +61,12 @@ public class CommentService {
         }
 
         comment.setContent(content);
-        return commentRepository.save(comment);
+        return CommentDto.from(commentRepository.save(comment));
     }
 
+    /** 댓글 삭제 */
     @Transactional
-    public Comment delete(Long id, Long authorId) {
+    public CommentDto delete(Long id, Long authorId) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
 
@@ -76,6 +79,6 @@ public class CommentService {
         }
 
         comment.delete();
-        return commentRepository.save(comment);
+        return CommentDto.from(commentRepository.save(comment));
     }
 }

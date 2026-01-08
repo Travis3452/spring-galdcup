@@ -27,8 +27,7 @@ public class CommentController {
     @GetMapping("/post/{postId}")
     public ResponseEntity<Page<CommentDto>> getCommentsByPost(@PathVariable Long postId,
                                                               Pageable pageable) {
-        Page<CommentDto> comments = commentService.findByPost(postId, pageable)
-                .map(CommentDto::from);
+        Page<CommentDto> comments = commentService.findByPost(postId, pageable);
         return ResponseEntity.ok(comments);
     }
 
@@ -38,8 +37,7 @@ public class CommentController {
     @GetMapping("/user/{nickname}")
     public ResponseEntity<Page<CommentDto>> getCommentsByUser(@PathVariable String nickname,
                                                               Pageable pageable) {
-        Page<CommentDto> comments = commentService.findByAuthorNickname(nickname, pageable)
-                .map(CommentDto::from);
+        Page<CommentDto> comments = commentService.findByAuthorNickname(nickname, pageable);
         return ResponseEntity.ok(comments);
     }
 
@@ -50,14 +48,16 @@ public class CommentController {
     public ResponseEntity<CommentDto> createComment(
             @Valid @RequestBody CreateCommentRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
-        Comment comment = commentService.create(
+
+        CommentDto commentDto = commentService.create(
                 request.postId(),
                 principal.getId(),
+                principal.getNickname(),
                 request.content()
         );
 
-        return ResponseEntity.created(URI.create("/api/comments/" + comment.getId()))
-                .body(CommentDto.from(comment));
+        return ResponseEntity.created(URI.create("/api/comments/" + commentDto.id()))
+                .body(commentDto);
     }
 
     /**
@@ -69,19 +69,19 @@ public class CommentController {
             @Valid @RequestBody UpdateCommentRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        Comment comment = commentService.update(id, principal.getId(), request.content());
-        return ResponseEntity.ok(CommentDto.from(comment));
+        CommentDto commentDto = commentService.update(id, principal.getId(), request.content());
+        return ResponseEntity.ok(commentDto);
     }
 
     /**
      * 댓글 삭제
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteComment(
+    public ResponseEntity<CommentDto> deleteComment(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        commentService.delete(id, principal.getId());
-        return ResponseEntity.noContent().build();
+        CommentDto commentDto = commentService.delete(id, principal.getId());
+        return ResponseEntity.ok(commentDto);
     }
 }

@@ -10,26 +10,28 @@ public record PostDto(
         Long id,
         Long boardId,
         Long authorId,
-        String authorNickname,
+        String authorName,
         Long view,
         String title,
         String content,
         Long likeCount,
         Long dislikeCount,
-        OffsetDateTime createdAt
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt
 ) {
     public static PostDto from(Post post) {
         return PostDto.builder()
                 .id(post.getId())
                 .boardId(post.getBoard().getId())
                 .authorId(post.getAuthor().getId())
-                .authorNickname(post.getAuthor().getNickname())
+                .authorName(post.getAuthor().getNickname())
                 .view(post.getView())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .likeCount(post.getLikeCount())
                 .dislikeCount(post.getDislikeCount())
                 .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
                 .build();
     }
 }
