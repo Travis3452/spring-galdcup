@@ -1,9 +1,9 @@
 package com.example.galdcup.comment;
 
+import com.example.galdcup.comment.dto.CommentDto;
+import com.example.galdcup.comment.embedded.Author;
 import com.example.galdcup.post.Post;
 import com.example.galdcup.post.PostRepository;
-import com.example.galdcup.comment.embedded.Author;
-import com.example.galdcup.comment.dto.CommentDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

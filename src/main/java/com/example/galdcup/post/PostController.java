@@ -1,9 +1,9 @@
 package com.example.galdcup.post;
 
+import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.post.dto.CreatePostRequest;
 import com.example.galdcup.post.dto.PostDto;
 import com.example.galdcup.post.dto.UpdatePostRequest;
-import com.example.galdcup.common.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

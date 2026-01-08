@@ -1,8 +1,8 @@
 package com.example.galdcup.rolechange;
 
+import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.rolechange.dto.CreateRoleChangeRequest;
 import com.example.galdcup.rolechange.dto.RoleChangeDto;
-import com.example.galdcup.common.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

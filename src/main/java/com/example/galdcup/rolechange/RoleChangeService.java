@@ -1,7 +1,7 @@
 package com.example.galdcup.rolechange;
 
-import com.example.galdcup.rolechange.dto.RoleChangeDto;
 import com.example.galdcup.common.security.AES256Encryptor;
+import com.example.galdcup.rolechange.dto.RoleChangeDto;
 import com.example.galdcup.user.User;
 import com.example.galdcup.user.UserRepository;
 import lombok.RequiredArgsConstructor;

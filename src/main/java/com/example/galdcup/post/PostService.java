@@ -2,8 +2,8 @@ package com.example.galdcup.post;
 
 import com.example.galdcup.board.Board;
 import com.example.galdcup.board.BoardRepository;
-import com.example.galdcup.post.embedded.Author;
 import com.example.galdcup.post.dto.PostDto;
+import com.example.galdcup.post.embedded.Author;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
