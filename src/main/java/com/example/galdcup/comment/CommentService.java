@@ -6,7 +6,9 @@ import com.example.galdcup.post.Post;
 import com.example.galdcup.post.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,17 +19,29 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
 
-    /** 게시글별 댓글 조회 */
+    /** 게시글별 댓글 조회 (오래된 순 정렬) */
     @Transactional(readOnly = true)
     public Page<CommentDto> findByPost(Long postId, Pageable pageable) {
-        return commentRepository.findByPostId(postId, pageable)
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "createdAt")
+        );
+
+        return commentRepository.findByPostId(postId, sortedPageable)
                 .map(CommentDto::from);
     }
 
-    /** 작성자 닉네임으로 댓글 조회 */
+    /** 작성자 닉네임으로 댓글 조회 (오래된 순 정렬) */
     @Transactional(readOnly = true)
     public Page<CommentDto> findByAuthorNickname(String nickname, Pageable pageable) {
-        return commentRepository.findByAuthorNickname(nickname, pageable)
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.ASC, "createdAt")
+        );
+
+        return commentRepository.findByAuthorNickname(nickname, sortedPageable)
                 .map(CommentDto::from);
     }
 
