@@ -1,6 +1,5 @@
 package com.example.galdcup.vote;
 
-import com.example.galdcup.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,9 +26,8 @@ public class Vote {
     @Column(nullable = false)
     private int selectedOptionIndex;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(nullable = false)
+    private Long voterId;
 
     @Column(nullable = false)
     private OffsetDateTime createdAt;
