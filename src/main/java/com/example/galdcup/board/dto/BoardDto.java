@@ -13,8 +13,8 @@ public record BoardDto(
         String description,
         Board.Status status,
         OffsetDateTime createdAt,
-        Long adminId,
-        String adminNickname
+        Long boardManagerId,
+        String boardManagerNickname
 ) implements Serializable {
     public static BoardDto from(Board board) {
         return BoardDto.builder()
@@ -23,8 +23,8 @@ public record BoardDto(
                 .description(board.getDescription())
                 .status(board.getStatus())
                 .createdAt(board.getCreatedAt())
-                .adminId(board.getAdmin().getId())
-                .adminNickname(board.getAdmin().getNickname())
+                .boardManagerId(board.getBoardManager() != null ? board.getBoardManager().getId() : null)
+                .boardManagerNickname(board.getBoardManager() != null ? board.getBoardManager().getNickname() : null)
                 .build();
     }
 }
