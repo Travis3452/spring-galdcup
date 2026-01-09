@@ -10,7 +10,7 @@ public record PostDto(
         Long id,
         Long boardId,
         Long authorId,
-        String authorName,
+        String authorNickname,
         Long view,
         String title,
         String content,
@@ -24,7 +24,7 @@ public record PostDto(
                 .id(post.getId())
                 .boardId(post.getBoard().getId())
                 .authorId(post.getAuthor().getId())
-                .authorName(post.getAuthor().getNickname())
+                .authorNickname(post.getAuthor().getNickname())
                 .view(post.getView())
                 .title(post.getTitle())
                 .content(post.getContent())
