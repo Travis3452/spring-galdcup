@@ -8,7 +8,13 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 
 @Entity
-@Table(name = "replies")
+@Table(
+        name = "replies",
+        indexes = {
+                @Index(name = "idx_reply_comment_id", columnList = "comment_id"),
+                @Index(name = "idx_reply_comment_created_at", columnList = "comment_id, createdAt")
+        }
+)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Reply {
 
