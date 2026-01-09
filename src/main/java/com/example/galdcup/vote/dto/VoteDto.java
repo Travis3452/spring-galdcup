@@ -7,7 +7,7 @@ public record VoteDto(Long id, Long voteSessionId, Long userId, int selectedOpti
         return new VoteDto(
                 vote.getId(),
                 vote.getVoteSession().getId(),
-                vote.getUser().getId(),
+                vote.getVoterId(),
                 vote.getSelectedOptionIndex()
         );
     }

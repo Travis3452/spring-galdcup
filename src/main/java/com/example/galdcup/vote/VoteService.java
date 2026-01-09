@@ -29,7 +29,7 @@ public class VoteService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // 중복 투표 방지
-        if (voteRepository.findByVoteSessionAndUser(session, user).isPresent()) {
+        if (voteRepository.findByVoteSessionAndVoterId(session, userId).isPresent()) {
             throw new IllegalStateException("이미 해당 게시판에 투표하였습니다.");
         }
 
@@ -47,7 +47,7 @@ public class VoteService {
         Vote vote = voteRepository.save(
                 Vote.builder()
                         .voteSession(session)
-                        .user(user)
+                        .voterId(userId)
                         .selectedOptionIndex(selectedOptionIndex)
                         .build()
         );
