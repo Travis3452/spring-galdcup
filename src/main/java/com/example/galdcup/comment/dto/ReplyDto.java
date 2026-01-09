@@ -13,7 +13,8 @@ public record ReplyDto(
         String authorNickname,
         String content,
         OffsetDateTime createdAt,
-        OffsetDateTime updatedAt
+        OffsetDateTime updatedAt,
+        boolean isDeleted
 ) {
     public static ReplyDto from(Reply reply) {
         return ReplyDto.builder()
@@ -24,6 +25,7 @@ public record ReplyDto(
                 .content(reply.getContent())
                 .createdAt(reply.getCreatedAt())
                 .updatedAt(reply.getUpdatedAt())
+                .isDeleted(reply.isDeleted())
                 .build();
     }
 }
