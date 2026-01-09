@@ -13,7 +13,8 @@ public record CommentDto(
         String authorNickname,
         String content,
         OffsetDateTime createdAt,
-        OffsetDateTime updatedAt
+        OffsetDateTime updatedAt,
+        boolean isDeleted
 ) {
     public static CommentDto from(Comment comment) {
         return CommentDto.builder()
@@ -24,6 +25,7 @@ public record CommentDto(
                 .content(comment.getContent())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
+                .isDeleted(comment.isDeleted())
                 .build();
     }
 }
