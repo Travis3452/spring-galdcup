@@ -28,8 +28,8 @@ public class Board {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id")
-    private User admin;
+    @JoinColumn(name = "board_manager_id")
+    private User boardManager;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
