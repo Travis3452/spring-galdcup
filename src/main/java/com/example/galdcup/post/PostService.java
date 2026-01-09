@@ -6,7 +6,9 @@ import com.example.galdcup.post.dto.PostDto;
 import com.example.galdcup.post.embedded.Author;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -42,20 +44,32 @@ public class PostService {
     }
 
     /**
-     * 게시판별 게시글 조회
+     * 게시판별 게시글 조회(최신순)
      */
     @Transactional(readOnly = true)
     public Page<PostDto> findByBoard(Long boardId, Pageable pageable) {
-        return postRepository.findByBoardId(boardId, pageable)
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return postRepository.findByBoardId(boardId, sortedPageable)
                 .map(PostDto::from);
     }
 
     /**
-     * 사용자별 게시글 조회
+     * 사용자별 게시글 조회(최신순)
      */
     @Transactional(readOnly = true)
     public Page<PostDto> findByAuthorNickname(String nickname, Pageable pageable) {
-        return postRepository.findByAuthorNickname(nickname, pageable)
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return postRepository.findByAuthorNickname(nickname, sortedPageable)
                 .map(PostDto::from);
     }
 
