@@ -1,9 +1,7 @@
 package com.example.galdcup.user;
 
-import com.example.galdcup.comment.CommentRepository;
-import com.example.galdcup.comment.ReplyRepository;
+import com.example.galdcup.board.BoardRepository;
 import com.example.galdcup.common.security.AES256Encryptor;
-import com.example.galdcup.post.PostRepository;
 import com.example.galdcup.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,9 +15,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PostRepository postRepository;
-    private final CommentRepository commentRepository;
-    private final ReplyRepository replyRepository;
+    private final BoardRepository boardRepository;
     private final AES256Encryptor encryptor;
 
     /** ID로 사용자 조회 후 DTO 반환 */
@@ -53,12 +49,7 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        User deletedUser = userRepository.findById(5L)
-                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
-
-        postRepository.updateAuthorToDeletedUser(user.getId(), deletedUser);
-        commentRepository.updateAuthorToDeletedUser(user.getId(), deletedUser);
-        replyRepository.updateAuthorToDeletedUser(user.getId(), deletedUser);
+        boardRepository.removeBoardManagerByUserId(user.getId());
 
         userRepository.delete(user);
     }
