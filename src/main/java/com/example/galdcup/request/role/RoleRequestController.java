@@ -1,8 +1,8 @@
-package com.example.galdcup.rolechange;
+package com.example.galdcup.request.role;
 
 import com.example.galdcup.common.security.CustomUserDetails;
-import com.example.galdcup.rolechange.dto.CreateRoleChangeRequest;
-import com.example.galdcup.rolechange.dto.RoleChangeDto;
+import com.example.galdcup.request.role.dto.CreateRoleRequest;
+import com.example.galdcup.request.role.dto.RoleRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,26 +14,26 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/role-changes")
 @RequiredArgsConstructor
-public class RoleChangeController {
+public class RoleRequestController {
 
-    private final RoleChangeService roleChangeService;
+    private final RoleRequestService roleRequestService;
 
     /** USER → MANAGER 권한 요청 */
     @PostMapping
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<RoleChangeDto> requestRoleChange(
-            @AuthenticationPrincipal CustomUserDetails principal,
-            @RequestBody CreateRoleChangeRequest request) {
+    public ResponseEntity<RoleRequestDto> requestRoleChange(
+            @RequestBody CreateRoleRequest request,
+            @AuthenticationPrincipal CustomUserDetails principal) {
 
-        RoleChangeDto roleChangeDto = roleChangeService.requestRoleChange(principal.getId(), request.requestedRole());
-        return ResponseEntity.ok(roleChangeDto);
+        RoleRequestDto roleRequestDto = roleRequestService.requestRoleChange(principal.getId(), request.requestedRole());
+        return ResponseEntity.ok(roleRequestDto);
     }
 
     /** ADMIN → 요청 목록 조회 */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<RoleChangeDto>> getPendingRequests() {
-        List<RoleChangeDto> requests = roleChangeService.getPendingRequests();
+    public ResponseEntity<List<RoleRequestDto>> getPendingRequests() {
+        List<RoleRequestDto> requests = roleRequestService.getPendingRequests();
         return ResponseEntity.ok(requests);
     }
 
@@ -41,7 +41,7 @@ public class RoleChangeController {
     @PostMapping("/{requestId}/approve")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> approveRequest(@PathVariable Long requestId) {
-        roleChangeService.approveRequest(requestId);
+        roleRequestService.approveRequest(requestId);
         return ResponseEntity.ok().build();
     }
 
@@ -49,7 +49,7 @@ public class RoleChangeController {
     @PostMapping("/{requestId}/deny")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> denyRequest(@PathVariable Long requestId) {
-        roleChangeService.denyRequest(requestId);
+        roleRequestService.denyRequest(requestId);
         return ResponseEntity.ok().build();
     }
 }
