@@ -10,7 +10,7 @@ import java.time.ZoneId;
 @Table(
         name = "galdcup_votes",
         indexes = {
-                @Index(name = "idx_vote_session_user", columnList = "voteSession_id, user_id", unique = true)
+                @Index(name = "idx_vote_session_user", columnList = "voteSession_id, voter_id", unique = true)
         }
 )
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
