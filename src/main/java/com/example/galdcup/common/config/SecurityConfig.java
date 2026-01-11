@@ -1,5 +1,6 @@
 package com.example.galdcup.common.config;
 
+import com.example.galdcup.common.exception.ExceptionResponse;
 import com.example.galdcup.common.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -15,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +28,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ObjectMapper objectMapper;
 
     @Value("${cors.allowed-origins}")
     private String[] allowedOrigins;
@@ -49,9 +53,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/boards/**").hasAnyRole("ADMIN","MANAGER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/boards/**").hasAnyRole("ADMIN","MANAGER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/boards/**").hasAnyRole("ADMIN","MANAGER")
+                        .requestMatchers(HttpMethod.POST, "/api/boards/**").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/boards/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/boards/**").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/comments/**").authenticated()
@@ -68,15 +72,31 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/replies/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/replies/**").authenticated()
 
-                        .requestMatchers(HttpMethod.POST, "/api/role-changes").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET, "/api/role-changes").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/role-changes/*/approve").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/role-changes/*/deny").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/role-changes").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/role-changes").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/role-changes/*/approve").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/role-changes/*/deny").authenticated()
 
                         .requestMatchers(HttpMethod.POST, "/api/votes/**").authenticated()
 
                         .anyRequest().permitAll()
                 )
+
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            var body = ExceptionResponse.buildBody(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "로그인이 필요합니다.");
+                            response.getWriter().write(objectMapper.writeValueAsString(body));
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            var body = ExceptionResponse.buildBody(HttpStatus.FORBIDDEN, "ACCESS_DENIED", "권한이 부족합니다.");
+                            response.getWriter().write(objectMapper.writeValueAsString(body));
+                        })
+                )
+
 
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)

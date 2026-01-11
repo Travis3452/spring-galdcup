@@ -1,5 +1,6 @@
 package com.example.galdcup.common.exception;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -11,19 +12,19 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.galdcup.common.exception.ExceptionResponse.buildBody;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
      * 400 Bad Request
-     * 잘못된 요청 파라미터나 로직 오류가 발생했을 때 처리
+     * 잘못된 요청 파라미터나 로직 오류 발생 시 처리
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", "BAD_REQUEST");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(buildBody(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage()));
     }
 
     /**
@@ -32,12 +33,11 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
-        Map<String, Object> errors = new HashMap<>();
+        Map<String, String> errors = new HashMap<>();
         for (FieldError fe : ex.getBindingResult().getFieldErrors()) {
             errors.put(fe.getField(), fe.getDefaultMessage());
         }
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", "VALIDATION_FAILED");
+        Map<String, Object> body = buildBody(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", "입력값 검증 실패");
         body.put("details", errors);
         return ResponseEntity.badRequest().body(body);
     }
@@ -48,10 +48,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<Map<String, Object>> handleSecurity(SecurityException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", "FORBIDDEN");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(buildBody(HttpStatus.FORBIDDEN, "FORBIDDEN", ex.getMessage()));
     }
 
     /**
@@ -60,10 +58,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", "ACCESS_DENIED");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(buildBody(HttpStatus.FORBIDDEN, "ACCESS_DENIED", ex.getMessage()));
     }
 
     /**
@@ -72,9 +68,26 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("error", "CONFLICT");
-        body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(buildBody(HttpStatus.CONFLICT, "CONFLICT", ex.getMessage()));
+    }
+
+    /**
+     * 404 Not Found
+     * 엔티티를 찾지 못했을 때 처리
+     */
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(buildBody(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage()));
+    }
+
+    /**
+     * 디폴트 예외 처리
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(buildBody(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", ex.getMessage()));
     }
 }
