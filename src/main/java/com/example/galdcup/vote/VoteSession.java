@@ -1,7 +1,6 @@
 package com.example.galdcup.vote;
 
 import com.example.galdcup.board.Board;
-import com.example.galdcup.vote.embedded.VoteOption;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,8 +26,10 @@ public class VoteSession {
     @Column(nullable = false)
     private OffsetDateTime endTime;
 
-    @ElementCollection
-    @CollectionTable(name = "vote_session_options", joinColumns = @JoinColumn(name = "vote_session_id"))
+    @Column(nullable = false)
+    private boolean isFinished = false;
+
+    @OneToMany(mappedBy = "voteSession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VoteOption> options = new ArrayList<>();
 
     @OneToMany(mappedBy = "voteSession", cascade = CascadeType.REMOVE, orphanRemoval = true)
