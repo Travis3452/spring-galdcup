@@ -26,13 +26,13 @@ public class VoteSessionController {
             @AuthenticationPrincipal CustomUserDetails principal,
             @RequestBody CreateVoteSessionRequest request) {
 
-        VoteSession voteSession = voteSessionService.createVoteSession(
+        VoteSessionDto voteSessionDto = voteSessionService.createVoteSession(
                 boardId,
                 principal.getId(),
                 request
         );
 
-        return ResponseEntity.ok(VoteSessionDto.from(voteSession));
+        return ResponseEntity.ok(voteSessionDto);
     }
 
     /**
@@ -40,7 +40,7 @@ public class VoteSessionController {
      */
     @GetMapping
     public ResponseEntity<VoteSessionDto> getVoteSession(@PathVariable Long boardId) {
-        VoteSession voteSession = voteSessionService.getVoteSession(boardId);
-        return ResponseEntity.ok(VoteSessionDto.from(voteSession));
+        VoteSessionDto voteSessionDto = voteSessionService.getVoteSession(boardId);
+        return ResponseEntity.ok(voteSessionDto);
     }
 }
