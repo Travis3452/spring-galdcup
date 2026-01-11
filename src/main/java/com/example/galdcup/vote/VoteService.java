@@ -5,6 +5,7 @@ import com.example.galdcup.user.UserRepository;
 import com.example.galdcup.vote.dto.VoteDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -12,16 +13,15 @@ import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class VoteService {
 
     private final VoteRepository voteRepository;
     private final VoteSessionRepository voteSessionRepository;
     private final UserRepository userRepository;
+    private final StringRedisTemplate redisTemplate;
 
-    /**
-     * 투표 생성
-     */
+    /** 투표 생성 */
+    @Transactional
     public VoteDto createVote(Long voteSessionId, Long userId, int selectedOptionIndex) {
         VoteSession session = voteSessionRepository.findById(voteSessionId)
                 .orElseThrow(() -> new IllegalArgumentException("투표 세션을 찾을 수 없습니다."));
@@ -44,6 +44,8 @@ public class VoteService {
             throw new IllegalArgumentException("잘못된 투표 옵션입니다.");
         }
 
+        VoteOption selectedOption = session.getOptions().get(selectedOptionIndex);
+
         Vote vote = voteRepository.save(
                 Vote.builder()
                         .voteSession(session)
@@ -51,6 +53,9 @@ public class VoteService {
                         .selectedOptionIndex(selectedOptionIndex)
                         .build()
         );
+
+        String key = "vote:" + session.getId() + ":" + selectedOption.getId();
+        redisTemplate.opsForValue().increment(key);
 
         return VoteDto.from(vote);
     }
