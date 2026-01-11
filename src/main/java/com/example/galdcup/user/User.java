@@ -1,6 +1,7 @@
 package com.example.galdcup.user;
 
-import com.example.galdcup.rolechange.RoleChange;
+import com.example.galdcup.request.boardmanager.BoardManagerRequest;
+import com.example.galdcup.request.role.RoleRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,22 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String emailEncrypted;   // AES 암호화된 이메일
-    private String emailHash;        // SHA-256 해시된 이메일
+    private String encryptedEmail;   // AES 암호화된 이메일
+    private String hashEmail;        // SHA-256 해시된 이메일
 
-    private String oauthIdEncrypted; // AES 암호화된 OAuth ID
-    private String oauthIdHash;      // SHA-256 해시된 OAuth ID
+    private String encryptedOauthId; // AES 암호화된 OAuth ID
+    private String hashOauthId;      // SHA-256 해시된 OAuth ID
 
     private String nickname;
 
@@ -36,6 +33,9 @@ public class User {
         ADMIN
     }
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<RoleChange> roleChanges = new ArrayList<>();
+    @OneToMany(mappedBy = "applicant", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<RoleRequest> roleRequests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "applicant", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<BoardManagerRequest> boardManagerRequests = new ArrayList<>();
 }

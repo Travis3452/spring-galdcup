@@ -56,8 +56,8 @@ public class UserService {
 
     /** 엔티티를 DTO로 변환 (이메일, OAuth ID 복호화 포함) */
     private UserDto decryptToDto(User user) {
-        String decryptedEmail = user.getEmailEncrypted() != null
-                ? encryptor.decrypt(user.getEmailEncrypted())
+        String decryptedEmail = user.getEncryptedEmail() != null
+                ? encryptor.decrypt(user.getEncryptedEmail())
                 : null;
 
         return new UserDto(

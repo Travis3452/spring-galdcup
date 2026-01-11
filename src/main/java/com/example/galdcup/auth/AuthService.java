@@ -35,15 +35,15 @@ public class AuthService {
         var tokens = googleClient.exchangeCodeForToken(code, googleRedirectUri);
         var profile = googleClient.fetchUserProfile(tokens.accessToken());
 
-        String oauthIdHash = DigestUtils.sha256Hex(profile.sub());
+        String hashOauthId = DigestUtils.sha256Hex(profile.sub());
 
-        User user = userRepository.findByOauthIdHash(oauthIdHash)
+        User user = userRepository.findByHashOauthId(hashOauthId)
                 .orElseGet(() -> {
                     User newUser = User.builder()
-                            .oauthIdEncrypted(encryptor.encrypt(profile.sub()))
-                            .oauthIdHash(oauthIdHash)
-                            .emailEncrypted(encryptor.encrypt(profile.email()))
-                            .emailHash(DigestUtils.sha256Hex(profile.email()))
+                            .encryptedOauthId(encryptor.encrypt(profile.sub()))
+                            .hashOauthId(hashOauthId)
+                            .encryptedEmail(encryptor.encrypt(profile.email()))
+                            .hashEmail(DigestUtils.sha256Hex(profile.email()))
                             .nickname(profile.name())
                             .role(User.Role.USER)
                             .build();
