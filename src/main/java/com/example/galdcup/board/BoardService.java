@@ -59,14 +59,14 @@ public class BoardService {
      * 게시판 생성
      */
     @Transactional
-    public BoardDto create(String topic, String description, Long adminId) {
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new IllegalArgumentException("관리자를 찾을 수 없습니다."));
+    public BoardDto create(String topic, String description, Long currentUserId) {
+        User boardManager = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Board board = Board.builder()
                 .topic(topic)
                 .description(description)
-                .admin(admin)
+                .boardManager(boardManager)
                 .status(Board.Status.OPEN)
                 .build();
 
@@ -85,7 +85,7 @@ public class BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
 
-        if (!board.getAdmin().getId().equals(currentUserId)) {
+        if (!board.getBoardManager().getId().equals(currentUserId)) {
             throw new AccessDeniedException("이 게시판의 관리자가 아닙니다.");
         }
 
@@ -102,13 +102,13 @@ public class BoardService {
      */
     @Transactional
     public void delete(Long id, Long currentUserId) {
-        User admin = userRepository.findById(currentUserId)
+        User boardManager = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
 
-        if (!board.getAdmin().getId().equals(admin.getId())) {
+        if (!board.getBoardManager().getId().equals(boardManager.getId())) {
             throw new AccessDeniedException("이 게시판의 관리자가 아닙니다.");
         }
 
