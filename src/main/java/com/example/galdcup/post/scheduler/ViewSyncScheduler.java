@@ -33,7 +33,7 @@ public class ViewSyncScheduler {
                 if (value != null) {
                     long views = Long.parseLong(value);
 
-                    postRepository.updateViewCount(postId, views);
+                    postRepository.incrementViewCount(postId, views);
 
                     redisTemplate.delete(key);
                 }
