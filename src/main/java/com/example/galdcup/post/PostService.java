@@ -5,15 +5,16 @@ import com.example.galdcup.board.BoardRepository;
 import com.example.galdcup.post.dto.PostDto;
 import com.example.galdcup.post.embedded.Author;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
+import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -123,5 +124,44 @@ public class PostService {
 
         postRepository.deleteById(id);
         redisTemplate.delete("post:view:" + id);
+    }
+
+    /**
+     * 게시판 인기글 목록 조회 (최근 24시간 기준)
+     */
+    @Transactional(readOnly = true)
+    public Page<PostDto> getPopularPostsByBoard(Long boardId, long likeThreshold, Pageable pageable) {
+        String cacheKey = "posts:popular:board:" + boardId + ":" + likeThreshold + ":" + pageable.getPageNumber();
+
+        String cached = redisTemplate.opsForValue().get(cacheKey);
+        if (cached != null) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                List<PostDto> cachedList = mapper.readValue(cached, new TypeReference<List<PostDto>>() {});
+                return new PageImpl<>(cachedList, pageable, cachedList.size());
+            } catch (Exception e) {
+            }
+        }
+
+        OffsetDateTime timeThreshold = OffsetDateTime.now().minusHours(24);
+
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "likeCount")
+        );
+
+        Page<PostDto> result = postRepository
+                .findByBoardIdAndLikeCountGreaterThanEqualAndCreatedAtAfter(boardId, likeThreshold, timeThreshold, sortedPageable)
+                .map(PostDto::from);
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String json = mapper.writeValueAsString(result.getContent());
+            redisTemplate.opsForValue().set(cacheKey, json, 5, TimeUnit.MINUTES);
+        } catch (Exception e) {
+        }
+
+        return result;
     }
 }
