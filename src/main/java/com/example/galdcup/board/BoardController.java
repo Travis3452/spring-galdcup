@@ -1,8 +1,6 @@
 package com.example.galdcup.board;
 
-import com.example.galdcup.board.dto.BoardDto;
-import com.example.galdcup.board.dto.CreateBoardRequest;
-import com.example.galdcup.board.dto.UpdateBoardRequest;
+import com.example.galdcup.board.dto.*;
 import com.example.galdcup.common.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +26,31 @@ public class BoardController {
     }
 
     /** 게시판 단건 조회 */
-    @GetMapping("/{id}")
-    public ResponseEntity<BoardDto> getBoard(@PathVariable Long id) {
-        return boardService.findById(id)
+    @GetMapping("/{boardId}")
+    public ResponseEntity<BoardDto> getBoard(@PathVariable Long boardId) {
+        return boardService.findById(boardId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** 게시판 정책 조회 */
+    @GetMapping("/{boardId}/policy")
+    public ResponseEntity<BoardPolicyDto> getBoardPolicy(@PathVariable Long boardId) {
+        return boardService.findPolicyByBoardId(boardId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /** 게시판 정책 업데이트 (boardManager만 접근 가능) */
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PatchMapping("/{boardId}/policy")
+    public ResponseEntity<BoardPolicyDto> updateBoardPolicy(
+            @PathVariable Long boardId,
+            @Valid @RequestBody UpdateBoardPolicyRequest request,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+
+        BoardPolicyDto updated = boardService.updatePolicy(boardId, request, principal.getId());
+        return ResponseEntity.ok(updated);
     }
 
     /** 게시판 생성 */
@@ -48,24 +66,49 @@ public class BoardController {
 
     /** 게시판 상태 변경 */
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/{boardId}/status")
     public ResponseEntity<BoardDto> updateStatus(
-            @PathVariable Long id,
+            @PathVariable Long boardId,
             @Valid @RequestBody UpdateBoardRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        BoardDto updated = boardService.updateStatus(id, request.status(), principal.getId());
+        BoardDto updated = boardService.updateStatus(boardId, request.status(), principal.getId());
         return ResponseEntity.ok(updated);
     }
 
     /** 게시판 삭제 */
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{boardId}")
     public ResponseEntity<Void> deleteBoard(
-            @PathVariable Long id,
+            @PathVariable Long boardId,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        boardService.delete(id, principal.getId());
+        boardService.delete(boardId, principal.getId());
         return ResponseEntity.noContent().build();
     }
+
+    /** 서브 매니저 추가 (boardManager만 접근 가능) */
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PostMapping("/{boardId}/policy/sub-managers")
+    public ResponseEntity<BoardPolicyDto> addSubManager(
+            @PathVariable Long boardId,
+            @Valid @RequestBody SubManagerRequest request,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+
+        BoardPolicyDto updated = boardService.addSubManager(boardId, request.nickname(), principal.getId());
+        return ResponseEntity.ok(updated);
+    }
+
+    /** 서브 매니저 삭제 (boardManager만 접근 가능) */
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @DeleteMapping("/{boardId}/policy/sub-managers")
+    public ResponseEntity<BoardPolicyDto> removeSubManager(
+            @PathVariable Long boardId,
+            @Valid @RequestBody SubManagerRequest request,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+
+        BoardPolicyDto updated = boardService.removeSubManager(boardId, request.nickname(), principal.getId());
+        return ResponseEntity.ok(updated);
+    }
+
 }

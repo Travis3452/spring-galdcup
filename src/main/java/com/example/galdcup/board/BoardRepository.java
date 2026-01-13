@@ -8,6 +8,6 @@ import org.springframework.data.repository.query.Param;
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
     @Modifying
-    @Query("UPDATE Board b SET b.boardManager = NULL WHERE b.boardManager.id = :userId")
+    @Query("UPDATE Board b SET b.boardPolicy.boardManager.id = NULL WHERE b.boardPolicy.boardManager.id = :userId")
     void removeBoardManagerByUserId(@Param("userId") Long userId);
 }

@@ -1,7 +1,6 @@
 package com.example.galdcup.board;
 
 import com.example.galdcup.post.Post;
-import com.example.galdcup.user.User;
 import com.example.galdcup.vote.VoteSession;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,9 +26,8 @@ public class Board {
     @Column(length = 500)
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_manager_id")
-    private User boardManager;
+    @OneToOne(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private BoardPolicy boardPolicy;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -47,6 +45,10 @@ public class Board {
     public void prePersist() {
         createdAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
         status = Status.OPEN;
+        boardPolicy = BoardPolicy.builder()
+                    .board(this)
+                    .likeThreshold(20)
+                    .build();
     }
 
     public void closeBoard() {

@@ -35,9 +35,9 @@ public class BoardManagerRequestService {
         }
 
         BoardManagerRequest.Status status;
-        if (board.getBoardManager() == null) {
+        if (board.getBoardPolicy().getBoardManager() == null) {
             status = BoardManagerRequest.Status.ACCEPTED;
-            board.setBoardManager(applicant);
+            board.getBoardPolicy().setBoardManager(applicant);
             boardRepository.save(board);
         } else {
             status = BoardManagerRequest.Status.WAITING;
@@ -60,7 +60,7 @@ public class BoardManagerRequestService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
 
-        if (board.getBoardManager() == null || !board.getBoardManager().getId().equals(userId)) {
+        if (board.getBoardPolicy().getBoardManager() == null || !board.getBoardPolicy().getBoardManager().getId().equals(userId)) {
             throw new IllegalStateException("해당 게시판의 관리자만 요청을 조회할 수 있습니다.");
         }
 
@@ -82,7 +82,7 @@ public class BoardManagerRequestService {
         request.setStatus(BoardManagerRequest.Status.ACCEPTED);
 
         Board board = request.getBoard();
-        board.setBoardManager(request.getApplicant());
+        board.getBoardPolicy().setBoardManager(request.getApplicant());
 
         boardManagerRequestRepository.save(request);
         boardRepository.save(board);
