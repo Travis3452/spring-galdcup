@@ -1,6 +1,7 @@
 package com.example.galdcup.post;
 
 import com.example.galdcup.board.Board;
+import com.example.galdcup.comment.Comment;
 import com.example.galdcup.post.embedded.Author;
 import jakarta.persistence.*;
 import lombok.*;
@@ -50,6 +51,9 @@ public class Post {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PostReaction> reactions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
