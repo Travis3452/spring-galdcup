@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -44,13 +45,22 @@ public class AuthService {
                             .hashOauthId(hashOauthId)
                             .encryptedEmail(encryptor.encrypt(profile.email()))
                             .hashEmail(DigestUtils.sha256Hex(profile.email()))
-                            .nickname(profile.name())
+                            .nickname(generateUniqueNickname())
                             .role(User.Role.USER)
                             .build();
                     return userRepository.save(newUser);
                 });
 
         return createTokens(user);
+    }
+
+    /** 기본 닉네임 생성 */
+    private String generateUniqueNickname() {
+        String nickname;
+        do {
+            nickname = "user-" + UUID.randomUUID().toString().substring(0, 8);
+        } while (userRepository.existsByNickname(nickname));
+        return nickname;
     }
 
     /** 로그인/갱신 시 토큰 발급 */
