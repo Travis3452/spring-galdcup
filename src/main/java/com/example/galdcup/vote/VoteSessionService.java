@@ -28,7 +28,7 @@ public class VoteSessionService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
 
-        if (!board.getBoardManager().getId().equals(adminId)) {
+        if (!board.getBoardPolicy().getBoardManager().getId().equals(adminId)) {
             throw new SecurityException("해당 게시판의 관리자만 투표 세션을 생성할 수 있습니다.");
         }
 
