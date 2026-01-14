@@ -45,10 +45,6 @@ public class Board {
     public void prePersist() {
         createdAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
         status = Status.OPEN;
-        boardPolicy = BoardPolicy.builder()
-                    .board(this)
-                    .likeThreshold(20)
-                    .build();
     }
 
     public void closeBoard() {
