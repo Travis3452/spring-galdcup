@@ -8,14 +8,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.OffsetDateTime;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByBoardId(Long boardId, Pageable pageable);
     Page<Post> findByAuthorNickname(String nickname, Pageable pageable);
-    Page<Post> findByBoardIdAndLikeCountGreaterThanEqualAndCreatedAtAfter(
-            Long boardId, long likeCount, OffsetDateTime createdAt, Pageable pageable);
+    Page<Post> findByBoardIdAndLikeCountGreaterThanEqual(Long boardId, long likeThreshold, Pageable sortedPageable);
 
     @Modifying
     @Query("UPDATE Post post SET post.view = post.view + :views WHERE post.id = :id")
     void incrementViewCount(@Param("id") Long id, @Param("views") long views);
+
+
 }

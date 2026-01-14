@@ -127,11 +127,11 @@ public class PostService {
     }
 
     /**
-     * 게시판 인기글 목록 조회 (최근 24시간 기준)
+     * 게시판 인기글 목록 조회 (좋아요 수 기준 + 최신순 정렬)
      */
     @Transactional(readOnly = true)
-    public Page<PostDto> getPopularPostsByBoard(Long boardId, long likeThreshold, Pageable pageable) {
-        String cacheKey = "posts:popular:board:" + boardId + ":" + likeThreshold + ":" + pageable.getPageNumber();
+    public Page<PostDto> getPopularPostsByBoard(Long boardId, Pageable pageable) {
+        String cacheKey = "posts:popular:board:" + boardId + ":" + pageable.getPageNumber();
 
         String cached = redisTemplate.opsForValue().get(cacheKey);
         if (cached != null) {
@@ -140,26 +140,30 @@ public class PostService {
                 List<PostDto> cachedList = mapper.readValue(cached, new TypeReference<List<PostDto>>() {});
                 return new PageImpl<>(cachedList, pageable, cachedList.size());
             } catch (Exception e) {
+                // 캐시 파싱 실패 시 무시하고 새로 조회
             }
         }
 
-        OffsetDateTime timeThreshold = OffsetDateTime.now().minusHours(24);
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+        long likeThreshold = board.getBoardPolicy().getLikeThreshold();
 
         Pageable sortedPageable = PageRequest.of(
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
-                Sort.by(Sort.Direction.DESC, "likeCount")
+                Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
         Page<PostDto> result = postRepository
-                .findByBoardIdAndLikeCountGreaterThanEqualAndCreatedAtAfter(boardId, likeThreshold, timeThreshold, sortedPageable)
+                .findByBoardIdAndLikeCountGreaterThanEqual(boardId, likeThreshold, sortedPageable)
                 .map(PostDto::from);
 
         try {
             ObjectMapper mapper = new ObjectMapper();
             String json = mapper.writeValueAsString(result.getContent());
-            redisTemplate.opsForValue().set(cacheKey, json, 5, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(cacheKey, json, 10, TimeUnit.SECONDS);
         } catch (Exception e) {
+            // 캐시 저장 실패 시 무시
         }
 
         return result;

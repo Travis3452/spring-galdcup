@@ -89,4 +89,14 @@ public class PostController {
         postService.delete(id, principal.getId());
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * 게시판 인기글 목록 조회
+     */
+    @GetMapping("/board/{boardId}/popular")
+    public ResponseEntity<Page<PostDto>> getPopularPosts(@PathVariable Long boardId,
+                                                         Pageable pageable) {
+        Page<PostDto> posts = postService.getPopularPostsByBoard(boardId, pageable);
+        return ResponseEntity.ok(posts);
+    }
 }
