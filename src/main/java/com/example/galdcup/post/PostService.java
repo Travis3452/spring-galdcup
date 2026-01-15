@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -106,6 +108,8 @@ public class PostService {
 
         post.setTitle(title);
         post.setContent(content);
+        post.setUpdatedAt(OffsetDateTime.now(ZoneId.of("Asia/Seoul")));
+
         return PostDto.from(postRepository.save(post));
     }
 
