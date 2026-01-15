@@ -62,11 +62,6 @@ public class Post {
         updatedAt = now;
     }
 
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
-    }
-
     public void addLike() { this.likeCount++; }
     public void addDislike() { this.dislikeCount++; }
 }
