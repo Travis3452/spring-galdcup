@@ -19,7 +19,7 @@ public class VoteSessionController {
     /**
      * 투표 세션 생성
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping
     public ResponseEntity<VoteSessionDto> createVoteSession(
             @PathVariable Long boardId,
