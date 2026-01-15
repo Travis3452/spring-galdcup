@@ -6,10 +6,13 @@ import com.example.galdcup.user.dto.UserDetailDto;
 import com.example.galdcup.user.dto.UserDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -27,14 +30,13 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
-    /** 특정 사용자 조회(nickname) */
-    @GetMapping("/nickname")
-    public ResponseEntity<UserDto> getUserByNickname(@RequestBody String nickname) {
-        UserDto userDto = userService.findByNickname(nickname);
-
-        return ResponseEntity.ok(userDto);
+    /** 닉네임 포함 검색 (페이징) */
+    @GetMapping("/nickname/{nickname}")
+    public ResponseEntity<Page<UserDto>> getUserByNickname(@PathVariable String nickname,
+                                                           Pageable pageable) {
+        Page<UserDto> users = userService.findByNicknameContaining(nickname, pageable);
+        return ResponseEntity.ok(users);
     }
-
 
     /** 프로필 수정 (본인만 가능) */
     @PutMapping("/{id}")

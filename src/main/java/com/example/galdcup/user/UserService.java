@@ -5,9 +5,12 @@ import com.example.galdcup.common.security.AES256Encryptor;
 import com.example.galdcup.user.dto.UserDetailDto;
 import com.example.galdcup.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -37,12 +40,12 @@ public class UserService {
     /**
      * Nickname으로 사용자 조회 후 DTO 반환
      */
-    public UserDto findByNickname(String nickname) {
-        User user = userRepository.findByNickname(nickname)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        return UserDto.from(user);
+    public Page<UserDto> findByNicknameContaining(String keyword, Pageable pageable) {
+        Page<User> users = userRepository.findByNicknameContaining(keyword, pageable);
+        return users.map(UserDto::from);
     }
+
+
 
     /** 사용자 프로필 수정 (본인만 가능) */
     @Transactional
