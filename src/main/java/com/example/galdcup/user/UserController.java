@@ -3,6 +3,7 @@ package com.example.galdcup.user;
 import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.user.dto.UpdateUserRequest;
 import com.example.galdcup.user.dto.UserDetailDto;
+import com.example.galdcup.user.dto.UserDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +19,22 @@ public class UserController {
 
     private final UserService userService;
 
-    /** 특정 사용자 조회 */
+    /** 특정 사용자 조회(id) */
     @GetMapping("/{id}")
-    public ResponseEntity<UserDetailDto> getUser(@PathVariable Long id) {
-        Optional<UserDetailDto> userOpt = userService.findById(id);
-        return userOpt.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<UserDto> getUser(@PathVariable Long id) {
+        UserDto userDto = userService.findById(id);
+
+        return ResponseEntity.ok(userDto);
     }
+
+    /** 특정 사용자 조회(nickname) */
+    @GetMapping("/nickname")
+    public ResponseEntity<UserDto> getUserByNickname(@RequestBody String nickname) {
+        UserDto userDto = userService.findByNickname(nickname);
+
+        return ResponseEntity.ok(userDto);
+    }
+
 
     /** 프로필 수정 (본인만 가능) */
     @PutMapping("/{id}")
@@ -56,8 +66,8 @@ public class UserController {
     public ResponseEntity<UserDetailDto> me(@AuthenticationPrincipal CustomUserDetails principal) {
         if (principal == null) return ResponseEntity.status(401).build();
 
-        return userService.findById(principal.getId())
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        UserDetailDto userDetailDto = userService.findUserDetailById(principal.getId());
+
+        return ResponseEntity.ok(userDetailDto);
     }
 }

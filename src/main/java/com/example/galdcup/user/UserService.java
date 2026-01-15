@@ -3,6 +3,7 @@ package com.example.galdcup.user;
 import com.example.galdcup.board.BoardRepository;
 import com.example.galdcup.common.security.AES256Encryptor;
 import com.example.galdcup.user.dto.UserDetailDto;
+import com.example.galdcup.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +20,28 @@ public class UserService {
     private final AES256Encryptor encryptor;
 
     /** ID로 사용자 조회 후 DTO 반환 */
-    public Optional<UserDetailDto> findById(Long id) {
-        return userRepository.findById(id)
-                .map(this::decryptToDto);
+    public UserDto findById(Long id) {
+        User user =  userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + id));
+
+        return UserDto.from(user);
+    }
+
+    public UserDetailDto findUserDetailById(Long id) {
+        User me = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + id));
+
+        return decryptToDto(me);
+    }
+
+    /**
+     * Nickname으로 사용자 조회 후 DTO 반환
+     */
+    public UserDto findByNickname(String nickname) {
+        User user = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        return UserDto.from(user);
     }
 
     /** 사용자 프로필 수정 (본인만 가능) */
