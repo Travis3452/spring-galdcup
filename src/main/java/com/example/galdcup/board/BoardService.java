@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final BoardPolicyRepository boardPolicyRepository;
     private final UserRepository userRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
@@ -173,6 +174,7 @@ public class BoardService {
                 .likeThreshold(20)
                 .build();
 
+        boardPolicyRepository.save(policy);
         board.setBoardPolicy(policy);
 
         Board saved = boardRepository.save(board);
