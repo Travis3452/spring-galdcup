@@ -46,7 +46,7 @@ public class AuthService {
                             .encryptedEmail(encryptor.encrypt(profile.email()))
                             .hashEmail(DigestUtils.sha256Hex(profile.email()))
                             .nickname(generateUniqueNickname())
-                            .role(User.Role.USER)
+                            .role(User.Role.MANAGER)
                             .build();
                     return userRepository.save(newUser);
                 });
