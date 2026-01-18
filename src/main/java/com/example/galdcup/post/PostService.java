@@ -61,6 +61,76 @@ public class PostService {
     }
 
     /**
+     * 게시판의 게시글 검색(제목+내용)
+     */
+    @Transactional(readOnly = true)
+    public Page<PostDto> getPostsByTitleAndContent(Pageable pageable, Long boardId, String keyword) {
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return postRepository.searchByBoardAndTitleOrContent(boardId, keyword, sortedPageable)
+                .map(PostDto::from);
+    }
+
+    /**
+     * 게시판의 게시글 검색(작성자)
+     */
+    @Transactional(readOnly = true)
+    public Page<PostDto> getPostsByAuthorNickname(Pageable pageable, Long boardId, String keyword) {
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return postRepository.searchByBoardAndAuthor(boardId, keyword, sortedPageable)
+                .map(PostDto::from);
+    }
+
+    /**
+     * 게시판의 인기글 검색(제목+내용)
+     */
+    @Transactional(readOnly = true)
+    public Page<PostDto> getPopularPostsByTitleAndContent(Pageable pageable, Long boardId, String keyword) {
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+
+        Long likeThreshold = board.getBoardPolicy().getLikeThreshold();
+
+        return postRepository.searchPopularPostsByBoardAndTitleOrContent(boardId, likeThreshold, keyword, sortedPageable)
+                .map(PostDto::from);
+    }
+
+    /**
+     * 게시판의 인기글 검색(작성자)
+     */
+    @Transactional(readOnly = true)
+    public Page<PostDto> getPopularPostsByAuthorNickname(Pageable pageable, Long boardId, String keyword) {
+        Pageable sortedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+
+        Long likeThreshold = board.getBoardPolicy().getLikeThreshold();
+
+        return postRepository.searchPopularPostsByBoardAndTitleOrContent(boardId, likeThreshold, keyword, sortedPageable)
+                .map(PostDto::from);
+    }
+    
+    /**
      * 사용자별 게시글 조회(최신순)
      */
     @Transactional(readOnly = true)
@@ -82,6 +152,7 @@ public class PostService {
     public Optional<PostDto> findById(Long id) {
         Optional<Post> postOpt = postRepository.findById(id);
         postOpt.ifPresent(post -> incrementViewCount(post.getId()));
+
         return postOpt.map(PostDto::from);
     }
 

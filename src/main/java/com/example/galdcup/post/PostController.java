@@ -53,6 +53,50 @@ public class PostController {
     }
 
     /**
+     * 게시판의 게시글 검색(제목+내용)
+     */
+    @GetMapping("/board/{boardId}/search/keyword")
+    public ResponseEntity<Page<PostDto>> searchPostsByTitleAndContent(@PathVariable Long boardId,
+                                                                      @RequestParam String keyword,
+                                                                     Pageable pageable) {
+        Page<PostDto> posts = postService.getPostsByTitleAndContent(pageable, boardId, keyword);
+        return ResponseEntity.ok(posts);
+    }
+
+    /**
+     * 게시판의 게시글 검색(닉네임)
+     */
+    @GetMapping("/board/{boardId}/search/nickname")
+    public ResponseEntity<Page<PostDto>> searchPostsByAuthorNickname(@PathVariable Long boardId,
+                                                                     @RequestParam String nickname,
+                                                                     Pageable pageable) {
+        Page<PostDto> posts = postService.getPostsByAuthorNickname(pageable, boardId, nickname);
+        return ResponseEntity.ok(posts);
+    }
+
+    /**
+     * 게시판의 인기글 검색(제목+내용)
+     */
+    @GetMapping("/board/{boardId}/popular/search/keyword")
+    public ResponseEntity<Page<PostDto>> searchPopularPostsByTitleAndContent(@PathVariable Long boardId,
+                                                                             @RequestParam String keyword,
+                                                                             Pageable pageable) {
+        Page<PostDto> posts = postService.getPopularPostsByTitleAndContent(pageable, boardId, keyword);
+        return ResponseEntity.ok(posts);
+    }
+
+    /**
+     * 게시판의 인기글 검색(닉네임)
+     */
+    @GetMapping("/board/{boardId}/popular/search/nickname")
+    public ResponseEntity<Page<PostDto>> searchPopularPostsByAuthorNickname(@PathVariable Long boardId,
+                                                                            @RequestParam String nickname,
+                                                                            Pageable pageable) {
+        Page<PostDto> posts = postService.getPopularPostsByAuthorNickname(pageable, boardId, nickname);
+        return ResponseEntity.ok(posts);
+    }
+
+    /**
      * 게시글 작성
      */
     @PostMapping
@@ -65,8 +109,7 @@ public class PostController {
                 request.title(),
                 request.content()
         );
-        return ResponseEntity.created(URI.create("/api/posts/" + saved.id()))
-                .body(saved);
+        return ResponseEntity.ok(saved);
     }
 
     /**
