@@ -3,6 +3,7 @@ package com.example.galdcup.vote;
 import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.vote.dto.CreateVoteSessionRequest;
 import com.example.galdcup.vote.dto.VoteSessionDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +25,7 @@ public class VoteSessionController {
     public ResponseEntity<VoteSessionDto> createVoteSession(
             @PathVariable Long boardId,
             @AuthenticationPrincipal CustomUserDetails principal,
-            @RequestBody CreateVoteSessionRequest request) {
+            @Valid @RequestBody CreateVoteSessionRequest request) {
 
         VoteSessionDto voteSessionDto = voteSessionService.createVoteSession(
                 boardId,
