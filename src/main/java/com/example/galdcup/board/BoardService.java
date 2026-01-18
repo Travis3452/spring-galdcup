@@ -32,7 +32,7 @@ public class BoardService {
     private static final String BOARD_LATEST_KEY = "boards:latest";
 
     /**
-     * 게시판 페이지 조회 (1페이지는 캐시 적용, TTL 5분)
+     * 게시판 페이지 조회 (TTL 5분)
      */
     @Transactional(readOnly = true)
     public Page<BoardDto> findAll(Pageable pageable) {
@@ -53,7 +53,7 @@ public class BoardService {
                 String serialized = objectMapper.writeValueAsString(dtoPage);
                 redisTemplate.opsForValue().set(BOARD_LATEST_KEY, serialized, 5, TimeUnit.MINUTES);
             } catch (Exception e) {
-                // 직렬화 실패 시 캐싱 생략
+                // 실패 시 무시
             }
 
             return dtoPage;
@@ -68,6 +68,16 @@ public class BoardService {
     @Transactional(readOnly = true)
     public Optional<BoardDto> findById(Long id) {
         return boardRepository.findById(id).map(BoardDto::from);
+    }
+
+    /**
+     * 게시판 검색(topic)
+     */
+    @Transactional(readOnly = true)
+    public Page<BoardDto> getBoardsByKeyword(Pageable pageable, String keyword) {
+        Page<Board> boardPage = boardRepository.searchBoards(keyword, pageable);
+
+        return boardPage.map(BoardDto::from);
     }
 
     /**

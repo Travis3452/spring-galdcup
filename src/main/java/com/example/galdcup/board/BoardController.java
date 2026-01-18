@@ -33,6 +33,14 @@ public class BoardController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** 게시판 검색 */
+    @GetMapping("/search")
+    public ResponseEntity<Page<BoardDto>> searchBoards(Pageable pageable,
+                                                       @RequestParam String keyword) {
+        Page<BoardDto> boards = boardService.getBoardsByKeyword(pageable, keyword);
+        return ResponseEntity.ok(boards);
+    }
+    
     /** 게시판 정책 조회 */
     @GetMapping("/{boardId}/policy")
     public ResponseEntity<BoardPolicyDto> getBoardPolicy(@PathVariable Long boardId) {
