@@ -79,7 +79,7 @@ public class AuthController {
 
         Cookie refreshCookie = new Cookie("refreshToken", null);
         refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(cookieSecure);   // ✅ 환경별 분리
+        refreshCookie.setSecure(cookieSecure);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(0);
         refreshCookie.setAttribute("SameSite", "None");
