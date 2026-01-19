@@ -11,6 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/boards")
@@ -22,6 +24,13 @@ public class BoardController {
     @GetMapping
     public ResponseEntity<Page<BoardDto>> getBoards(Pageable pageable) {
         Page<BoardDto> boards = boardService.findAll(pageable);
+        return ResponseEntity.ok(boards);
+    }
+
+    /** 인기 게시판 목록 조회 */
+    @GetMapping("/popular")
+    public ResponseEntity<List<BoardDto>> getPopularBoards(Pageable pageable) {
+        List<BoardDto> boards = boardService.getPopularBoards();
         return ResponseEntity.ok(boards);
     }
 

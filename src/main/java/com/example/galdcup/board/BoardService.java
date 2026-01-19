@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -63,11 +64,37 @@ public class BoardService {
     }
 
     /**
+     * 인기 게시판 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<BoardDto> getPopularBoards() {
+        String cacheKey = "boards:ranking:cache";
+        String json = redisTemplate.opsForValue().get(cacheKey);
+
+        if (json != null) {
+            try {
+                return objectMapper.readValue(json, new TypeReference<List<BoardDto>>() {});
+            } catch (Exception ignored) {
+            }
+        }
+
+        return boardRepository.findAll().stream()
+                .map(BoardDto::from)
+                .toList();
+    }
+
+    /**
      * 특정 게시판 조회
      */
     @Transactional(readOnly = true)
     public Optional<BoardDto> findById(Long id) {
-        return boardRepository.findById(id).map(BoardDto::from);
+        Optional<Board> boardOpt = boardRepository.findById(id);
+
+        boardOpt.ifPresent(board -> {
+            redisTemplate.opsForZSet().incrementScore("boards:views", board.getId().toString(), 1);
+        });
+
+        return boardOpt.map(BoardDto::from);
     }
 
     /**
