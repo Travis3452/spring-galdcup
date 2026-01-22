@@ -4,6 +4,7 @@ import com.example.galdcup.board.Board;
 import com.example.galdcup.board.BoardRepository;
 import com.example.galdcup.post.dto.PostDto;
 import com.example.galdcup.post.embedded.Author;
+import com.example.galdcup.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -182,6 +183,29 @@ public class PostService {
         post.setUpdatedAt(OffsetDateTime.now(ZoneId.of("Asia/Seoul")));
 
         return PostDto.from(postRepository.save(post));
+    }
+
+    /**
+     * 게시글 삭제(게시판 관리자 전용)
+     */
+    @Transactional
+    public void deleteForBoardManager(Long id, Long boardId, Long managerId) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+
+        List<User> subManagers = board.getBoardPolicy().getSubManagers();
+        User boardManager = board.getBoardPolicy().getBoardManager();
+
+        if (subManagers.stream().noneMatch(user -> user.getId().equals(managerId))
+                && !boardManager.getId().equals(managerId)) {
+            throw new AccessDeniedException("게시판 관리자 권한이 필요합니다.");
+        }
+
+        postRepository.deleteById(id);
+        redisTemplate.delete("post:view:" + id);
     }
 
     /**
