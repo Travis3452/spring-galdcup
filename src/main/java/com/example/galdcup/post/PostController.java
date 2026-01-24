@@ -133,6 +133,17 @@ public class PostController {
     }
 
     /**
+     * 게시글 삭제
+     */
+    @DeleteMapping("/board/{boardId}/post/{postId}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long boardId,
+                                           @PathVariable Long postId,
+                                           @AuthenticationPrincipal CustomUserDetails principal) {
+        postService.deleteForBoardManager(postId, boardId, principal.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * 게시판 인기글 목록 조회
      */
     @GetMapping("/board/{boardId}/popular")

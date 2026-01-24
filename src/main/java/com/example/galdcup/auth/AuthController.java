@@ -27,6 +27,9 @@ public class AuthController {
     @Value("${cookie.secure}")
     private boolean cookieSecure;
 
+    @Value("${cookie.sameSite}")
+    private String cookieSameSite;
+
     @GetMapping("/callback/google")
     public void googleCallback(
             @RequestParam("code") String code,
@@ -39,7 +42,7 @@ public class AuthController {
         refreshCookie.setSecure(cookieSecure);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(result.refreshTokenMaxAge());
-        refreshCookie.setAttribute("SameSite", "None");
+        refreshCookie.setAttribute("SameSite", cookieSameSite);
         response.addCookie(refreshCookie);
 
         String redirectUrl = String.format(
@@ -64,7 +67,7 @@ public class AuthController {
         refreshCookie.setSecure(cookieSecure);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge(result.refreshTokenMaxAge());
-        refreshCookie.setAttribute("SameSite", "None");
+        refreshCookie.setAttribute("SameSite", cookieSameSite);
         response.addCookie(refreshCookie);
 
         return ResponseEntity.ok(result);
