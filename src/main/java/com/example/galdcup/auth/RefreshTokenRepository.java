@@ -1,11 +1,9 @@
 package com.example.galdcup.auth;
 
-import com.example.galdcup.user.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;
 
-public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
-    Optional<RefreshToken> findByUserAndToken(User user, String token);
-    void deleteByUser(User user);
+public interface RefreshTokenRepository extends CrudRepository<RefreshToken, Long> {
+    Optional<RefreshToken> findByToken(String token);
 }
