@@ -6,14 +6,16 @@ import com.example.galdcup.post.dto.PostDto;
 import com.example.galdcup.post.embedded.Author;
 import com.example.galdcup.user.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -26,7 +28,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final BoardRepository boardRepository;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 게시글 생성
@@ -231,16 +233,7 @@ public class PostService {
     public Page<PostDto> getPopularPostsByBoard(Long boardId, Pageable pageable) {
         String cacheKey = "posts:popular:board:" + boardId + ":" + pageable.getPageNumber();
 
-        String cached = redisTemplate.opsForValue().get(cacheKey);
-        if (cached != null) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                List<PostDto> cachedList = mapper.readValue(cached, new TypeReference<List<PostDto>>() {});
-                return new PageImpl<>(cachedList, pageable, cachedList.size());
-            } catch (Exception e) {
-                // 캐시 파싱 실패 시 무시하고 새로 조회
-            }
-        }
+        Page<PostDto> cached = (Page<PostDto>) redisTemplate.opsForValue().get(cacheKey);
 
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
@@ -256,13 +249,8 @@ public class PostService {
                 .findByBoardIdAndLikeCountGreaterThanEqual(boardId, likeThreshold, sortedPageable)
                 .map(PostDto::from);
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(result.getContent());
-            redisTemplate.opsForValue().set(cacheKey, json, 10, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            // 캐시 저장 실패 시 무시
-        }
+
+        redisTemplate.opsForValue().set(cacheKey, result, Duration.ofSeconds(10));
 
         return result;
     }
