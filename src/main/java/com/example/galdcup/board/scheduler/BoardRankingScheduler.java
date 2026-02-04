@@ -8,8 +8,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,24 +20,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BoardRankingScheduler {
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final BoardRepository boardRepository;
-    private final ObjectMapper objectMapper;
 
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 5 * 60 * 1000) // 5분마다 실행
     public void updateDailyBoardRanking() {
         String viewsKey = "boards:views";
-        String rankingCacheKey = "boards:ranking:cache";
+        String rankingKey = "boards:popular:ranking";
 
         try {
-            Set<ZSetOperations.TypedTuple<String>> topBoards =
+            Set<ZSetOperations.TypedTuple<Object>> topBoards =
                     redisTemplate.opsForZSet().reverseRangeWithScores(viewsKey, 0, 99);
 
             if (topBoards != null && !topBoards.isEmpty()) {
                 List<Long> boardIds = topBoards.stream()
-                        .map(ZSetOperations.TypedTuple::getValue)
-                        .filter(Objects::nonNull)
-                        .map(Long::valueOf)
+                        .map(tuple -> Long.valueOf(tuple.getValue().toString()))
                         .toList();
 
                 List<Board> boards = boardRepository.findAllById(boardIds);
@@ -51,8 +48,7 @@ public class BoardRankingScheduler {
                         .map(BoardDto::from)
                         .toList();
 
-                String serialized = objectMapper.writeValueAsString(boardDtos);
-                redisTemplate.opsForValue().set(rankingCacheKey, serialized);
+                redisTemplate.opsForValue().set(rankingKey, boardDtos, Duration.ofMinutes(10));
             }
 
             redisTemplate.delete(viewsKey);
@@ -61,4 +57,3 @@ public class BoardRankingScheduler {
         }
     }
 }
-
