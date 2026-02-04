@@ -7,18 +7,15 @@ import com.example.galdcup.user.User;
 import com.example.galdcup.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -27,10 +24,12 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardPolicyRepository boardPolicyRepository;
     private final UserRepository userRepository;
-    private final RedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper objectMapper;
+
+    private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String BOARD_LATEST_KEY = "boards:latest";
+    private static final String BOARD_POPULAR_RAKING_KEY = "boards:popular:ranking";
+    private static final String BOARD_VIEWS_KEY = "boards:views";
 
     /**
      * 게시판 페이지 조회 (TTL 5분)
@@ -38,24 +37,15 @@ public class BoardService {
     @Transactional(readOnly = true)
     public Page<BoardDto> findAll(Pageable pageable) {
         if (pageable.getPageNumber() == 0) {
-            String json = redisTemplate.opsForValue().get(BOARD_LATEST_KEY);
-            if (json != null) {
-                try {
-                    return objectMapper.readValue(json, new TypeReference<PageImpl<BoardDto>>() {});
-                } catch (Exception e) {
-                    redisTemplate.delete(BOARD_LATEST_KEY);
-                }
+            Page<BoardDto> cachedPage = (Page<BoardDto>) redisTemplate.opsForValue().get(BOARD_LATEST_KEY);
+            if (cachedPage != null) {
+                return cachedPage;
             }
 
             Page<Board> boards = boardRepository.findAll(pageable);
             Page<BoardDto> dtoPage = boards.map(BoardDto::from);
 
-            try {
-                String serialized = objectMapper.writeValueAsString(dtoPage);
-                redisTemplate.opsForValue().set(BOARD_LATEST_KEY, serialized, 5, TimeUnit.MINUTES);
-            } catch (Exception e) {
-                // 실패 시 무시
-            }
+            redisTemplate.opsForValue().set(BOARD_LATEST_KEY, dtoPage, Duration.ofMinutes(5));
 
             return dtoPage;
         }
@@ -68,14 +58,10 @@ public class BoardService {
      */
     @Transactional(readOnly = true)
     public List<BoardDto> getPopularBoards() {
-        String cacheKey = "boards:ranking:cache";
-        String json = redisTemplate.opsForValue().get(cacheKey);
+        List<BoardDto> ranking = (List<BoardDto>) redisTemplate.opsForValue().get(BOARD_POPULAR_RAKING_KEY);
 
-        if (json != null) {
-            try {
-                return objectMapper.readValue(json, new TypeReference<List<BoardDto>>() {});
-            } catch (Exception ignored) {
-            }
+        if (ranking != null) {
+            return ranking;
         }
 
         return boardRepository.findAll().stream()
@@ -91,7 +77,7 @@ public class BoardService {
         Optional<Board> boardOpt = boardRepository.findById(id);
 
         boardOpt.ifPresent(board -> {
-            redisTemplate.opsForZSet().incrementScore("boards:views", board.getId().toString(), 1);
+            redisTemplate.opsForZSet().incrementScore(BOARD_VIEWS_KEY, board.getId().toString(), 1);
         });
 
         return boardOpt.map(BoardDto::from);
@@ -256,7 +242,7 @@ public class BoardService {
             throw new AccessDeniedException("이 게시판의 관리자가 아닙니다.");
         }
 
-        boardRepository.delete(board);
+        board.setStatus(Board.Status.CLOSED);
 
         clearBoardCache();
     }
