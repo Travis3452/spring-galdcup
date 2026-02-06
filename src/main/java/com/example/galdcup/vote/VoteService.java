@@ -2,14 +2,17 @@ package com.example.galdcup.vote;
 
 import com.example.galdcup.user.User;
 import com.example.galdcup.user.UserRepository;
+import com.example.galdcup.user.validator.UserValidator;
 import com.example.galdcup.vote.dto.VoteDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -17,16 +20,16 @@ public class VoteService {
 
     private final VoteRepository voteRepository;
     private final VoteSessionRepository voteSessionRepository;
-    private final UserRepository userRepository;
-    private final StringRedisTemplate redisTemplate;
+    private final UserValidator userValidator;
+
+    private final RedisTemplate redisTemplate;
 
     /** 투표 생성 */
     @Transactional
     public VoteDto createVote(Long voteSessionId, Long userId, int selectedOptionIndex) {
         VoteSession session = voteSessionRepository.findById(voteSessionId)
                 .orElseThrow(() -> new IllegalArgumentException("투표 세션을 찾을 수 없습니다."));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        userValidator.validateAndGetUserById(userId);
 
         // 중복 투표 방지
         if (voteRepository.findByVoteSessionAndVoterId(session, userId).isPresent()) {
@@ -44,18 +47,14 @@ public class VoteService {
             throw new IllegalArgumentException("잘못된 투표 옵션입니다.");
         }
 
-        VoteOption selectedOption = session.getOptions().get(selectedOptionIndex);
+        OffsetDateTime expireAt = session.getEndTime().plusDays(1);
+        long ttl = ChronoUnit.SECONDS.between(OffsetDateTime.now(), expireAt);
 
-        Vote vote = voteRepository.save(
-                Vote.builder()
-                        .voteSession(session)
-                        .voterId(userId)
-                        .selectedOptionIndex(selectedOptionIndex)
-                        .build()
-        );
+        Vote vote = Vote.of(voteSessionId, userId, selectedOptionIndex, ttl);
+        voteRepository.save(vote);
 
-        String key = "vote:" + session.getId() + ":" + selectedOption.getId();
-        redisTemplate.opsForValue().increment(key);
+        String key = "voteSession:count:" + session.getId();
+        redisTemplate.opsForHash().increment(key, String.valueOf(selectedOptionIndex), 1);
 
         return VoteDto.from(vote);
     }

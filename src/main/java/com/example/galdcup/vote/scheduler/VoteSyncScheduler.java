@@ -12,50 +12,47 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
 public class VoteSyncScheduler {
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
     private final VoteOptionRepository voteOptionRepository;
     private final VoteSessionRepository voteSessionRepository;
-    private final VoteSessionService voteSessionService;
 
-    /**
-     * 1분마다 Redis 투표수를 DB에 반영
-     */
     @Scheduled(fixedRate = 60000)
     @Transactional
     public void syncVotesToDb() {
-        Set<String> keys = redisTemplate.keys("vote:*");
+        Set<String> keys = redisTemplate.keys("voteSession:count:*");
         if (keys == null || keys.isEmpty()) return;
 
         for (String key : keys) {
-            try {
-                // key: vote:{sessionId}:{optionId}
-                String[] parts = key.split(":");
-                if (parts.length < 3) continue;
+            Long voteSessionId = Long.valueOf(key.split(":")[2]);
+            VoteSession session = voteSessionRepository.findById(voteSessionId).orElse(null);
+            if (session == null) continue;
 
-                Long optionId = Long.valueOf(parts[2]);
-                String value = redisTemplate.opsForValue().get(key);
+            Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);
 
-                if (value != null) {
-                    long count = Long.parseLong(value);
+            entries.forEach((optionIndex, count) -> {
+                int selectedOptionIndex = Integer.parseInt(optionIndex.toString());
+                long voteCount = Long.parseLong(count.toString());
 
-                    voteOptionRepository.incrementVoteCount(optionId, count);
-
-                    redisTemplate.delete(key);
+                if (selectedOptionIndex < session.getOptions().size()) {
+                    Long optionId = session.getOptions().get(selectedOptionIndex).getId();
+                    voteOptionRepository.incrementVoteCount(optionId, voteCount);
                 }
-            } catch (Exception e) {
-                System.err.println("투표 동기화 실패: " + key + " - " + e.getMessage());
-            }
+            });
+
+            redisTemplate.delete(key);
         }
     }
 
     /**
-     * 1분마다 투표 기간이 끝난 세션 종료
+     * 종료된 세션 처리 및 Redis 객체 정리
      */
     @Scheduled(fixedRate = 60000)
     @Transactional
@@ -64,8 +61,6 @@ public class VoteSyncScheduler {
                 voteSessionRepository.findByEndTimeBeforeAndIsFinishedFalse(OffsetDateTime.now());
 
         for (VoteSession voteSession : endedSessions) {
-            voteSessionService.finishVoteSession(voteSession.getId());
-
             voteSession.setFinished(true);
         }
     }
