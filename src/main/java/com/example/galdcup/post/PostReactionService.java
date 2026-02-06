@@ -1,7 +1,8 @@
 package com.example.galdcup.post;
 
+import com.example.galdcup.post.validator.PostValidator;
 import com.example.galdcup.user.User;
-import com.example.galdcup.user.UserRepository;
+import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,18 +12,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class PostReactionService {
 
-    private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final PostValidator postValidator;
+    private final UserValidator userValidator;
     private final PostReactionRepository reactionRepository;
 
     /**
      * 게시글에 좋아요/싫어요 추가
      */
+    @Transactional
     public void addReaction(Long postId, Long currentUserId, PostReaction.ReactionType type) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        User user = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        Post post = postValidator.validateAndGetPost(postId);
+        User user = userValidator.validateAndGetUserById(currentUserId);
 
         if (reactionRepository.findByPostAndUser(post, user).isPresent()) {
             throw new IllegalStateException("이미 좋아요/싫어요를 남긴 게시물입니다.");
@@ -39,7 +39,5 @@ public class PostReactionService {
         } else {
             post.addDislike();
         }
-
-        postRepository.save(post);
     }
 }

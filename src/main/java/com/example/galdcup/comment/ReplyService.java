@@ -2,6 +2,8 @@ package com.example.galdcup.comment;
 
 import com.example.galdcup.comment.dto.ReplyDto;
 import com.example.galdcup.comment.embedded.Author;
+import com.example.galdcup.comment.validator.CommentValidator;
+import com.example.galdcup.comment.validator.ReplyValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,15 +15,15 @@ import java.util.List;
 public class ReplyService {
 
     private final ReplyRepository replyRepository;
-    private final CommentRepository commentRepository;
+    private final ReplyValidator replyValidator;
+    private final CommentValidator commentValidator;
 
     /**
      * 대댓글 작성
      */
     @Transactional
     public ReplyDto create(Long commentId, Long authorId, String authorNickname, String content) {
-        Comment parentComment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("부모 댓글을 찾을 수 없습니다."));
+        Comment parentComment = commentValidator.validateAndGetComment(commentId);
 
         Reply reply = Reply.builder()
                 .parentComment(parentComment)
@@ -48,18 +50,12 @@ public class ReplyService {
      */
     @Transactional
     public ReplyDto update(Long replyId, Long authorId, String content) {
-        Reply reply = replyRepository.findById(replyId)
-                .orElseThrow(() -> new IllegalArgumentException("대댓글을 찾을 수 없습니다."));
-
-        if (reply.isDeleted()) {
-            throw new IllegalStateException("삭제된 대댓글은 수정할 수 없습니다.");
-        }
-        if (!reply.getAuthor().getId().equals(authorId)) {
-            throw new SecurityException("본인이 작성한 대댓글만 수정할 수 있습니다.");
-        }
+        Reply reply = replyValidator.validateAndGetReply(replyId);
+        replyValidator.validateNotDeleted(reply);
+        replyValidator.validateIsAuthor(reply, authorId);
 
         reply.setContent(content);
-        return ReplyDto.from(replyRepository.save(reply));
+        return ReplyDto.from(reply);
     }
 
     /**
@@ -67,17 +63,11 @@ public class ReplyService {
      */
     @Transactional
     public ReplyDto delete(Long replyId, Long authorId) {
-        Reply reply = replyRepository.findById(replyId)
-                .orElseThrow(() -> new IllegalArgumentException("대댓글을 찾을 수 없습니다."));
-
-        if (reply.isDeleted()) {
-            throw new IllegalStateException("이미 삭제된 대댓글입니다.");
-        }
-        if (!reply.getAuthor().getId().equals(authorId)) {
-            throw new SecurityException("본인이 작성한 대댓글만 삭제할 수 있습니다.");
-        }
+        Reply reply = replyValidator.validateAndGetReply(replyId);
+        replyValidator.validateNotDeleted(reply);
+        replyValidator.validateIsAuthor(reply, authorId);
 
         reply.delete();
-        return ReplyDto.from(replyRepository.save(reply));
+        return ReplyDto.from(reply);
     }
 }

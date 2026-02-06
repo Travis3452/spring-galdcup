@@ -2,8 +2,9 @@ package com.example.galdcup.comment;
 
 import com.example.galdcup.comment.dto.CommentDto;
 import com.example.galdcup.comment.embedded.Author;
+import com.example.galdcup.comment.validator.CommentValidator;
 import com.example.galdcup.post.Post;
-import com.example.galdcup.post.PostRepository;
+import com.example.galdcup.post.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,8 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CommentService {
 
+    private final PostValidator postValidator;
+    private final CommentValidator commentValidator;
     private final CommentRepository commentRepository;
-    private final PostRepository postRepository;
 
     /** 게시글별 댓글 조회 (오래된 순 정렬) */
     @Transactional(readOnly = true)
@@ -48,8 +50,7 @@ public class CommentService {
     /** 댓글 작성 */
     @Transactional
     public CommentDto create(Long postId, Long authorId, String authorNickname, String content) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        Post post = postValidator.validateAndGetPost(postId);
 
         Comment comment = Comment.builder()
                 .post(post)
@@ -62,37 +63,23 @@ public class CommentService {
 
     /** 댓글 수정 */
     @Transactional
-    public CommentDto update(Long id, Long authorId, String content) {
-        Comment comment = commentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-
-        if (comment.isDeleted()) {
-            throw new IllegalStateException("이미 삭제된 댓글입니다.");
-        }
-
-        if (!comment.getAuthor().getId().equals(authorId)) {
-            throw new SecurityException("본인이 작성한 댓글만 수정할 수 있습니다.");
-        }
+    public CommentDto update(Long commentId, Long authorId, String content) {
+        Comment comment = commentValidator.validateAndGetComment(commentId);
+        commentValidator.validateNotDeleted(comment);
+        commentValidator.validateIsAuthor(comment, authorId);
 
         comment.setContent(content);
-        return CommentDto.from(commentRepository.save(comment));
+        return CommentDto.from(comment);
     }
 
     /** 댓글 삭제 */
     @Transactional
-    public CommentDto delete(Long id, Long authorId) {
-        Comment comment = commentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-
-        if (comment.isDeleted()) {
-            throw new IllegalStateException("이미 삭제된 댓글입니다.");
-        }
-
-        if (!comment.getAuthor().getId().equals(authorId)) {
-            throw new SecurityException("본인이 작성한 댓글만 삭제할 수 있습니다.");
-        }
+    public CommentDto delete(Long commentId, Long authorId) {
+        Comment comment = commentValidator.validateAndGetComment(commentId);
+        commentValidator.validateNotDeleted(comment);
+        commentValidator.validateIsAuthor(comment, authorId);
 
         comment.delete();
-        return CommentDto.from(commentRepository.save(comment));
+        return CommentDto.from(comment);
     }
 }

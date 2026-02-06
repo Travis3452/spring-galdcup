@@ -3,13 +3,13 @@ package com.example.galdcup.board;
 import com.example.galdcup.board.dto.BoardDto;
 import com.example.galdcup.board.dto.BoardPolicyDto;
 import com.example.galdcup.board.dto.UpdateBoardPolicyRequest;
+import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.user.User;
-import com.example.galdcup.user.UserRepository;
+import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +23,9 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
     private final BoardPolicyRepository boardPolicyRepository;
-    private final UserRepository userRepository;
+
+    private final BoardValidator boardValidator;
+    private final UserValidator userValidator;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -107,16 +109,12 @@ public class BoardService {
      * 게시판 정책 수정
      */
     @Transactional
-    public BoardPolicyDto updatePolicy(Long boardId, UpdateBoardPolicyRequest request, Long userId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+    public BoardPolicyDto updatePolicy(Long boardId, UpdateBoardPolicyRequest request, Long currentUserId) {
+        Board board = boardValidator.validateAndGetActiveBoard(boardId);
+
+        boardValidator.checkBoardManagerAuthority(board, currentUserId);
 
         BoardPolicy boardPolicy = board.getBoardPolicy();
-
-        if (!boardPolicy.getBoardManager().getId().equals(userId)) {
-            throw new AccessDeniedException("이 게시판의 관리자가 아닙니다.");
-        }
-
         boardPolicy.setLikeThreshold(request.likeThreshold());
 
         return BoardPolicyDto.from(boardPolicy);
@@ -127,20 +125,15 @@ public class BoardService {
      * 게시판 서브 매니저 추가
      */
     @Transactional
-    public BoardPolicyDto addSubManager(Long boardId, String subManagerNickname, Long userId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+    public BoardPolicyDto addSubManager(Long boardId, String subManagerNickname, Long currentUserId) {
+        Board board = boardValidator.validateAndGetActiveBoard(boardId);
+
+        boardValidator.checkBoardManagerAuthority(board, currentUserId);
 
         BoardPolicy boardPolicy = board.getBoardPolicy();
 
-        if (!boardPolicy.getBoardManager().getId().equals(userId)) {
-            throw new AccessDeniedException("이 게시판의 관리자가 아닙니다.");
-        }
+        User subManager = userValidator.validateAndGetUserByNickname(subManagerNickname);
 
-        User subManager = userRepository.findByNickname(subManagerNickname)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. nickname=" + subManagerNickname));
-
-        // 중복 방지
         if (boardPolicy.getSubManagers().stream().anyMatch(u -> u.getId().equals(subManager.getId()))) {
             throw new IllegalArgumentException("이미 서브 매니저로 등록된 사용자입니다.");
         }
@@ -153,18 +146,14 @@ public class BoardService {
      * 게시판 서브 매니저 삭제
      */
     @Transactional
-    public BoardPolicyDto removeSubManager(Long boardId, String subManagerNickname, Long userId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+    public BoardPolicyDto removeSubManager(Long boardId, String subManagerNickname, Long currentUserId) {
+        Board board = boardValidator.validateAndGetActiveBoard(boardId);
+
+        boardValidator.checkBoardManagerAuthority(board, currentUserId);
 
         BoardPolicy boardPolicy = board.getBoardPolicy();
 
-        if (!boardPolicy.getBoardManager().getId().equals(userId)) {
-            throw new AccessDeniedException("이 게시판의 관리자가 아닙니다.");
-        }
-
-        User subManager = userRepository.findByNickname(subManagerNickname)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. nickname=" + subManagerNickname));
+        User subManager = userValidator.validateAndGetUserByNickname(subManagerNickname);
 
         boolean removed = boardPolicy.getSubManagers()
                 .removeIf(user -> user.getId().equals(subManager.getId()));
@@ -182,8 +171,7 @@ public class BoardService {
      */
     @Transactional
     public BoardDto create(String topic, String description, Long currentUserId) {
-        User boardManager = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        User boardManager = userValidator.validateAndGetUserById(currentUserId);
 
         Board board = Board.builder()
                 .topic(topic)
@@ -212,12 +200,9 @@ public class BoardService {
      */
     @Transactional
     public BoardDto updateStatus(Long boardId, Board.Status newStatus, Long currentUserId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+        Board board = boardValidator.validateAndGetActiveBoard(boardId);
 
-        if (!board.getBoardPolicy().getBoardManager().getId().equals(currentUserId)) {
-            throw new AccessDeniedException("이 게시판의 관리자가 아닙니다.");
-        }
+        boardValidator.checkBoardManagerAuthority(board, currentUserId);
 
         board.setStatus(newStatus);
         Board updated = boardRepository.save(board);
@@ -231,16 +216,10 @@ public class BoardService {
      * 게시판 삭제
      */
     @Transactional
-    public void delete(Long id, Long currentUserId) {
-        User boardManager = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    public void delete(Long boardId, Long currentUserId) {
+        Board board = boardValidator.validateAndGetActiveBoard(boardId);
 
-        Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
-
-        if (!board.getBoardPolicy().getBoardManager().getId().equals(boardManager.getId())) {
-            throw new AccessDeniedException("이 게시판의 관리자가 아닙니다.");
-        }
+        boardValidator.checkBoardManagerAuthority(board, currentUserId);
 
         board.setStatus(Board.Status.CLOSED);
 

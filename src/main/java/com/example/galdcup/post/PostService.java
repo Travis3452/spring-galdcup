@@ -1,24 +1,22 @@
 package com.example.galdcup.post;
 
 import com.example.galdcup.board.Board;
-import com.example.galdcup.board.BoardRepository;
+import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.post.dto.PostDto;
 import com.example.galdcup.post.embedded.Author;
-import com.example.galdcup.user.User;
+import com.example.galdcup.post.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -27,16 +25,17 @@ import java.util.concurrent.TimeUnit;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final BoardRepository boardRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+
+    private final BoardValidator boardValidator;
+    private final PostValidator postValidator;
 
     /**
      * 게시글 생성
      */
     @Transactional
     public PostDto create(Long boardId, Long authorId, String authorNickname, String title, String content) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+        Board board = boardValidator.validateAndGetActiveBoard(boardId);
 
         Post post = Post.builder()
                 .board(board)
@@ -104,8 +103,7 @@ public class PostService {
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+        Board board = boardValidator.validateAndGetBoard(boardId);
 
         Long likeThreshold = board.getBoardPolicy().getLikeThreshold();
 
@@ -124,8 +122,7 @@ public class PostService {
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+        Board board = boardValidator.validateAndGetBoard(boardId);
 
         Long likeThreshold = board.getBoardPolicy().getLikeThreshold();
 
@@ -172,13 +169,10 @@ public class PostService {
      * 게시글 수정
      */
     @Transactional
-    public PostDto update(Long id, Long authorId, String title, String content) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+    public PostDto update(Long postId, Long authorId, String title, String content) {
+        Post post = postValidator.validateAndGetPost(postId);
 
-        if (!post.getAuthor().getId().equals(authorId)) {
-            throw new AccessDeniedException("이 게시글의 작성자가 아닙니다.");
-        }
+        postValidator.validatePostAuthor(post, authorId);
 
         post.setTitle(title);
         post.setContent(content);
@@ -191,39 +185,28 @@ public class PostService {
      * 게시글 삭제(게시판 관리자 전용)
      */
     @Transactional
-    public void deleteForBoardManager(Long id, Long boardId, Long managerId) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+    public void deleteForBoardManager(Long postId, Long boardId, Long managerId) {
+        Post post = postValidator.validateAndGetPost(postId);
 
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+        Board board = boardValidator.validateAndGetBoard(boardId);
 
-        List<User> subManagers = board.getBoardPolicy().getSubManagers();
-        User boardManager = board.getBoardPolicy().getBoardManager();
+        boardValidator.checkManagerAuthority(board, managerId);
 
-        if (subManagers.stream().noneMatch(user -> user.getId().equals(managerId))
-                && !boardManager.getId().equals(managerId)) {
-            throw new AccessDeniedException("게시판 관리자 권한이 필요합니다.");
-        }
-
-        postRepository.deleteById(id);
-        redisTemplate.delete("post:view:" + id);
+        postRepository.deleteById(postId);
+        redisTemplate.delete("post:view:" + postId);
     }
 
     /**
      * 게시글 삭제
      */
     @Transactional
-    public void delete(Long id, Long authorId) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+    public void delete(Long postId, Long authorId) {
+        Post post = postValidator.validateAndGetPost(postId);
 
-        if (!post.getAuthor().getId().equals(authorId)) {
-            throw new AccessDeniedException("이 게시글의 작성자가 아닙니다.");
-        }
+        postValidator.validatePostAuthor(post, authorId);
 
-        postRepository.deleteById(id);
-        redisTemplate.delete("post:view:" + id);
+        postRepository.deleteById(postId);
+        redisTemplate.delete("post:view:" + postId);
     }
 
     /**
@@ -235,8 +218,7 @@ public class PostService {
 
         Page<PostDto> cached = (Page<PostDto>) redisTemplate.opsForValue().get(cacheKey);
 
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+        Board board = boardValidator.validateAndGetBoard(boardId);
         long likeThreshold = board.getBoardPolicy().getLikeThreshold();
 
         Pageable sortedPageable = PageRequest.of(
