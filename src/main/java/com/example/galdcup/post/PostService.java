@@ -3,13 +3,11 @@ package com.example.galdcup.post;
 import com.example.galdcup.board.Board;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.post.dto.PostDto;
+import com.example.galdcup.post.dto.PostListResponse;
 import com.example.galdcup.post.embedded.Author;
 import com.example.galdcup.post.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -216,10 +215,11 @@ public class PostService {
     public Page<PostDto> getPopularPostsByBoard(Long boardId, Pageable pageable) {
         String cacheKey = "posts:popular:board:" + boardId + ":" + pageable.getPageNumber();
 
-        Page<PostDto> cached = (Page<PostDto>) redisTemplate.opsForValue().get(cacheKey);
+        PostListResponse cached = (PostListResponse) redisTemplate.opsForValue().get(cacheKey);
 
-        Board board = boardValidator.validateAndGetBoard(boardId);
-        long likeThreshold = board.getBoardPolicy().getLikeThreshold();
+        if (cached != null) {
+            return new PageImpl<>(cached.getPostDtos(), pageable, cached.getPostDtos().size());
+        }
 
         Pageable sortedPageable = PageRequest.of(
                 pageable.getPageNumber(),
@@ -227,12 +227,16 @@ public class PostService {
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
+        Board board = boardValidator.validateAndGetBoard(boardId);
+        long likeThreshold = board.getBoardPolicy().getLikeThreshold();
+
         Page<PostDto> result = postRepository
                 .findByBoardIdAndLikeCountGreaterThanEqual(boardId, likeThreshold, sortedPageable)
                 .map(PostDto::from);
 
+        PostListResponse responseToCache = new PostListResponse(result.getContent());
 
-        redisTemplate.opsForValue().set(cacheKey, result, Duration.ofSeconds(10));
+        redisTemplate.opsForValue().set(cacheKey, responseToCache, Duration.ofSeconds(10));
 
         return result;
     }

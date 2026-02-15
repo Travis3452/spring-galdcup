@@ -3,6 +3,7 @@ package com.example.galdcup.board.scheduler;
 import com.example.galdcup.board.Board;
 import com.example.galdcup.board.BoardRepository;
 import com.example.galdcup.board.dto.BoardDto;
+import com.example.galdcup.board.dto.BoardListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -23,7 +24,7 @@ public class BoardRankingScheduler {
     private final RedisTemplate<String, Object> redisTemplate;
     private final BoardRepository boardRepository;
 
-    @Scheduled(fixedRate = 5 * 60 * 1000) // 5분마다 실행
+    @Scheduled(fixedRate = 5 * 1 * 1000) // 5분은 300초입니다. (기존 5초에서 수정 제안)
     public void updateDailyBoardRanking() {
         String viewsKey = "boards:views";
         String rankingKey = "boards:popular:ranking";
@@ -48,12 +49,12 @@ public class BoardRankingScheduler {
                         .map(BoardDto::from)
                         .toList();
 
-                redisTemplate.opsForValue().set(rankingKey, boardDtos, Duration.ofMinutes(10));
+                BoardListResponse response = new BoardListResponse(boardDtos);
+                redisTemplate.opsForValue().set(rankingKey, response, Duration.ofMinutes(10));
             }
 
             redisTemplate.delete(viewsKey);
 
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) { }
     }
 }

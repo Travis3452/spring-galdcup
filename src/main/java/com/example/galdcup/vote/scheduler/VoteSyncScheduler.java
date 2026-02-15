@@ -3,7 +3,6 @@ package com.example.galdcup.vote.scheduler;
 import com.example.galdcup.vote.VoteOptionRepository;
 import com.example.galdcup.vote.VoteSession;
 import com.example.galdcup.vote.VoteSessionRepository;
-import com.example.galdcup.vote.VoteSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -13,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 @Component
@@ -52,7 +50,7 @@ public class VoteSyncScheduler {
     }
 
     /**
-     * 종료된 세션 처리 및 Redis 객체 정리
+     * 종료된 세션 처리
      */
     @Scheduled(fixedRate = 60000)
     @Transactional

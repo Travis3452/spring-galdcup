@@ -5,9 +5,9 @@ import com.example.galdcup.vote.Vote;
 public record VoteDto(Long id, Long voteSessionId, Long userId, int selectedOptionIndex) {
     public static VoteDto from(Vote vote) {
         return new VoteDto(
-                vote.getId(),
-                vote.getVoteSession().getId(),
-                vote.getVoterId(),
+                Long.valueOf(vote.getId()),
+                vote.getVoteSessionId(),
+                vote.getUserId(),
                 vote.getSelectedOptionIndex()
         );
     }

@@ -31,7 +31,4 @@ public class VoteSession {
 
     @OneToMany(mappedBy = "voteSession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VoteOption> options = new ArrayList<>();
-
-    @OneToMany(mappedBy = "voteSession", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Vote> votes = new ArrayList<>();
 }

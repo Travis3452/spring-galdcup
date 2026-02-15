@@ -1,6 +1,7 @@
 package com.example.galdcup.board;
 
 import com.example.galdcup.board.dto.BoardDto;
+import com.example.galdcup.board.dto.BoardListResponse;
 import com.example.galdcup.board.dto.BoardPolicyDto;
 import com.example.galdcup.board.dto.UpdateBoardPolicyRequest;
 import com.example.galdcup.board.validator.BoardValidator;
@@ -8,6 +9,7 @@ import com.example.galdcup.user.User;
 import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -39,17 +41,21 @@ public class BoardService {
     @Transactional(readOnly = true)
     public Page<BoardDto> findAll(Pageable pageable) {
         if (pageable.getPageNumber() == 0) {
-            Page<BoardDto> cachedPage = (Page<BoardDto>) redisTemplate.opsForValue().get(BOARD_LATEST_KEY);
-            if (cachedPage != null) {
-                return cachedPage;
+            BoardListResponse cachedResponse = (BoardListResponse) redisTemplate.opsForValue().get(BOARD_LATEST_KEY);
+
+            if (cachedResponse != null) {
+                List<BoardDto> cachedList = cachedResponse.getBoardDtos();
+                return new PageImpl<>(cachedList, pageable, cachedList.size());
             }
 
             Page<Board> boards = boardRepository.findAll(pageable);
-            Page<BoardDto> dtoPage = boards.map(BoardDto::from);
+            List<BoardDto> dtoList = boards.getContent().stream()
+                    .map(BoardDto::from)
+                    .toList();
 
-            redisTemplate.opsForValue().set(BOARD_LATEST_KEY, dtoPage, Duration.ofMinutes(5));
+            redisTemplate.opsForValue().set(BOARD_LATEST_KEY, new BoardListResponse(dtoList), Duration.ofMinutes(5));
 
-            return dtoPage;
+            return new PageImpl<>(dtoList, pageable, boards.getTotalElements());
         }
 
         return boardRepository.findAll(pageable).map(BoardDto::from);
@@ -60,10 +66,10 @@ public class BoardService {
      */
     @Transactional(readOnly = true)
     public List<BoardDto> getPopularBoards() {
-        List<BoardDto> ranking = (List<BoardDto>) redisTemplate.opsForValue().get(BOARD_POPULAR_RAKING_KEY);
+        BoardListResponse cachedResponse = (BoardListResponse) redisTemplate.opsForValue().get(BOARD_LATEST_KEY);
 
-        if (ranking != null) {
-            return ranking;
+        if (cachedResponse != null) {
+            return cachedResponse.getBoardDtos();
         }
 
         return boardRepository.findAll().stream()
@@ -179,6 +185,8 @@ public class BoardService {
                 .status(Board.Status.OPEN)
                 .build();
 
+        Board saved = boardRepository.save(board);
+
         BoardPolicy policy = BoardPolicy.builder()
                 .board(board)
                 .boardManager(boardManager)
@@ -187,8 +195,6 @@ public class BoardService {
 
         boardPolicyRepository.save(policy);
         board.setBoardPolicy(policy);
-
-        Board saved = boardRepository.save(board);
 
         clearBoardCache();
 

@@ -1,6 +1,5 @@
 package com.example.galdcup.comment.validator;
 
-import com.example.galdcup.comment.Comment;
 import com.example.galdcup.comment.Reply;
 import com.example.galdcup.comment.ReplyRepository;
 import lombok.RequiredArgsConstructor;

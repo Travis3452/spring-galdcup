@@ -1,13 +1,10 @@
 package com.example.galdcup.vote;
 
-import com.example.galdcup.user.User;
-import com.example.galdcup.user.UserRepository;
 import com.example.galdcup.user.validator.UserValidator;
 import com.example.galdcup.vote.dto.VoteDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
