@@ -99,6 +99,18 @@ public class JwtTokenProvider {
     }
 
     /**
+     * 토큰에서 userId 추출
+     */
+    public Long getUserIdFromToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            return Long.parseLong(claims.getSubject());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+        }
+    }
+
+    /**
      * RefreshToken 유효기간 반환
      */
     public int getRefreshTokenMaxAgeSeconds() {

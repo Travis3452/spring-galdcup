@@ -9,6 +9,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import tools.jackson.databind.DefaultTyping;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 @Configuration
 @EnableRedisRepositories
@@ -30,7 +33,19 @@ public class RedisConfig {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
-        GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.builder().build();
+        GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(serializerBuilder -> {
+            serializerBuilder.customize(mapperBuilder -> {
+                mapperBuilder
+                        .configure(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+                        .activateDefaultTypingAsProperty(
+                                BasicPolymorphicTypeValidator.builder()
+                                        .allowIfBaseType(Object.class)
+                                        .build(),
+                                DefaultTyping.NON_FINAL,
+                                "@class"
+                        );
+            });
+        });
 
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(serializer);

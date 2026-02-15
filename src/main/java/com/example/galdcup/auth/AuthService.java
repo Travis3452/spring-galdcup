@@ -9,9 +9,11 @@ import com.example.galdcup.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -24,7 +26,7 @@ public class AuthService {
     private final GoogleOAuthClient googleClient;
     private final AES256Encryptor encryptor;
 
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Value("${jwt.refresh-expiration-days}")
     private int refreshExpDays;
@@ -69,10 +71,11 @@ public class AuthService {
     @Transactional
     public AuthDto createTokens(User user) {
         String refreshTokenStr = jwtTokenProvider.createRefreshToken(user.getId());
-        Long ttl = refreshExpDays * 24L * 60L * 60L;
 
-        RefreshToken refreshToken = RefreshToken.create(user.getId(), refreshTokenStr, ttl);
-        refreshTokenRepository.save(refreshToken);
+        String redisKey = "refreshToken:" + user.getId();
+        long ttlSeconds = refreshExpDays * 24L * 60L * 60L;
+
+        redisTemplate.opsForValue().set(redisKey, refreshTokenStr, Duration.ofSeconds(ttlSeconds));
 
         String accessToken = jwtTokenProvider.createAccessToken(
                 user.getId(),
@@ -89,11 +92,19 @@ public class AuthService {
 
     /** RefreshToken으로 새 토큰 발급 */
     public AuthDto refreshTokens(String refreshTokenStr) {
-        RefreshToken storedToken = refreshTokenRepository.findByToken(refreshTokenStr)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired refresh token"));
+        Long userId = jwtTokenProvider.getUserIdFromToken(refreshTokenStr);
+        String redisKey = "refreshToken:" + userId;
 
-        User user = userRepository.findById(storedToken.getUserId())
+        String storedToken = (String) redisTemplate.opsForValue().get(redisKey);
+
+        if (storedToken == null || !storedToken.equals(refreshTokenStr)) {
+            throw new IllegalArgumentException("Invalid or expired refresh token");
+        }
+
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        redisTemplate.delete(redisKey);
 
         return createTokens(user);
     }
@@ -101,6 +112,6 @@ public class AuthService {
     /** RefreshToken 삭제 */
     @Transactional
     public void deleteRefreshTokens(Long userId) {
-        refreshTokenRepository.deleteById(userId);
+        redisTemplate.delete("refreshToken:" + userId);
     }
 }
