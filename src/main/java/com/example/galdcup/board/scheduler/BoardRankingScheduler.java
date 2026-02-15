@@ -24,7 +24,7 @@ public class BoardRankingScheduler {
     private final RedisTemplate<String, Object> redisTemplate;
     private final BoardRepository boardRepository;
 
-    @Scheduled(fixedRate = 5 * 1 * 1000) // 5분은 300초입니다. (기존 5초에서 수정 제안)
+    @Scheduled(fixedRate = 5 * 60 * 1000)
     public void updateDailyBoardRanking() {
         String viewsKey = "boards:views";
         String rankingKey = "boards:popular:ranking";
@@ -41,6 +41,7 @@ public class BoardRankingScheduler {
                 List<Board> boards = boardRepository.findAllById(boardIds);
 
                 Map<Long, Board> boardMap = boards.stream()
+                        .filter(b -> b.getStatus() == Board.Status.OPEN)
                         .collect(Collectors.toMap(Board::getId, b -> b));
 
                 List<BoardDto> boardDtos = boardIds.stream()

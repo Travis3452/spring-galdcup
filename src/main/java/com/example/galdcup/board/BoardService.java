@@ -32,7 +32,6 @@ public class BoardService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String BOARD_LATEST_KEY = "boards:latest";
-    private static final String BOARD_POPULAR_RAKING_KEY = "boards:popular:ranking";
     private static final String BOARD_VIEWS_KEY = "boards:views";
 
     /**
@@ -48,7 +47,7 @@ public class BoardService {
                 return new PageImpl<>(cachedList, pageable, cachedList.size());
             }
 
-            Page<Board> boards = boardRepository.findAll(pageable);
+            Page<Board> boards = boardRepository.findByStatus(Board.Status.OPEN, pageable);
             List<BoardDto> dtoList = boards.getContent().stream()
                     .map(BoardDto::from)
                     .toList();
@@ -58,7 +57,8 @@ public class BoardService {
             return new PageImpl<>(dtoList, pageable, boards.getTotalElements());
         }
 
-        return boardRepository.findAll(pageable).map(BoardDto::from);
+        return boardRepository.findByStatus(Board.Status.OPEN, pageable)
+                .map(BoardDto::from);
     }
 
     /**
@@ -72,7 +72,8 @@ public class BoardService {
             return cachedResponse.getBoardDtos();
         }
 
-        return boardRepository.findAll().stream()
+        return boardRepository.findByStatus(Board.Status.OPEN)
+                .stream()
                 .map(BoardDto::from)
                 .toList();
     }
@@ -85,7 +86,9 @@ public class BoardService {
         Optional<Board> boardOpt = boardRepository.findById(id);
 
         boardOpt.ifPresent(board -> {
-            redisTemplate.opsForZSet().incrementScore(BOARD_VIEWS_KEY, board.getId().toString(), 1);
+            if (board.getStatus() == Board.Status.OPEN) {
+                redisTemplate.opsForZSet().incrementScore(BOARD_VIEWS_KEY, board.getId().toString(), 1);
+            }
         });
 
         return boardOpt.map(BoardDto::from);

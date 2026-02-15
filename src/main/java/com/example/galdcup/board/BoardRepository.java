@@ -7,7 +7,11 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface BoardRepository extends JpaRepository<Board, Long> {
+    List<Board> findByStatus(Board.Status status);
+    Page<Board> findByStatus(Board.Status status, Pageable pageable);
 
     @Modifying
     @Query("UPDATE Board b SET b.boardPolicy.boardManager.id = NULL WHERE b.boardPolicy.boardManager.id = :userId")
