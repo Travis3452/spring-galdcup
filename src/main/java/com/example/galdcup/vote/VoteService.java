@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit;
 public class VoteService {
 
     private final VoteRepository voteRepository;
-    private final VoteSessionRepository voteSessionRepository;
+    private final VoteSessionValidator voteSessionValidator;
     private final UserValidator userValidator;
 
     private final RedisTemplate redisTemplate;
@@ -24,8 +24,7 @@ public class VoteService {
     /** 투표 생성 */
     @Transactional
     public VoteDto createVote(Long voteSessionId, Long userId, int selectedOptionIndex) {
-        VoteSession session = voteSessionRepository.findById(voteSessionId)
-                .orElseThrow(() -> new IllegalArgumentException("투표 세션을 찾을 수 없습니다."));
+        VoteSession session = voteSessionValidator.validateAndGetVoteSession(voteSessionId);
         userValidator.validateAndGetUserById(userId);
 
         // 중복 투표 방지
