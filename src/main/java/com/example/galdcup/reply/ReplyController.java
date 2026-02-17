@@ -1,8 +1,8 @@
-package com.example.galdcup.comment;
+package com.example.galdcup.reply;
 
-import com.example.galdcup.comment.dto.CreateReplyRequest;
-import com.example.galdcup.comment.dto.ReplyDto;
-import com.example.galdcup.comment.dto.UpdateReplyRequest;
+import com.example.galdcup.reply.dto.CreateReplyRequest;
+import com.example.galdcup.reply.dto.ReplyDto;
+import com.example.galdcup.reply.dto.UpdateReplyRequest;
 import com.example.galdcup.common.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

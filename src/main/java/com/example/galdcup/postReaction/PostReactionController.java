@@ -1,4 +1,4 @@
-package com.example.galdcup.post;
+package com.example.galdcup.postReaction;
 
 import com.example.galdcup.common.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;

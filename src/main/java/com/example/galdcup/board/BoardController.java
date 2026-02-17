@@ -1,6 +1,8 @@
 package com.example.galdcup.board;
 
 import com.example.galdcup.board.dto.*;
+import com.example.galdcup.boardPolicy.dto.BoardPolicyDto;
+import com.example.galdcup.boardPolicy.dto.UpdateBoardPolicyRequest;
 import com.example.galdcup.common.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

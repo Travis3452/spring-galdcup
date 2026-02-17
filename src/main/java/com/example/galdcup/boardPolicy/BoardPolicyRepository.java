@@ -1,4 +1,4 @@
-package com.example.galdcup.board;
+package com.example.galdcup.boardPolicy;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

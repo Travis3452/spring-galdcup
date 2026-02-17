@@ -1,7 +1,10 @@
-package com.example.galdcup.vote;
+package com.example.galdcup.voteSession.validator;
 
 import com.example.galdcup.board.Board;
-import com.example.galdcup.vote.dto.CreateVoteSessionRequest;
+import com.example.galdcup.vote.VoteOption;
+import com.example.galdcup.voteSession.VoteSession;
+import com.example.galdcup.voteSession.VoteSessionRepository;
+import com.example.galdcup.voteSession.dto.CreateVoteSessionRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

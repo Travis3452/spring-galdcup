@@ -1,16 +1,20 @@
-package com.example.galdcup.vote;
+package com.example.galdcup.voteSession;
 
 import com.example.galdcup.board.Board;
 import com.example.galdcup.board.validator.BoardValidator;
-import com.example.galdcup.vote.dto.CreateVoteSessionRequest;
+import com.example.galdcup.vote.VoteOption;
+import com.example.galdcup.voteSession.dto.CreateVoteSessionRequest;
 import com.example.galdcup.vote.dto.VoteOptionDto;
-import com.example.galdcup.vote.dto.VoteSessionDto;
+import com.example.galdcup.voteSession.dto.VoteSessionDto;
+import com.example.galdcup.voteSession.validator.VoteSessionValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -26,11 +30,13 @@ public class VoteSessionService {
     public VoteSessionDto createVoteSession(Long boardId, Long adminId, CreateVoteSessionRequest request) {
         Board board = boardValidator.validateAndGetActiveBoard(boardId);
         boardValidator.checkBoardManagerAuthority(board, adminId);
+
         voteSessionValidator.validateNoActiveVoteSession(board);
 
         VoteSession voteSession = voteSessionValidator.validateAndCreateVoteSession(board, request);
 
-        board.setVoteSession(voteSession);
+        voteSession.setBoard(board);
+        board.getVoteSessions().add(voteSession);
 
         VoteSession saved = voteSessionRepository.save(voteSession);
         return VoteSessionDto.from(saved);
@@ -40,16 +46,19 @@ public class VoteSessionService {
     @Transactional(readOnly = true)
     public VoteSessionDto getVoteSession(Long boardId) {
         Board board = boardValidator.validateAndGetActiveBoard(boardId);
-
         VoteSession voteSession = voteSessionValidator.validateAndGetActiveVoteSession(board);
 
-        List<VoteOptionDto> voteOptionDtos = voteSession.getOptions().stream()
-                .map(opt -> {
-                    String key = "vote:" + voteSession.getId() + ":" + opt.getId();
-                    String redisValue = redisTemplate.opsForValue().get(key);
+        String hashKey = "voteSession:count:" + voteSession.getId();
+        Map<Object, Object> votes = redisTemplate.opsForHash().entries(hashKey);
+
+        List<VoteOptionDto> voteOptionDtos = IntStream.range(0, voteSession.getOptions().size())
+                .mapToObj(i -> {
+                    VoteOption opt = voteSession.getOptions().get(i);
+
+                    Object redisValue = votes.get(String.valueOf(i));
 
                     Long count = (redisValue != null)
-                            ? Long.valueOf(redisValue)
+                            ? Long.parseLong(redisValue.toString())
                             : opt.getCount();
 
                     return new VoteOptionDto(opt.getLabel(), opt.getImageUrl(), count);

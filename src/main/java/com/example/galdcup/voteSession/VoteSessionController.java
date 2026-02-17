@@ -1,8 +1,8 @@
-package com.example.galdcup.vote;
+package com.example.galdcup.voteSession;
 
 import com.example.galdcup.common.security.CustomUserDetails;
-import com.example.galdcup.vote.dto.CreateVoteSessionRequest;
-import com.example.galdcup.vote.dto.VoteSessionDto;
+import com.example.galdcup.voteSession.dto.CreateVoteSessionRequest;
+import com.example.galdcup.voteSession.dto.VoteSessionDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

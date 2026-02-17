@@ -2,9 +2,11 @@ package com.example.galdcup.board;
 
 import com.example.galdcup.board.dto.BoardDto;
 import com.example.galdcup.board.dto.BoardListResponse;
-import com.example.galdcup.board.dto.BoardPolicyDto;
-import com.example.galdcup.board.dto.UpdateBoardPolicyRequest;
+import com.example.galdcup.boardPolicy.dto.BoardPolicyDto;
+import com.example.galdcup.boardPolicy.dto.UpdateBoardPolicyRequest;
 import com.example.galdcup.board.validator.BoardValidator;
+import com.example.galdcup.boardPolicy.BoardPolicy;
+import com.example.galdcup.boardPolicy.BoardPolicyRepository;
 import com.example.galdcup.user.User;
 import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;

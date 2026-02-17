@@ -2,6 +2,7 @@ package com.example.galdcup.comment;
 
 import com.example.galdcup.comment.embedded.Author;
 import com.example.galdcup.post.Post;
+import com.example.galdcup.reply.Reply;
 import jakarta.persistence.*;
 import lombok.*;
 

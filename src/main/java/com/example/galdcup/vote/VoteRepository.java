@@ -1,5 +1,6 @@
 package com.example.galdcup.vote;
 
+import com.example.galdcup.voteSession.VoteSession;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;

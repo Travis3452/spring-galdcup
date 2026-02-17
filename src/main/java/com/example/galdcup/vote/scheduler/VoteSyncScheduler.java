@@ -1,8 +1,8 @@
 package com.example.galdcup.vote.scheduler;
 
 import com.example.galdcup.vote.VoteOptionRepository;
-import com.example.galdcup.vote.VoteSession;
-import com.example.galdcup.vote.VoteSessionRepository;
+import com.example.galdcup.voteSession.VoteSession;
+import com.example.galdcup.voteSession.VoteSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;

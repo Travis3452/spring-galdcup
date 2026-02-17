@@ -1,7 +1,8 @@
 package com.example.galdcup.board;
 
+import com.example.galdcup.boardPolicy.BoardPolicy;
 import com.example.galdcup.post.Post;
-import com.example.galdcup.vote.VoteSession;
+import com.example.galdcup.voteSession.VoteSession;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -36,8 +37,8 @@ public class Board {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts = new ArrayList<>();
 
-    @OneToOne(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private VoteSession voteSession;
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<VoteSession> voteSessions = new ArrayList<>();
 
     private OffsetDateTime createdAt;
 

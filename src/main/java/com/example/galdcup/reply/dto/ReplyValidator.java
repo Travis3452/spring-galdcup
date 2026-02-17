@@ -1,7 +1,7 @@
-package com.example.galdcup.comment.validator;
+package com.example.galdcup.reply.dto;
 
-import com.example.galdcup.comment.Reply;
-import com.example.galdcup.comment.ReplyRepository;
+import com.example.galdcup.reply.Reply;
+import com.example.galdcup.reply.ReplyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -1,5 +1,6 @@
-package com.example.galdcup.post;
+package com.example.galdcup.postReaction;
 
+import com.example.galdcup.post.Post;
 import com.example.galdcup.user.User;
 import jakarta.persistence.*;
 import lombok.*;

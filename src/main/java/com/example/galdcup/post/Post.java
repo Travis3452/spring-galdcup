@@ -3,6 +3,7 @@ package com.example.galdcup.post;
 import com.example.galdcup.board.Board;
 import com.example.galdcup.comment.Comment;
 import com.example.galdcup.post.embedded.Author;
+import com.example.galdcup.postReaction.PostReaction;
 import jakarta.persistence.*;
 import lombok.*;
 

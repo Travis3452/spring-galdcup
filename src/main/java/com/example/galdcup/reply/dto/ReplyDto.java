@@ -1,6 +1,6 @@
-package com.example.galdcup.comment.dto;
+package com.example.galdcup.reply.dto;
 
-import com.example.galdcup.comment.Reply;
+import com.example.galdcup.reply.Reply;
 import lombok.Builder;
 
 import java.time.OffsetDateTime;

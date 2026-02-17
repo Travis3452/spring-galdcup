@@ -1,9 +1,10 @@
-package com.example.galdcup.comment;
+package com.example.galdcup.reply;
 
-import com.example.galdcup.comment.dto.ReplyDto;
+import com.example.galdcup.comment.Comment;
+import com.example.galdcup.reply.dto.ReplyDto;
 import com.example.galdcup.comment.embedded.Author;
 import com.example.galdcup.comment.validator.CommentValidator;
-import com.example.galdcup.comment.validator.ReplyValidator;
+import com.example.galdcup.reply.dto.ReplyValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,6 +1,7 @@
-package com.example.galdcup.vote.dto;
+package com.example.galdcup.voteSession.dto;
 
-import com.example.galdcup.vote.VoteSession;
+import com.example.galdcup.vote.dto.VoteOptionDto;
+import com.example.galdcup.voteSession.VoteSession;
 
 import java.time.OffsetDateTime;
 import java.util.List;

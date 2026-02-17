@@ -1,4 +1,4 @@
-package com.example.galdcup.comment;
+package com.example.galdcup.reply;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,4 +1,4 @@
-package com.example.galdcup.vote.dto;
+package com.example.galdcup.voteSession.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

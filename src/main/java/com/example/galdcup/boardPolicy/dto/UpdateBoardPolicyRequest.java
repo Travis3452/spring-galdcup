@@ -1,4 +1,4 @@
-package com.example.galdcup.board.dto;
+package com.example.galdcup.boardPolicy.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

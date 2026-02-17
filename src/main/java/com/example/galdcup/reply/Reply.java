@@ -1,5 +1,6 @@
-package com.example.galdcup.comment;
+package com.example.galdcup.reply;
 
+import com.example.galdcup.comment.Comment;
 import com.example.galdcup.comment.embedded.Author;
 import jakarta.persistence.*;
 import lombok.*;
