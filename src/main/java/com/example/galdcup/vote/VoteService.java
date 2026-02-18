@@ -30,7 +30,8 @@ public class VoteService {
         userValidator.validateAndGetUserById(userId);
 
         // 중복 투표 방지
-        if (voteRepository.findByVoteSessionAndVoterId(session, userId).isPresent()) {
+        String redisKey = "vote:" + voteSessionId + ":" + userId;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(redisKey))) {
             throw new IllegalStateException("이미 해당 게시판에 투표하였습니다.");
         }
 
