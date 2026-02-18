@@ -18,7 +18,7 @@ public class VoteSession {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false, unique = true)
+    @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
     @Column(nullable = false)
