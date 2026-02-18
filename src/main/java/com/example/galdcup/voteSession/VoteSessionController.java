@@ -22,11 +22,9 @@ public class VoteSessionController {
      */
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping
-    public ResponseEntity<VoteSessionDto> createVoteSession(
-            @PathVariable Long boardId,
-            @AuthenticationPrincipal CustomUserDetails principal,
-            @Valid @RequestBody CreateVoteSessionRequest request) {
-
+    public ResponseEntity<VoteSessionDto> createVoteSession(@PathVariable Long boardId,
+                                                            @AuthenticationPrincipal CustomUserDetails principal,
+                                                            @Valid @RequestBody CreateVoteSessionRequest request) {
         VoteSessionDto voteSessionDto = voteSessionService.createVoteSession(
                 boardId,
                 principal.getId(),
@@ -43,5 +41,16 @@ public class VoteSessionController {
     public ResponseEntity<VoteSessionDto> getVoteSession(@PathVariable Long boardId) {
         VoteSessionDto voteSessionDto = voteSessionService.getVoteSession(boardId);
         return ResponseEntity.ok(voteSessionDto);
+    }
+
+    /**
+     * 투표 세션 즉시 마감
+     */
+    @PostMapping("/{voteSessionId}/finish")
+    public ResponseEntity<Void> finishVoteSession(@PathVariable Long boardId,
+                                                  @PathVariable Long voteSessionId,
+                                                  @AuthenticationPrincipal CustomUserDetails principal) {
+        voteSessionService.finishVoteSession(boardId, voteSessionId, principal.getId());
+        return ResponseEntity.ok().build();
     }
 }

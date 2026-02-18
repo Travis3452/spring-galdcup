@@ -2,7 +2,9 @@ package com.example.galdcup.voteSession;
 
 import com.example.galdcup.board.Board;
 import com.example.galdcup.board.validator.BoardValidator;
+import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.vote.VoteOption;
+import com.example.galdcup.vote.VoteOptionRepository;
 import com.example.galdcup.vote.dto.VoteOptionDto;
 import com.example.galdcup.voteSession.dto.CreateVoteSessionRequest;
 import com.example.galdcup.voteSession.dto.VoteSessionDto;
@@ -12,6 +14,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -20,12 +24,17 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class VoteSessionService {
 
-    private final BoardValidator boardValidator;
     private final VoteSessionRepository voteSessionRepository;
+    private final VoteOptionRepository voteOptionRepository;
+
+    private final BoardValidator boardValidator;
     private final VoteSessionValidator voteSessionValidator;
+
     private final StringRedisTemplate redisTemplate;
 
-    /** 투표 세션 생성 */
+    /**
+     * 투표 세션 생성
+     */
     @Transactional
     public VoteSessionDto createVoteSession(Long boardId, Long adminId, CreateVoteSessionRequest request) {
         Board board = boardValidator.validateAndGetActiveBoard(boardId);
@@ -42,7 +51,9 @@ public class VoteSessionService {
         return VoteSessionDto.from(saved);
     }
 
-    /** 게시판의 현재 진행 중인 투표 세션 조회 */
+    /**
+     * 게시판의 현재 진행 중인 투표 세션 조회
+     */
     @Transactional(readOnly = true)
     public VoteSessionDto getVoteSession(Long boardId) {
         Board board = boardValidator.validateAndGetActiveBoard(boardId);
@@ -74,16 +85,35 @@ public class VoteSessionService {
         );
     }
 
-    /** 투표 세션 종료 처리 */
+    /**
+     * 투표 세션 종료 처리
+     */
     @Transactional
-    public VoteSessionDto finishVoteSession(Long voteSessionId) {
-        VoteSession voteSession = voteSessionValidator.validateAndGetVoteSession(voteSessionId);
+    public void finishVoteSession(Long boardId, Long voteSessionId, Long userId) {
+        Board board = boardValidator.validateAndGetActiveBoard(boardId);
+        boardValidator.checkBoardManagerAuthority(board, userId);
 
-        voteSessionValidator.validateVoteSessionNotFinished(voteSession);
+        VoteSession session = voteSessionValidator.validateAndGetVoteSession(voteSessionId);
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
+        session.setEndTime(now);
 
-        voteSession.setFinished(true);
-        VoteSession saved = voteSessionRepository.save(voteSession);
+        String countKey = "voteSession:count:" + voteSessionId;
+        Map<Object, Object> entries = redisTemplate.opsForHash().entries(countKey);
 
-        return VoteSessionDto.from(saved);
+        if (!entries.isEmpty()) {
+            entries.forEach((optionIndexObj, countObj) -> {
+                int selectedOptionIndex = Integer.parseInt(optionIndexObj.toString());
+                long voteCount = Long.parseLong(countObj.toString());
+
+                if (selectedOptionIndex >= 0 && selectedOptionIndex < session.getOptions().size()) {
+                    Long optionId = session.getOptions().get(selectedOptionIndex).getId();
+                    voteOptionRepository.incrementVoteCount(optionId, voteCount);
+                }
+            });
+
+            redisTemplate.delete(countKey);
+        }
+
+        session.setFinished(true);
     }
 }
