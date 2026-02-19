@@ -18,44 +18,37 @@ public class VoteSessionValidator {
     private final VoteSessionRepository voteSessionRepository;
 
     /**
-     * 투표 생성 시 값 검증
+     * 투표 생성 시 값 검증 및 엔티티 생성 (객체 리스트 방식)
      */
     public VoteSession validateAndCreateVoteSession(Board board, CreateVoteSessionRequest request) {
         OffsetDateTime startTime = request.startTime();
         OffsetDateTime endTime = request.endTime();
 
-        List<String> options = request.options();
-        List<String> optionImages = request.optionImages();
-
         if (startTime == null || endTime == null || !startTime.isBefore(endTime)) {
             throw new IllegalArgumentException("투표 시작/종료 시간이 올바르지 않습니다.");
         }
 
-        if (options == null || options.size() < 2 || options.size() > 50) {
+        if (request.options() == null || request.options().size() < 2 || request.options().size() > 50) {
             throw new IllegalArgumentException("투표 옵션은 최소 2개, 최대 50개까지 가능합니다.");
-        }
-
-        if (optionImages == null || optionImages.size() != options.size()) {
-            throw new IllegalArgumentException("옵션 이미지 개수는 옵션 개수와 동일해야 합니다.");
         }
 
         VoteSession voteSession = VoteSession.builder()
                 .board(board)
                 .startTime(startTime)
                 .endTime(endTime)
+                .options(new ArrayList<>())
                 .build();
 
-        List<VoteOption> voteOptions = new ArrayList<>();
-        for (int i = 0; i < options.size(); i++) {
-            VoteOption option = VoteOption.builder()
-                    .voteSession(voteSession)
-                    .label(options.get(i))
-                    .imageUrl(optionImages.get(i))
-                    .build();
-            voteOptions.add(option);
-        }
+        List<VoteOption> voteOptions = request.options().stream()
+                .map(opt -> VoteOption.builder()
+                        .voteSession(voteSession)
+                        .label(opt.label())
+                        .imageUrl(opt.imageUrl())
+                        .count(0L)
+                        .build())
+                .toList();
 
-        voteSession.setOptions(voteOptions);
+        voteSession.getOptions().addAll(voteOptions);
 
         return voteSession;
     }
