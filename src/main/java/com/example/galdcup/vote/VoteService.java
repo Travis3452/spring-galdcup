@@ -12,12 +12,11 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class VoteService {
-
-    private final VoteRepository voteRepository;
     private final VoteSessionValidator voteSessionValidator;
     private final UserValidator userValidator;
 
@@ -50,7 +49,7 @@ public class VoteService {
         long ttl = ChronoUnit.SECONDS.between(OffsetDateTime.now(), expireAt);
 
         Vote vote = Vote.of(voteSessionId, userId, selectedOptionIndex, ttl);
-        voteRepository.save(vote);
+        redisTemplate.opsForValue().set(redisKey, vote, ttl, TimeUnit.SECONDS);
 
         String key = "voteSession:count:" + session.getId();
         redisTemplate.opsForHash().increment(key, String.valueOf(selectedOptionIndex), 1);

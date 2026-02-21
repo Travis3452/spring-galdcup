@@ -2,7 +2,6 @@ package com.example.galdcup.voteSession;
 
 import com.example.galdcup.board.Board;
 import com.example.galdcup.board.validator.BoardValidator;
-import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.vote.VoteOption;
 import com.example.galdcup.vote.VoteOptionRepository;
 import com.example.galdcup.vote.dto.VoteOptionDto;
