@@ -5,6 +5,8 @@ import com.example.galdcup.voteSession.dto.CreateVoteSessionRequest;
 import com.example.galdcup.voteSession.dto.VoteSessionDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -41,6 +43,16 @@ public class VoteSessionController {
     public ResponseEntity<VoteSessionDto> getVoteSession(@PathVariable Long boardId) {
         VoteSessionDto voteSessionDto = voteSessionService.getVoteSession(boardId);
         return ResponseEntity.ok(voteSessionDto);
+    }
+
+    /**
+     * 과거 투표 세션 조회
+     */
+    @GetMapping
+    public ResponseEntity<Page<VoteSessionDto>> getPastVoteSessions(@PathVariable Long boardId,
+                                                               Pageable pageable) {
+        Page<VoteSessionDto> voteSessionDtoPage = voteSessionService.getPastVoteSessions(boardId, pageable);
+        return ResponseEntity.ok(voteSessionDtoPage);
     }
 
     /**

@@ -9,6 +9,8 @@ import com.example.galdcup.voteSession.dto.CreateVoteSessionRequest;
 import com.example.galdcup.voteSession.dto.VoteSessionDto;
 import com.example.galdcup.voteSession.validator.VoteSessionValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,6 +84,34 @@ public class VoteSessionService {
                 voteSession.getEndTime(),
                 voteOptionDtos
         );
+    }
+
+    /**
+     * 게시판의 종료된 투표 세션 조회
+     */
+    @Transactional(readOnly = true)
+    public Page<VoteSessionDto> getPastVoteSessions(Long boardId, Pageable pageable) {
+        Board board = boardValidator.validateAndGetActiveBoard(boardId);
+
+        Page<VoteSession> voteSessionPage = voteSessionRepository.findByBoardAndIsFinishedTrue(board, pageable);
+
+        return voteSessionPage.map(session -> {
+            List<VoteOptionDto> optionDtos = session.getOptions().stream()
+                    .map(opt -> new VoteOptionDto(
+                            opt.getLabel(),
+                            opt.getImageUrl(),
+                            opt.getCount()
+                    ))
+                    .toList();
+
+            return new VoteSessionDto(
+                    session.getId(),
+                    board.getId(),
+                    session.getStartTime(),
+                    session.getEndTime(),
+                    optionDtos
+            );
+        });
     }
 
     /**
