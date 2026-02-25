@@ -13,7 +13,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByBoardIdAndLikeCountGreaterThanEqual(Long boardId, long likeThreshold, Pageable sortedPageable);
 
     @Modifying
-    @Query("UPDATE Post post SET post.view = post.view + :views WHERE post.id = :id")
+    @Query("UPDATE Post post SET post.viewCount = post.viewCount + :views WHERE post.id = :id")
     void incrementViewCount(@Param("id") Long id, @Param("views") long views);
 
     @Query("SELECT p FROM Post p " +

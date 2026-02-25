@@ -25,7 +25,7 @@ public record PostDto(
                 .boardId(post.getBoard().getId())
                 .authorId(post.getAuthor().getId())
                 .authorNickname(post.getAuthor().getNickname())
-                .view(post.getView())
+                .view(post.getViewCount())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .likeCount(post.getLikeCount())

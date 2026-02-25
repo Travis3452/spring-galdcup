@@ -35,11 +35,11 @@ public class Post {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "CLOB")
     private String content;
 
     @Column(nullable = false)
-    private long view = 0;
+    private long viewCount = 0;
 
     @Column(nullable = false)
     private long likeCount = 0;
