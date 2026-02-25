@@ -3,12 +3,13 @@ spring:
     name: galdcup
 
   datasource:
-    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
-    username: ${MYSQLUSER}
-    password: ${MYSQLPASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@(description=(retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.ap-chuncheon-1.oraclecloud.com))(connect_data=(service_name=g2343d1e4dad721_galdcup_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+    username: ADMIN
+    password: ${ORACLE_PASSWORD}
 
   jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
     hibernate:
       ddl-auto: update
     show-sql: false
@@ -21,9 +22,8 @@ spring:
 
   data:
     redis:
-      host: ${REDISHOST}
-      port: ${REDISPORT}
-      username: ${REDISUSER}
+      host: 10.0.0.223
+      port: 6379
       password: ${REDISPASSWORD}
 
   security:
