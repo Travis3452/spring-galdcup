@@ -10,6 +10,7 @@ import com.example.galdcup.boardPolicy.dto.UpdateBoardPolicyRequest;
 import com.example.galdcup.user.User;
 import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BoardService {
 
     private final BoardRepository boardRepository;
@@ -88,8 +90,12 @@ public class BoardService {
         Optional<Board> boardOpt = boardRepository.findById(id);
 
         boardOpt.ifPresent(board -> {
-            if (board.getStatus() == Board.Status.OPEN) {
-                redisTemplate.opsForZSet().incrementScore(BOARD_VIEWS_KEY, board.getId().toString(), 1);
+            try {
+                if (board.getStatus() == Board.Status.OPEN) {
+                    redisTemplate.opsForZSet().incrementScore(BOARD_VIEWS_KEY, board.getId().toString(), 1);
+                }
+            } catch (Exception e) {
+                log.error("Redis error during view count increment: {}", e.getMessage());
             }
         });
 

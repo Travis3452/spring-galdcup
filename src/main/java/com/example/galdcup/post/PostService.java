@@ -7,6 +7,7 @@ import com.example.galdcup.post.dto.PostListResponse;
 import com.example.galdcup.post.embedded.Author;
 import com.example.galdcup.post.validator.PostValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostService {
 
     private final PostRepository postRepository;
@@ -149,6 +151,7 @@ public class PostService {
     @Transactional(readOnly = true)
     public Optional<PostDto> findById(Long id) {
         Optional<Post> postOpt = postRepository.findById(id);
+
         postOpt.ifPresent(post -> incrementViewCount(post.getId()));
 
         return postOpt.map(PostDto::from);
@@ -158,9 +161,13 @@ public class PostService {
      * Redis 조회수 증가 기록
      */
     private void incrementViewCount(Long postId) {
-        String key = "post:view:" + postId;
-        redisTemplate.opsForValue().increment(key);
-        redisTemplate.expire(key, 1, TimeUnit.DAYS);
+        try {
+            String key = "post:view:" + postId;
+            redisTemplate.opsForValue().increment(key);
+            redisTemplate.expire(key, 1, TimeUnit.DAYS);
+        } catch (Exception e) {
+            log.error("Redis error while incrementing view count for post {}: {}", postId, e.getMessage());
+        }
     }
 
     /**
@@ -200,11 +207,15 @@ public class PostService {
     @Transactional
     public void delete(Long postId, Long authorId) {
         Post post = postValidator.validateAndGetPost(postId);
-
         postValidator.validatePostAuthor(post, authorId);
 
         postRepository.deleteById(postId);
-        redisTemplate.delete("post:view:" + postId);
+
+        try {
+            redisTemplate.delete("post:view:" + postId);
+        } catch (Exception e) {
+            log.error("Redis error while deleting view count for post {}: {}", postId, e.getMessage());
+        }
     }
 
     /**
