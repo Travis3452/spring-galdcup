@@ -86,17 +86,13 @@ public class RoleRequestService {
         roleRequestRepository.save(roleRequest);
     }
 
-    /** 엔티티 → DTO 변환 (이메일 복호화 포함) */
+    /** 엔티티 → DTO 변환 */
     private RoleRequestDto toDto(RoleRequest roleRequest) {
         User applicant = roleRequest.getApplicant();
-        String decryptedEmail = applicant.getEncryptedEmail() != null
-                ? encryptor.decrypt(applicant.getEncryptedEmail())
-                : null;
 
         return new RoleRequestDto(
                 roleRequest.getId(),
                 applicant.getId(),
-                decryptedEmail,
                 applicant.getNickname(),
                 roleRequest.getRequestedRole(),
                 roleRequest.getStatus()
