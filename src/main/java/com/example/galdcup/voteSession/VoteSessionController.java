@@ -50,7 +50,7 @@ public class VoteSessionController {
      */
     @GetMapping("/history")
     public ResponseEntity<Page<VoteSessionDto>> getPastVoteSessions(@PathVariable Long boardId,
-                                                               Pageable pageable) {
+                                                                    Pageable pageable) {
         Page<VoteSessionDto> voteSessionDtoPage = voteSessionService.getPastVoteSessions(boardId, pageable);
         return ResponseEntity.ok(voteSessionDtoPage);
     }
