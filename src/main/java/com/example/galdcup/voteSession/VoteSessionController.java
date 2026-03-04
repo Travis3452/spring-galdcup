@@ -48,7 +48,7 @@ public class VoteSessionController {
     /**
      * 과거 투표 세션 조회
      */
-    @GetMapping("/past")
+    @GetMapping("/history")
     public ResponseEntity<Page<VoteSessionDto>> getPastVoteSessions(@PathVariable Long boardId,
                                                                Pageable pageable) {
         Page<VoteSessionDto> voteSessionDtoPage = voteSessionService.getPastVoteSessions(boardId, pageable);
