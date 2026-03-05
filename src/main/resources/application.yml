@@ -4,9 +4,16 @@ spring:
 
   datasource:
     driver-class-name: oracle.jdbc.OracleDriver
-    url: jdbc:oracle:thin:@(description=(retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.ap-chuncheon-1.oraclecloud.com))(connect_data=(service_name=g2343d1e4dad721_galdcup_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+    url: ${SPRING_DATASOURCE_URL}
     username: ADMIN
     password: ${ORACLE_PASSWORD}
+    hikari:
+      maximum-pool-size: ${HIKARI_MAX:10}
+      minimum-idle: ${HIKARI_IDLE:10}
+      connection-timeout: 30000
+      keepalive-time: 30000
+      max-lifetime: 1800000
+      idle-timeout: 600000
 
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
@@ -16,14 +23,17 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc.batch_size: 50
+        order_inserts: true
+        order_updates: true
 
   jackson:
     time-zone: Asia/Seoul
 
   data:
     redis:
-      host: 10.0.0.223
-      port: 6379
+      host: ${REDIS_HOST:10.0.0.223}
+      port: ${REDIS_PORT:6379}
       password: ${REDISPASSWORD}
 
   security:
