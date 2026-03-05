@@ -14,7 +14,7 @@ import java.util.List;
 
 @Entity
 @Table(
-        name = "post",
+        name = "posts",
         indexes = {
                 @Index(name = "idx_post_board_id", columnList = "board_id"),
                 @Index(name = "idx_post_view_count", columnList = "viewCount DESC"),
