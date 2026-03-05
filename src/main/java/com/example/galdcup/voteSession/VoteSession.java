@@ -11,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(
-        name = "vote_session",
+        name = "vote_sessions",
         indexes = {
                 @Index(name = "idx_vote_session_post_id", columnList = "post_id")
         }
