@@ -9,7 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "board_policies")
+@Table(
+        name = "board_policies",
+        indexes = {
+                @Index(name = "idx_board_policy_board_id", columnList = "board_id")
+        }
+)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class BoardPolicy {
 

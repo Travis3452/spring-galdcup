@@ -10,7 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "vote_sessions")
+@Table(
+        name = "vote_session",
+        indexes = {
+                @Index(name = "idx_vote_session_post_id", columnList = "post_id")
+        }
+)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class VoteSession {
 
