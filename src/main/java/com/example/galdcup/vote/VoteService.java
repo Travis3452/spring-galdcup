@@ -7,13 +7,13 @@ import com.example.galdcup.voteSession.validator.VoteSessionValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate; // 추가
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.Map; // 추가
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -28,7 +28,7 @@ public class VoteService {
     @Transactional
     public VoteDto createVote(Long voteSessionId, Long userId, int selectedOptionIndex) {
         VoteSession session = voteSessionValidator.validateAndGetVoteSession(voteSessionId);
-        userValidator.validateAndGetUserById(userId);
+        userValidator.findByIdOrThrow(userId);
 
         // 중복 투표 방지
         String redisKey = "vote:" + voteSessionId + ":" + userId;

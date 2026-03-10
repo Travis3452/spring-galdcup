@@ -50,7 +50,7 @@ public class CommentService {
     /** 댓글 작성 */
     @Transactional
     public CommentDto create(Long postId, Long authorId, String authorNickname, String content) {
-        Post post = postValidator.validateAndGetPost(postId);
+        Post post = postValidator.findByIdOrThrow(postId);
 
         Comment comment = Comment.builder()
                 .post(post)
@@ -64,7 +64,7 @@ public class CommentService {
     /** 댓글 수정 */
     @Transactional
     public CommentDto update(Long commentId, Long authorId, String content) {
-        Comment comment = commentValidator.validateAndGetComment(commentId);
+        Comment comment = commentValidator.findByIdOrThrow(commentId);
         commentValidator.validateNotDeleted(comment);
         commentValidator.validateIsAuthor(comment, authorId);
 
@@ -75,7 +75,7 @@ public class CommentService {
     /** 댓글 삭제 */
     @Transactional
     public CommentDto delete(Long commentId, Long authorId) {
-        Comment comment = commentValidator.validateAndGetComment(commentId);
+        Comment comment = commentValidator.findByIdOrThrow(commentId);
         commentValidator.validateNotDeleted(comment);
         commentValidator.validateIsAuthor(comment, authorId);
 

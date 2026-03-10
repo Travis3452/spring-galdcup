@@ -3,6 +3,7 @@ package com.example.galdcup.post;
 import com.example.galdcup.board.Board;
 import com.example.galdcup.comment.Comment;
 import com.example.galdcup.post.embedded.Author;
+import com.example.galdcup.postCategory.PostCategory;
 import com.example.galdcup.postReaction.PostReaction;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,7 +19,8 @@ import java.util.List;
         indexes = {
                 @Index(name = "idx_post_board_id", columnList = "board_id"),
                 @Index(name = "idx_post_view_count", columnList = "viewCount DESC"),
-                @Index(name = "idx_post_board_created", columnList = "board_id, createdAt DESC")
+                @Index(name = "idx_post_board_created", columnList = "board_id, createdAt DESC"),
+                @Index(name = "idx_post_board_category_created", columnList = "board_id, post_category_id, createdAt DESC")
         }
 )
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -30,6 +32,10 @@ public class Post {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_category_id", nullable = false)
+    private PostCategory postCategory;
 
     @Embedded
     private Author author;

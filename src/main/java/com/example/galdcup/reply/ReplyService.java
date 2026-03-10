@@ -24,7 +24,7 @@ public class ReplyService {
      */
     @Transactional
     public ReplyDto create(Long commentId, Long authorId, String authorNickname, String content) {
-        Comment parentComment = commentValidator.validateAndGetComment(commentId);
+        Comment parentComment = commentValidator.findByIdOrThrow(commentId);
 
         Reply reply = Reply.builder()
                 .parentComment(parentComment)

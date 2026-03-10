@@ -17,7 +17,7 @@ public class BoardValidator {
     /**
      * 게시판이 존재하는지 검증
      */
-    public Board validateAndGetBoard(Long boardId) {
+    public Board findByIdOrThrow(Long boardId) {
         return boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
     }
@@ -25,7 +25,7 @@ public class BoardValidator {
     /**
      * 게시판이 존재하고 OPEN 상태인지 검증
      */
-    public Board validateAndGetActiveBoard(Long boardId) {
+    public Board getBoardIfOpen(Long boardId) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
 
@@ -38,7 +38,8 @@ public class BoardValidator {
     /**
      * 관리자 권한 여부 체크
      */
-    public void checkManagerAuthority(Board board, Long userId) {
+    public Board getBoardIfManager(Long boardId, Long userId) {
+        Board board = this.findByIdOrThrow(boardId);
         User boardManager = board.getBoardPolicy().getBoardManager();
         List<User> subManagers = board.getBoardPolicy().getSubManagers();
 
@@ -46,16 +47,21 @@ public class BoardValidator {
                 && !boardManager.getId().equals(userId)) {
             throw new AccessDeniedException("게시판 관리자 권한이 필요합니다.");
         }
+
+        return board;
     }
 
     /**
      * 게시판 관리자 여부 체크
      */
-    public void checkBoardManagerAuthority(Board board, Long userId) {
+    public Board getBoardIfBoardManager(Long boardId, Long userId) {
+        Board board = this.findByIdOrThrow(boardId);
         User boardManager = board.getBoardPolicy().getBoardManager();
 
         if (!boardManager.getId().equals(userId)) {
             throw new AccessDeniedException("게시판 관리자 권한이 필요합니다.");
         }
+
+        return board;
     }
 }

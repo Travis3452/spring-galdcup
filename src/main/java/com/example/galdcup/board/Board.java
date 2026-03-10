@@ -2,6 +2,7 @@ package com.example.galdcup.board;
 
 import com.example.galdcup.boardPolicy.BoardPolicy;
 import com.example.galdcup.post.Post;
+import com.example.galdcup.postCategory.PostCategory;
 import com.example.galdcup.voteSession.VoteSession;
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,12 +14,15 @@ import java.util.List;
 
 @Entity
 @Table(name = "boards")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Builder
 public class Board {
 
     public enum Status { OPEN, CLOSED }
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, length = 100)
@@ -35,17 +39,35 @@ public class Board {
     private Status status;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<PostCategory> postCategories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Post> posts = new ArrayList<>();
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<VoteSession> voteSessions = new ArrayList<>();
 
     private OffsetDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
-        createdAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
-        status = Status.OPEN;
+        this.createdAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
+        this.status = Status.OPEN;
+    }
+
+    public void addPostCategory(PostCategory category) {
+        this.postCategories.add(category);
+        if (category.getBoard() != this) {
+            category.setBoard(this);
+        }
+    }
+
+    public void setDefaultCategories() {
+        this.addPostCategory(PostCategory.createNotice(this));
+        this.addPostCategory(PostCategory.createGeneral(this));
     }
 
     public void closeBoard() {

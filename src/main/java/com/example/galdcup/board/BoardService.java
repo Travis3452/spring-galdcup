@@ -4,7 +4,6 @@ import com.example.galdcup.board.dto.BoardDto;
 import com.example.galdcup.board.dto.BoardListResponse;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.boardPolicy.BoardPolicy;
-import com.example.galdcup.boardPolicy.BoardPolicyRepository;
 import com.example.galdcup.boardPolicy.dto.BoardPolicyDto;
 import com.example.galdcup.boardPolicy.dto.UpdateBoardPolicyRequest;
 import com.example.galdcup.user.User;
@@ -28,7 +27,6 @@ import java.util.Optional;
 public class BoardService {
 
     private final BoardRepository boardRepository;
-    private final BoardPolicyRepository boardPolicyRepository;
 
     private final BoardValidator boardValidator;
     private final UserValidator userValidator;
@@ -127,9 +125,7 @@ public class BoardService {
      */
     @Transactional
     public BoardPolicyDto updatePolicy(Long boardId, UpdateBoardPolicyRequest request, Long currentUserId) {
-        Board board = boardValidator.validateAndGetActiveBoard(boardId);
-
-        boardValidator.checkBoardManagerAuthority(board, currentUserId);
+        Board board =  boardValidator.getBoardIfBoardManager(boardId, currentUserId);
 
         BoardPolicy boardPolicy = board.getBoardPolicy();
         boardPolicy.setLikeThreshold(request.likeThreshold());
@@ -143,13 +139,11 @@ public class BoardService {
      */
     @Transactional
     public BoardPolicyDto addSubManager(Long boardId, String subManagerNickname, Long currentUserId) {
-        Board board = boardValidator.validateAndGetActiveBoard(boardId);
-
-        boardValidator.checkBoardManagerAuthority(board, currentUserId);
+        Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
 
         BoardPolicy boardPolicy = board.getBoardPolicy();
 
-        User subManager = userValidator.validateAndGetUserByNickname(subManagerNickname);
+        User subManager = userValidator.findByNicknameOrThrow(subManagerNickname);
 
         if (boardPolicy.getSubManagers().stream().anyMatch(u -> u.getId().equals(subManager.getId()))) {
             throw new IllegalArgumentException("이미 서브 매니저로 등록된 사용자입니다.");
@@ -164,13 +158,11 @@ public class BoardService {
      */
     @Transactional
     public BoardPolicyDto removeSubManager(Long boardId, String subManagerNickname, Long currentUserId) {
-        Board board = boardValidator.validateAndGetActiveBoard(boardId);
-
-        boardValidator.checkBoardManagerAuthority(board, currentUserId);
+        Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
 
         BoardPolicy boardPolicy = board.getBoardPolicy();
 
-        User subManager = userValidator.validateAndGetUserByNickname(subManagerNickname);
+        User subManager = userValidator.findByNicknameOrThrow(subManagerNickname);
 
         boolean removed = boardPolicy.getSubManagers()
                 .removeIf(user -> user.getId().equals(subManager.getId()));
@@ -188,7 +180,7 @@ public class BoardService {
      */
     @Transactional
     public BoardDto create(String topic, String description, Long currentUserId) {
-        User boardManager = userValidator.validateAndGetUserById(currentUserId);
+        User boardManager = userValidator.findByIdOrThrow(currentUserId);
 
         Board board = Board.builder()
                 .topic(topic)
@@ -196,20 +188,19 @@ public class BoardService {
                 .status(Board.Status.OPEN)
                 .build();
 
-        Board saved = boardRepository.save(board);
-
         BoardPolicy policy = BoardPolicy.builder()
                 .board(board)
                 .boardManager(boardManager)
                 .likeThreshold(20)
                 .build();
 
-        boardPolicyRepository.save(policy);
         board.setBoardPolicy(policy);
+        board.setDefaultCategories();
 
+        boardRepository.save(board);
         clearBoardCache();
 
-        return BoardDto.from(saved);
+        return BoardDto.from(board);
     }
 
     /**
@@ -217,9 +208,7 @@ public class BoardService {
      */
     @Transactional
     public BoardDto updateStatus(Long boardId, Board.Status newStatus, Long currentUserId) {
-        Board board = boardValidator.validateAndGetActiveBoard(boardId);
-
-        boardValidator.checkBoardManagerAuthority(board, currentUserId);
+        Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
 
         board.setStatus(newStatus);
         Board updated = boardRepository.save(board);
@@ -234,9 +223,7 @@ public class BoardService {
      */
     @Transactional
     public void delete(Long boardId, Long currentUserId) {
-        Board board = boardValidator.validateAndGetActiveBoard(boardId);
-
-        boardValidator.checkBoardManagerAuthority(board, currentUserId);
+        Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
 
         board.setStatus(Board.Status.CLOSED);
 

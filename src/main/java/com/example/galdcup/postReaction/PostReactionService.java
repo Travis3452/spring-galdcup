@@ -22,8 +22,8 @@ public class PostReactionService {
      */
     @Transactional
     public void addReaction(Long postId, Long currentUserId, PostReaction.ReactionType type) {
-        Post post = postValidator.validateAndGetPost(postId);
-        User user = userValidator.validateAndGetUserById(currentUserId);
+        Post post = postValidator.findByIdOrThrow(postId);
+        User user = userValidator.findByIdOrThrow(currentUserId);
 
         if (reactionRepository.findByPostAndUser(post, user).isPresent()) {
             throw new IllegalStateException("이미 좋아요/싫어요를 남긴 게시물입니다.");

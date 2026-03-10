@@ -13,7 +13,7 @@ public class UserValidator {
     /**
      * 유저 존재 여부 확인 및 반환(id 검색)
      */
-    public User validateAndGetUserById(Long userId) {
+    public User findByIdOrThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
     }
@@ -21,7 +21,7 @@ public class UserValidator {
     /**
      * 유저 존재 여부 확인 및 반환(nickname 검색)
      */
-    public User validateAndGetUserByNickname(String nickname) {
+    public User findByNicknameOrThrow(String nickname) {
         return userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. Nickname: " + nickname));
     }

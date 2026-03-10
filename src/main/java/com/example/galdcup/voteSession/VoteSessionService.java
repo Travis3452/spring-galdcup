@@ -38,8 +38,7 @@ public class VoteSessionService {
      */
     @Transactional
     public VoteSessionDto createVoteSession(Long boardId, Long adminId, CreateVoteSessionRequest request) {
-        Board board = boardValidator.validateAndGetActiveBoard(boardId);
-        boardValidator.checkBoardManagerAuthority(board, adminId);
+        Board board = boardValidator.getBoardIfBoardManager(boardId, adminId);
 
         voteSessionValidator.validateNoActiveVoteSession(board);
 
@@ -57,7 +56,7 @@ public class VoteSessionService {
      */
     @Transactional(readOnly = true)
     public VoteSessionDto getVoteSession(Long boardId) {
-        Board board = boardValidator.validateAndGetActiveBoard(boardId);
+        Board board = boardValidator.getBoardIfOpen(boardId);
         VoteSession voteSession = voteSessionValidator.validateAndGetActiveVoteSession(board);
 
         String hashKey = "voteSession:count:" + voteSession.getId();
@@ -91,7 +90,7 @@ public class VoteSessionService {
      */
     @Transactional(readOnly = true)
     public Page<VoteSessionDto> getPastVoteSessions(Long boardId, Pageable pageable) {
-        Board board = boardValidator.validateAndGetActiveBoard(boardId);
+        Board board = boardValidator.getBoardIfOpen(boardId);
 
         Page<VoteSession> voteSessionPage = voteSessionRepository.findByBoardAndIsFinishedTrue(board, pageable);
 
@@ -119,8 +118,7 @@ public class VoteSessionService {
      */
     @Transactional
     public void finishVoteSession(Long boardId, Long voteSessionId, Long userId) {
-        Board board = boardValidator.validateAndGetActiveBoard(boardId);
-        boardValidator.checkBoardManagerAuthority(board, userId);
+        Board board = boardValidator.getBoardIfBoardManager(boardId, userId);
 
         VoteSession session = voteSessionValidator.validateAndGetVoteSession(voteSessionId);
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));

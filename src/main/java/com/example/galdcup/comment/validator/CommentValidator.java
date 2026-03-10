@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class CommentValidator {
     private final CommentRepository commentRepository;
 
-    public Comment validateAndGetComment(Long commentId) {
+    public Comment findByIdOrThrow(Long commentId) {
         return commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
     }

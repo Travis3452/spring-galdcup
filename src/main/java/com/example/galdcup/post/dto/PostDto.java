@@ -9,6 +9,9 @@ import java.time.OffsetDateTime;
 public record PostDto(
         Long id,
         Long boardId,
+        Long categoryId,
+        String categoryName,
+        String categoryType,
         Long authorId,
         String authorNickname,
         Long view,
@@ -23,6 +26,9 @@ public record PostDto(
         return PostDto.builder()
                 .id(post.getId())
                 .boardId(post.getBoard().getId())
+                .categoryId(post.getPostCategory().getId())
+                .categoryName(post.getPostCategory().getName())
+                .categoryType(post.getPostCategory().getType().name())
                 .authorId(post.getAuthor().getId())
                 .authorNickname(post.getAuthor().getNickname())
                 .view(post.getViewCount())

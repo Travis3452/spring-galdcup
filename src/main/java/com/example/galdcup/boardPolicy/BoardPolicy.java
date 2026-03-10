@@ -26,7 +26,7 @@ public class BoardPolicy {
     private Board board;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_manager_id", nullable = false)
+    @JoinColumn(name = "board_manager_id")
     private User boardManager;
 
     @ManyToMany
