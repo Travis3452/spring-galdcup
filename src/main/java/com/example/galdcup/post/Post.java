@@ -17,16 +17,16 @@ import java.util.List;
 @Table(
         name = "posts",
         indexes = {
-                @Index(name = "idx_post_board_id", columnList = "board_id"),
-                @Index(name = "idx_post_view_count", columnList = "viewCount DESC"),
-                @Index(name = "idx_post_board_created", columnList = "board_id, createdAt DESC"),
-                @Index(name = "idx_post_board_category_created", columnList = "board_id, post_category_id, createdAt DESC")
+                @Index(name = "idx_post_list", columnList = "board_id, post_category_id, createdAt DESC"),
+                @Index(name = "idx_post_popular", columnList = "board_id, likeCount DESC, createdAt DESC"),
+                @Index(name = "idx_post_author", columnList = "board_id, authorNickname, createdAt DESC")
         }
 )
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Post {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Oracle 12c 이상에서는 IDENTITY가 효율적입니다.
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,36 +40,50 @@ public class Post {
     @Embedded
     private Author author;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 300) // 제목 길이를 300으로 넉넉하게 확장
     private String title;
 
     @Lob
-    @Column(nullable = false, length = 2000)
+    @Column(nullable = false) // Oracle CLOB 매핑
     private String content;
 
+    @Builder.Default
     @Column(nullable = false)
     private long viewCount = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private long likeCount = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private long dislikeCount = 0;
 
+    @Column(updatable = false) // 생성일은 수정 불가
     private OffsetDateTime createdAt;
+
     private OffsetDateTime updatedAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PostReaction> reactions = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
-        createdAt = now;
-        updatedAt = now;
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
     public void addLike() { this.likeCount++; }
