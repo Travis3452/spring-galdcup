@@ -19,7 +19,7 @@ import java.util.List;
         indexes = {
                 @Index(name = "idx_post_list", columnList = "board_id, post_category_id, createdAt DESC"),
                 @Index(name = "idx_post_popular", columnList = "board_id, likeCount DESC, createdAt DESC"),
-                @Index(name = "idx_post_author", columnList = "board_id, authorNickname, createdAt DESC")
+                @Index(name = "idx_post_author", columnList = "board_id, author_nickname, createdAt DESC")
         }
 )
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
