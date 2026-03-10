@@ -56,8 +56,7 @@ public class VoteSessionService {
      */
     @Transactional(readOnly = true)
     public VoteSessionDto getVoteSession(Long boardId) {
-        Board board = boardValidator.getBoardIfOpen(boardId);
-        VoteSession voteSession = voteSessionValidator.validateAndGetActiveVoteSession(board);
+        VoteSession voteSession = voteSessionValidator.validateAndGetActiveVoteSession(boardId);
 
         String hashKey = "voteSession:count:" + voteSession.getId();
         Map<Object, Object> votes = redisTemplate.opsForHash().entries(hashKey);
@@ -65,20 +64,15 @@ public class VoteSessionService {
         List<VoteOptionDto> voteOptionDtos = IntStream.range(0, voteSession.getOptions().size())
                 .mapToObj(i -> {
                     VoteOption opt = voteSession.getOptions().get(i);
-
                     Object redisValue = votes.get(String.valueOf(i));
-
-                    Long count = (redisValue != null)
-                            ? Long.parseLong(redisValue.toString())
-                            : opt.getCount();
-
+                    Long count = (redisValue != null) ? Long.parseLong(redisValue.toString()) : opt.getCount();
                     return new VoteOptionDto(opt.getLabel(), opt.getImageUrl(), count);
                 })
                 .toList();
 
         return new VoteSessionDto(
                 voteSession.getId(),
-                board.getId(),
+                boardId,
                 voteSession.getStartTime(),
                 voteSession.getEndTime(),
                 voteOptionDtos

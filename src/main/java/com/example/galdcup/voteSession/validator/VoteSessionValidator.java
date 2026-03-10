@@ -56,8 +56,8 @@ public class VoteSessionValidator {
     /**
      * 게시판에 진행 중인 VoteSession이 있는지 검증하고 반환
      */
-    public VoteSession validateAndGetActiveVoteSession(Board board) {
-        return voteSessionRepository.findByBoardAndIsFinishedFalse(board)
+    public VoteSession validateAndGetActiveVoteSession(Long boardId) {
+        return voteSessionRepository.findByBoardIdAndIsFinishedFalse(boardId)
                 .orElseThrow(() -> new IllegalStateException("현재 진행 중인 투표 세션이 존재하지 않습니다."));
     }
 
