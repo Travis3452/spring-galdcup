@@ -4,6 +4,7 @@ import com.example.galdcup.board.dto.BoardDto;
 import com.example.galdcup.board.dto.BoardListResponse;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.boardPolicy.BoardPolicy;
+import com.example.galdcup.boardPolicy.BoardPolicyRepository;
 import com.example.galdcup.boardPolicy.dto.BoardPolicyDto;
 import com.example.galdcup.boardPolicy.dto.UpdateBoardPolicyRequest;
 import com.example.galdcup.user.User;
@@ -27,6 +28,7 @@ import java.util.Optional;
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final BoardPolicyRepository boardPolicyRepository;
 
     private final BoardValidator boardValidator;
     private final UserValidator userValidator;
@@ -115,8 +117,7 @@ public class BoardService {
      */
     @Transactional(readOnly = true)
     public Optional<BoardPolicyDto> findPolicyByBoardId(Long boardId) {
-        return boardRepository.findById(boardId)
-                .map(Board::getBoardPolicy)
+        return boardPolicyRepository.findByBoardId(boardId)
                 .map(BoardPolicyDto::from);
     }
 
