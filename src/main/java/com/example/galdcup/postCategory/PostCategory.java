@@ -9,7 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name="post_categories")
+@Table(
+        name="post_categories",
+        indexes = {
+                @Index(name = "idx_category_board_id", columnList = "board_id")
+        }
+)
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor @Builder
 public class PostCategory {
