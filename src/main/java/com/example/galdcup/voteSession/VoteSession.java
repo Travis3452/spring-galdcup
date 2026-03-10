@@ -13,7 +13,7 @@ import java.util.List;
 @Table(
         name = "vote_sessions",
         indexes = {
-                @Index(name = "idx_vote_session_post_id", columnList = "post_id")
+                @Index(name = "idx_vote_session_board_status", columnList = "board_id, isFinished")
         }
 )
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
