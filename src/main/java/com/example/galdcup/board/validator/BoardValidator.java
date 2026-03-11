@@ -21,7 +21,16 @@ public class BoardValidator {
         return boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
     }
-    
+
+    /**
+     * 게시판이 존재하는지 검증
+     */
+    public Board findBoardWithPolicyById(Long boardId) {
+        return boardRepository.findBoardWithPolicyById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+    }
+
+
     /**
      * 게시판이 존재하고 OPEN 상태인지 검증
      */

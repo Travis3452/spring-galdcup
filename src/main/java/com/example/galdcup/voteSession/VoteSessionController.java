@@ -12,6 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/boards/{boardId}/vote-session")
 @RequiredArgsConstructor
@@ -40,8 +42,8 @@ public class VoteSessionController {
      * 투표 세션 조회
      */
     @GetMapping
-    public ResponseEntity<VoteSessionDto> getVoteSession(@PathVariable Long boardId) {
-        VoteSessionDto voteSessionDto = voteSessionService.getVoteSession(boardId);
+    public ResponseEntity<Optional<VoteSessionDto>> getVoteSession(@PathVariable Long boardId) {
+        Optional<VoteSessionDto> voteSessionDto = voteSessionService.getActiveVoteSession(boardId);
         return ResponseEntity.ok(voteSessionDto);
     }
 

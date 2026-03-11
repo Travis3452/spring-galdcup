@@ -19,6 +19,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 @Service
@@ -55,28 +56,29 @@ public class VoteSessionService {
      * 게시판의 현재 진행 중인 투표 세션 조회
      */
     @Transactional(readOnly = true)
-    public VoteSessionDto getVoteSession(Long boardId) {
-        VoteSession voteSession = voteSessionValidator.validateAndGetActiveVoteSession(boardId);
+    public Optional<VoteSessionDto> getActiveVoteSession(Long boardId) {
+        return voteSessionRepository.findByBoardIdAndIsFinishedFalse(boardId)
+                .map(voteSession -> {
+                    String hashKey = "voteSession:count:" + voteSession.getId();
+                    Map<Object, Object> votes = redisTemplate.opsForHash().entries(hashKey);
 
-        String hashKey = "voteSession:count:" + voteSession.getId();
-        Map<Object, Object> votes = redisTemplate.opsForHash().entries(hashKey);
+                    List<VoteOptionDto> voteOptionDtos = IntStream.range(0, voteSession.getOptions().size())
+                            .mapToObj(i -> {
+                                VoteOption opt = voteSession.getOptions().get(i);
+                                Object redisValue = votes.get(String.valueOf(i));
+                                Long count = (redisValue != null) ? Long.parseLong(redisValue.toString()) : opt.getCount();
+                                return new VoteOptionDto(opt.getLabel(), opt.getImageUrl(), count);
+                            })
+                            .toList();
 
-        List<VoteOptionDto> voteOptionDtos = IntStream.range(0, voteSession.getOptions().size())
-                .mapToObj(i -> {
-                    VoteOption opt = voteSession.getOptions().get(i);
-                    Object redisValue = votes.get(String.valueOf(i));
-                    Long count = (redisValue != null) ? Long.parseLong(redisValue.toString()) : opt.getCount();
-                    return new VoteOptionDto(opt.getLabel(), opt.getImageUrl(), count);
-                })
-                .toList();
-
-        return new VoteSessionDto(
-                voteSession.getId(),
-                boardId,
-                voteSession.getStartTime(),
-                voteSession.getEndTime(),
-                voteOptionDtos
-        );
+                    return new VoteSessionDto(
+                            voteSession.getId(),
+                            boardId,
+                            voteSession.getStartTime(),
+                            voteSession.getEndTime(),
+                            voteOptionDtos
+                    );
+                });
     }
 
     /**

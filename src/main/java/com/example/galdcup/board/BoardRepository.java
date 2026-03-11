@@ -8,10 +8,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
     List<Board> findByStatus(Board.Status status);
     Page<Board> findByStatus(Board.Status status, Pageable pageable);
+
+    @Query("SELECT b FROM Board b " +
+            "JOIN FETCH b.boardPolicy " +
+            "WHERE b.id = :id AND b.status = 'OPEN'")
+    Optional<Board> findBoardWithPolicyById(@Param("id") Long id);
 
     @Modifying
     @Query("UPDATE Board b SET b.boardPolicy.boardManager.id = NULL WHERE b.boardPolicy.boardManager.id = :userId")

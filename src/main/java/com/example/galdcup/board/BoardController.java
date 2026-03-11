@@ -1,9 +1,6 @@
 package com.example.galdcup.board;
 
-import com.example.galdcup.board.dto.BoardDto;
-import com.example.galdcup.board.dto.CreateBoardRequest;
-import com.example.galdcup.board.dto.SubManagerRequest;
-import com.example.galdcup.board.dto.UpdateBoardRequest;
+import com.example.galdcup.board.dto.*;
 import com.example.galdcup.boardPolicy.dto.BoardPolicyDto;
 import com.example.galdcup.boardPolicy.dto.UpdateBoardPolicyRequest;
 import com.example.galdcup.common.security.CustomUserDetails;
@@ -45,6 +42,15 @@ public class BoardController {
         return boardService.findById(boardId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * 게시판 진입 시 메타데이터 통합 조회
+     */
+    @GetMapping("/{boardId}/details")
+    public ResponseEntity<BoardDetailResponse> getBoardDetails(@PathVariable Long boardId) {
+        BoardDetailResponse response = boardService.getBoardDetail(boardId);
+        return ResponseEntity.ok(response);
     }
 
     /** 게시판 검색 */

@@ -1,5 +1,6 @@
 package com.example.galdcup.board;
 
+import com.example.galdcup.board.dto.BoardDetailResponse;
 import com.example.galdcup.board.dto.BoardDto;
 import com.example.galdcup.board.dto.BoardListResponse;
 import com.example.galdcup.board.validator.BoardValidator;
@@ -7,8 +8,12 @@ import com.example.galdcup.boardPolicy.BoardPolicy;
 import com.example.galdcup.boardPolicy.BoardPolicyRepository;
 import com.example.galdcup.boardPolicy.dto.BoardPolicyDto;
 import com.example.galdcup.boardPolicy.dto.UpdateBoardPolicyRequest;
+import com.example.galdcup.postCategory.PostCategoryService;
+import com.example.galdcup.postCategory.dto.PostCategoryDto;
 import com.example.galdcup.user.User;
 import com.example.galdcup.user.validator.UserValidator;
+import com.example.galdcup.voteSession.VoteSessionService;
+import com.example.galdcup.voteSession.dto.VoteSessionDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,6 +39,8 @@ public class BoardService {
     private final UserValidator userValidator;
 
     private final BoardViewService boardViewService;
+    private final PostCategoryService postCategoryService;
+    private final VoteSessionService voteSessionService;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -93,12 +100,31 @@ public class BoardService {
 
         boardOpt.ifPresent(board -> {
             if (board.getStatus() == Board.Status.OPEN) {
-                // 비동기 서비스 호출 (즉시 반환됨)
                 boardViewService.incrementViewCount(board.getId());
             }
         });
 
         return boardOpt.map(BoardDto::from);
+    }
+
+    /**
+     * 게시판 상세 페이지 진입 시 필요한 데이터 통합 조회
+     */
+    @Transactional(readOnly = true)
+    public BoardDetailResponse getBoardDetail(Long boardId) {
+        Board board = boardValidator.findBoardWithPolicyById(boardId);
+
+        VoteSessionDto activeVoteSession = voteSessionService.getActiveVoteSession(boardId)
+                .orElse(null);
+
+        List<PostCategoryDto> categories = postCategoryService.findByBoardId(boardId);
+
+        return BoardDetailResponse.builder()
+                .board(BoardDto.from(board))
+                .policy(BoardPolicyDto.from(board.getBoardPolicy()))
+                .categories(categories)
+                .activeVoteSession(activeVoteSession)
+                .build();
     }
 
     /**
