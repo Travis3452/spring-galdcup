@@ -33,10 +33,12 @@ public class BoardService {
     private final BoardValidator boardValidator;
     private final UserValidator userValidator;
 
+    private final BoardViewService boardViewService;
+
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final String BOARD_LATEST_KEY = "boards:latest";
-    private static final String BOARD_VIEWS_KEY = "boards:views";
+
 
     /**
      * 게시판 페이지 조회 (TTL 5분)
@@ -90,12 +92,9 @@ public class BoardService {
         Optional<Board> boardOpt = boardRepository.findById(id);
 
         boardOpt.ifPresent(board -> {
-            try {
-                if (board.getStatus() == Board.Status.OPEN) {
-                    redisTemplate.opsForZSet().incrementScore(BOARD_VIEWS_KEY, board.getId().toString(), 1);
-                }
-            } catch (Exception e) {
-                log.error("Redis error during view count increment: {}", e.getMessage());
+            if (board.getStatus() == Board.Status.OPEN) {
+                // 비동기 서비스 호출 (즉시 반환됨)
+                boardViewService.incrementViewCount(board.getId());
             }
         });
 
