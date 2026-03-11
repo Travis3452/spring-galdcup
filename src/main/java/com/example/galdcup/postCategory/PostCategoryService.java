@@ -68,8 +68,7 @@ public class PostCategoryService {
         PostCategory target = postCategoryValidator.getIfBelongsToBoard(categoryId, boardId);
         PostCategory destination = postCategoryValidator.getIfBelongsToBoard(moveToId, boardId);
 
-        postCategoryValidator.validateRemovable(target);
-        postCategoryValidator.validateSameBoard(target, destination);
+        postCategoryValidator.validateMigration(target, destination);
 
         postRepository.updateCategoryBulk(target, destination);
         postCategoryRepository.delete(target);

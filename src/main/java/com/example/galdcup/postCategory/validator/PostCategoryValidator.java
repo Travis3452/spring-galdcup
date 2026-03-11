@@ -51,9 +51,17 @@ public class PostCategoryValidator {
     }
 
     /**
-     * 병합 시 서로 같은 게시판 내의 카테고리인지 확인
+     * 병합(이관) 시 통합 검증 로직
      */
-    public void validateSameBoard(PostCategory target, PostCategory destination) {
+    public void validateMigration(PostCategory target, PostCategory destination) {
+        if (target.getId().equals(destination.getId())) {
+            throw new IllegalArgumentException("자기 자신으로 게시글을 옮길 수 없습니다.");
+        }
+
+        if (destination.getType() == PostCategory.CategoryType.NOTICE) {
+            throw new IllegalArgumentException("공지사항 카테고리로는 일반 게시글을 옮길 수 없습니다.");
+        }
+
         if (!target.getBoard().getId().equals(destination.getBoard().getId())) {
             throw new IllegalArgumentException("서로 다른 게시판의 카테고리로는 게시글을 병합할 수 없습니다.");
         }
