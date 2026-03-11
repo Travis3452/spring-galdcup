@@ -12,7 +12,7 @@ import java.util.List;
 @Table(
         name="post_categories",
         indexes = {
-                @Index(name = "idx_category_board_id", columnList = "board_id")
+                @Index(name = "idx_category_board_sort", columnList = "board_id, sortOrder")
         }
 )
 @Getter @Setter
@@ -29,6 +29,10 @@ public class PostCategory {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CategoryType type;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private int sortOrder = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id", nullable = false)
@@ -52,6 +56,7 @@ public class PostCategory {
         return PostCategory.builder()
                 .name("일반")
                 .type(CategoryType.GENERAL)
+                .sortOrder(0)
                 .board(board)
                 .build();
     }
@@ -60,14 +65,16 @@ public class PostCategory {
         return PostCategory.builder()
                 .name("공지사항")
                 .type(CategoryType.NOTICE)
+                .sortOrder(1)
                 .board(board)
                 .build();
     }
 
-    public static PostCategory createCustom(Board board, String name) {
+    public static PostCategory createCustom(Board board, String name, int sortOrder) {
         return PostCategory.builder()
                 .name(name)
                 .type(CategoryType.CUSTOM)
+                .sortOrder(sortOrder)
                 .board(board)
                 .build();
     }
