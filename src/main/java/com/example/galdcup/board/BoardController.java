@@ -60,14 +60,6 @@ public class BoardController {
         Page<BoardDto> boards = boardService.getBoardsByKeyword(pageable, keyword);
         return ResponseEntity.ok(boards);
     }
-    
-    /** 게시판 정책 조회 */
-    @GetMapping("/{boardId}/policy")
-    public ResponseEntity<BoardPolicyDto> getBoardPolicy(@PathVariable Long boardId) {
-        return boardService.findPolicyByBoardId(boardId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
 
     /** 게시판 정책 업데이트 (boardManager만 접근 가능) */
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
