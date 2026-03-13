@@ -1,6 +1,7 @@
 package com.example.galdcup.voteSession;
 
 import com.example.galdcup.board.Board;
+import com.example.galdcup.board.event.BoardChangedEvent;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.vote.VoteOption;
 import com.example.galdcup.vote.VoteOptionRepository;
@@ -9,6 +10,7 @@ import com.example.galdcup.voteSession.dto.CreateVoteSessionRequest;
 import com.example.galdcup.voteSession.dto.VoteSessionDto;
 import com.example.galdcup.voteSession.validator.VoteSessionValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -34,6 +36,8 @@ public class VoteSessionService {
 
     private final StringRedisTemplate redisTemplate;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     /**
      * 투표 세션 생성
      */
@@ -49,6 +53,9 @@ public class VoteSessionService {
         board.getVoteSessions().add(voteSession);
 
         VoteSession saved = voteSessionRepository.save(voteSession);
+
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
+
         return VoteSessionDto.from(saved);
     }
 
@@ -138,5 +145,7 @@ public class VoteSessionService {
         }
 
         session.setFinished(true);
+
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
     }
 }

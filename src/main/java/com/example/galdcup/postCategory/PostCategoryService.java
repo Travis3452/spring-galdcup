@@ -1,6 +1,7 @@
 package com.example.galdcup.postCategory;
 
 import com.example.galdcup.board.Board;
+import com.example.galdcup.board.event.BoardChangedEvent;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.post.PostRepository;
 import com.example.galdcup.postCategory.dto.PostCategoryDto;
@@ -8,6 +9,7 @@ import com.example.galdcup.postCategory.dto.PostCategoryRequest;
 import com.example.galdcup.postCategory.dto.UpdatePostCategoryRequest;
 import com.example.galdcup.postCategory.validator.PostCategoryValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,8 @@ public class PostCategoryService {
 
     private final PostCategoryValidator postCategoryValidator;
     private final BoardValidator boardValidator;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 게시판별 카테고리 조회
@@ -53,6 +57,9 @@ public class PostCategoryService {
                 .build();
 
         postCategoryRepository.save(postCategory);
+
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
+
         return PostCategoryDto.from(postCategory);
     }
 
@@ -75,6 +82,8 @@ public class PostCategoryService {
             postCategory.setSortOrder(request.sortOrder());
         }
 
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
+
         return PostCategoryDto.from(postCategory);
     }
 
@@ -92,6 +101,8 @@ public class PostCategoryService {
                 category.setSortOrder(req.sortOrder());
             }
         }
+
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
     }
 
     /**
@@ -108,5 +119,7 @@ public class PostCategoryService {
 
         postRepository.updateCategoryBulk(target, destination);
         postCategoryRepository.delete(target);
+
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
     }
 }
