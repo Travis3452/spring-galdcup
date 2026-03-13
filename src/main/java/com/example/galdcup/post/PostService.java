@@ -1,6 +1,7 @@
 package com.example.galdcup.post;
 
 import com.example.galdcup.board.Board;
+import com.example.galdcup.board.event.BoardChangedEvent;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.post.dto.PostDto;
 import com.example.galdcup.post.embedded.Author;
@@ -9,16 +10,15 @@ import com.example.galdcup.postCategory.PostCategory;
 import com.example.galdcup.postCategory.validator.PostCategoryValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -26,14 +26,15 @@ import java.util.concurrent.TimeUnit;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final PostRedisManager postRedisManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final BoardValidator boardValidator;
     private final PostValidator postValidator;
     private final PostCategoryValidator postCategoryValidator;
 
     /**
-     * 게시글 조회
+     * 게시글 목록 조회
      */
     @Transactional(readOnly = true)
     public Page<PostDto> getPosts(Long boardId, Long categoryId, boolean isPopular,
@@ -50,35 +51,11 @@ public class PostService {
     }
 
     /**
-     * 전체 조회
-     */
-    private Page<PostDto> getList(Long boardId, Long categoryId, Long threshold, Pageable pageable) {
-        return postRepository.findPostsFiltered(boardId, categoryId, threshold, pageable)
-                .map(PostDto::from);
-    }
-
-    /**
-     * 검색 조회
-     */
-    private Page<PostDto> getSearch(Long boardId, Long categoryId, Long threshold,
-                                    String searchType, String keyword, Pageable pageable) {
-
-        if ("NICKNAME".equals(searchType)) {
-            return postRepository.searchByAuthorNickname(boardId, categoryId, threshold, keyword, pageable)
-                    .map(PostDto::from);
-        }
-
-        return postRepository.searchByTitleAndContent(boardId, categoryId, threshold, keyword, pageable)
-                .map(PostDto::from);
-    }
-
-    /**
      * 게시글 생성
      */
     @Transactional
     public PostDto create(Long boardId, Long categoryId, Long authorId, String authorNickname, String title, String content) {
         Board board = boardValidator.getBoardIfOpen(boardId);
-
         PostCategory category = postCategoryValidator.getIfBelongsToBoard(categoryId, boardId);
 
         if (category.getType() == PostCategory.CategoryType.NOTICE) {
@@ -93,7 +70,10 @@ public class PostService {
                 .content(content)
                 .build();
 
-        return PostDto.from(postRepository.save(post));
+        Post saved = postRepository.save(post);
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
+
+        return PostDto.from(saved);
     }
 
     /**
@@ -102,7 +82,7 @@ public class PostService {
     @Transactional(readOnly = true)
     public Optional<PostDto> findById(Long id) {
         Optional<Post> postOpt = postRepository.findById(id);
-        postOpt.ifPresent(post -> incrementViewCount(post.getId()));
+        postOpt.ifPresent(post -> postRedisManager.incrementViewCount(post.getId()));
         return postOpt.map(PostDto::from);
     }
 
@@ -118,7 +98,10 @@ public class PostService {
         post.setContent(content);
         post.setUpdatedAt(OffsetDateTime.now(ZoneId.of("Asia/Seoul")));
 
-        return PostDto.from(postRepository.save(post));
+        Post updated = postRepository.save(post);
+        eventPublisher.publishEvent(new BoardChangedEvent(post.getBoard().getId()));
+
+        return PostDto.from(updated);
     }
 
     /**
@@ -128,9 +111,11 @@ public class PostService {
     public void delete(Long postId, Long authorId) {
         Post post = postValidator.findByIdOrThrow(postId);
         postValidator.validateIsAuthor(post, authorId);
+        Long boardId = post.getBoard().getId();
 
         postRepository.deleteById(postId);
-        deleteViewCache(postId);
+        postRedisManager.deleteViewCache(postId);
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
     }
 
     /**
@@ -142,7 +127,8 @@ public class PostService {
         boardValidator.getBoardIfManager(boardId, managerId);
 
         postRepository.deleteById(postId);
-        deleteViewCache(postId);
+        postRedisManager.deleteViewCache(postId);
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
     }
 
     /**
@@ -153,21 +139,33 @@ public class PostService {
         return postRepository.findByAuthorNickname(nickname, pageable).map(PostDto::from);
     }
 
-    private void incrementViewCount(Long postId) {
-        try {
-            String key = "post:view:" + postId;
-            redisTemplate.opsForValue().increment(key);
-            redisTemplate.expire(key, 1, TimeUnit.DAYS);
-        } catch (Exception e) {
-            log.error("Redis view increment error: {}", e.getMessage());
+    /**
+     * 목록 조회 필터링 및 캐싱 처리
+     */
+    private Page<PostDto> getList(Long boardId, Long categoryId, Long threshold, Pageable pageable) {
+        if (pageable.getPageNumber() == 0) {
+            return postRedisManager.getPostPage(boardId, categoryId, threshold, pageable)
+                    .orElseGet(() -> {
+                        Page<PostDto> page = postRepository.findPostsFiltered(boardId, categoryId, threshold, pageable)
+                                .map(PostDto::from);
+                        postRedisManager.savePostList(boardId, categoryId, threshold, page.getContent());
+                        return page;
+                    });
         }
+        return postRepository.findPostsFiltered(boardId, categoryId, threshold, pageable)
+                .map(PostDto::from);
     }
 
-    private void deleteViewCache(Long postId) {
-        try {
-            redisTemplate.delete("post:view:" + postId);
-        } catch (Exception e) {
-            log.error("Redis view cache delete error: {}", e.getMessage());
+    /**
+     * 검색 조회
+     */
+    private Page<PostDto> getSearch(Long boardId, Long categoryId, Long threshold,
+                                    String searchType, String keyword, Pageable pageable) {
+        if ("NICKNAME".equals(searchType)) {
+            return postRepository.searchByAuthorNickname(boardId, categoryId, threshold, keyword, pageable)
+                    .map(PostDto::from);
         }
+        return postRepository.searchByTitleAndContent(boardId, categoryId, threshold, keyword, pageable)
+                .map(PostDto::from);
     }
 }
