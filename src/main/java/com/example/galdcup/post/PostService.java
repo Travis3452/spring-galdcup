@@ -5,6 +5,7 @@ import com.example.galdcup.board.event.BoardChangedEvent;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.post.dto.PostDto;
 import com.example.galdcup.post.embedded.Author;
+import com.example.galdcup.post.event.PostChangedEvent;
 import com.example.galdcup.post.validator.PostValidator;
 import com.example.galdcup.postCategory.PostCategory;
 import com.example.galdcup.postCategory.validator.PostCategoryValidator;
@@ -71,7 +72,7 @@ public class PostService {
                 .build();
 
         Post saved = postRepository.save(post);
-        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
+        eventPublisher.publishEvent(new PostChangedEvent(boardId, saved.getId()));
 
         return PostDto.from(saved);
     }
@@ -99,7 +100,7 @@ public class PostService {
         post.setUpdatedAt(OffsetDateTime.now(ZoneId.of("Asia/Seoul")));
 
         Post updated = postRepository.save(post);
-        eventPublisher.publishEvent(new BoardChangedEvent(post.getBoard().getId()));
+        eventPublisher.publishEvent(new PostChangedEvent(post.getBoard().getId(), postId));
 
         return PostDto.from(updated);
     }
@@ -115,7 +116,7 @@ public class PostService {
 
         postRepository.deleteById(postId);
         postRedisManager.deleteViewCache(postId);
-        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
+        eventPublisher.publishEvent(new PostChangedEvent(boardId, postId));
     }
 
     /**
@@ -128,7 +129,7 @@ public class PostService {
 
         postRepository.deleteById(postId);
         postRedisManager.deleteViewCache(postId);
-        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
+        eventPublisher.publishEvent(new PostChangedEvent(boardId, postId));
     }
 
     /**

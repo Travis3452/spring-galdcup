@@ -22,7 +22,7 @@ public class PostRedisManager {
 
     private static final String LIST_KEY_PREFIX = "galdcup:posts:list:";
     private static final String VIEW_KEY_PREFIX = "galdcup:posts:view:";
-    private static final Duration LIST_TTL = Duration.ofMinutes(5);
+    private static final Duration LIST_TTL = Duration.ofSeconds(10);
 
     /**
      * 게시글 목록 캐시 조회
