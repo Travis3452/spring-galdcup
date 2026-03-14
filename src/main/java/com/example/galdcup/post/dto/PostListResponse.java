@@ -11,4 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class PostListResponse {
     private List<PostDto> postDtos;
+    private long totalElements;
 }

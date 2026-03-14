@@ -25,23 +25,23 @@ public class PostRedisManager {
     private static final Duration LIST_TTL = Duration.ofMinutes(5);
 
     /**
-     * 게시글 목록 캐시 조회 (Page 객체로 복구)
+     * 게시글 목록 캐시 조회
      */
     public Optional<Page<PostDto>> getPostPage(Long boardId, Long categoryId, Long threshold, Pageable pageable) {
         String key = generateListKey(boardId, categoryId, threshold);
         PostListResponse cached = (PostListResponse) redisTemplate.opsForValue().get(key);
 
         return Optional.ofNullable(cached)
-                .map(res -> new PageImpl<>(res.getPostDtos(), pageable, res.getPostDtos().size()));
+                .map(res -> new PageImpl<>(res.getPostDtos(), pageable, res.getTotalElements()));
     }
 
     /**
      * 게시글 목록 캐시 저장
      */
-    public void savePostList(Long boardId, Long categoryId, Long threshold, List<PostDto> posts) {
+    public void savePostList(Long boardId, Long categoryId, Long threshold, List<PostDto> posts, long totalElements) {
         String key = generateListKey(boardId, categoryId, threshold);
         if (posts != null && !posts.isEmpty()) {
-            redisTemplate.opsForValue().set(key, new PostListResponse(posts), LIST_TTL);
+            redisTemplate.opsForValue().set(key, new PostListResponse(posts, totalElements), LIST_TTL);
         }
     }
 

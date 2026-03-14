@@ -139,16 +139,15 @@ public class PostService {
         return postRepository.findByAuthorNickname(nickname, pageable).map(PostDto::from);
     }
 
-    /**
-     * 목록 조회 필터링 및 캐싱 처리
-     */
     private Page<PostDto> getList(Long boardId, Long categoryId, Long threshold, Pageable pageable) {
         if (pageable.getPageNumber() == 0) {
             return postRedisManager.getPostPage(boardId, categoryId, threshold, pageable)
                     .orElseGet(() -> {
                         Page<PostDto> page = postRepository.findPostsFiltered(boardId, categoryId, threshold, pageable)
                                 .map(PostDto::from);
-                        postRedisManager.savePostList(boardId, categoryId, threshold, page.getContent());
+
+                        postRedisManager.savePostList(boardId, categoryId, threshold,
+                                page.getContent(), page.getTotalElements());
                         return page;
                     });
         }
