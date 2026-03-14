@@ -1,7 +1,7 @@
 package com.example.galdcup.board.event;
 
 import com.example.galdcup.board.BoardRedisManager;
-import com.example.galdcup.post.PostRedisManager; // ✅ 추가
+import com.example.galdcup.post.PostRedisManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -1,57 +1,59 @@
 package com.example.galdcup.post.scheduler;
 
-import com.example.galdcup.post.PostRepository;
+import com.example.galdcup.post.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.Cursor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ViewSyncScheduler {
 
-    private final RedisTemplate<String, Object> redisTemplate;
-    private final PostRepository postRepository;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final PostService postService;
 
-    private static final String VIEW_KEY_PATTERN = "galdcup:posts:view:*";
     private static final String VIEW_KEY_PREFIX = "galdcup:posts:view:";
+    private static final String VIEW_KEY_PATTERN = "galdcup:posts:view:*";
 
-    /**
-     * 주기적으로 Redis의 조회수를 DB에 반영 (Write-Behind)
-     */
-    @Scheduled(fixedRate = 10000) // 10초 주기
-    @Transactional
+    @Scheduled(fixedRate = 10000)
     public void syncViewsToDb() {
-        ScanOptions options = ScanOptions.scanOptions().match(VIEW_KEY_PATTERN).count(100).build();
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(VIEW_KEY_PATTERN)
+                .count(100)
+                .build();
 
-        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+        try (Cursor<String> cursor = stringRedisTemplate.scan(options)) {
             while (cursor.hasNext()) {
                 String key = cursor.next();
-                handleViewSync(key);
+                processViewSync(key);
             }
         } catch (Exception e) {
-            log.error("조회수 동기화 스케줄러 실행 중 오류 발생", e);
+            log.error("조회수 스캔 중 오류 발생", e);
         }
     }
 
-    private void handleViewSync(String key) {
+    private void processViewSync(String key) {
+        String value = stringRedisTemplate.opsForValue().getAndDelete(key);
+        if (value == null) return;
+
+        Long postId = extractPostId(key);
+        Long viewCount = Long.parseLong(value);
+
         try {
-            Long postId = Long.valueOf(key.replace(VIEW_KEY_PREFIX, ""));
-
-            Object value = redisTemplate.opsForValue().getAndDelete(key);
-
-            if (value != null) {
-                long views = Long.parseLong(value.toString());
-                postRepository.incrementViewCount(postId, views);
-                log.debug("조회수 동기화 완료: 게시글 {}, {}회", postId, views);
-            }
+            postService.updateViewCountInDb(postId, viewCount);
+            log.info("조회수 동기화 완료: 게시글 {}, {}회", postId, viewCount);
         } catch (Exception e) {
-            log.error("개별 게시글 조회수 동기화 실패: 키 = {}", key, e);
+            stringRedisTemplate.opsForValue().increment(key, viewCount);
+            log.error("DB 반영 실패로 조회수 복구: postId={}, views={}", postId, viewCount, e);
         }
+    }
+
+    private Long extractPostId(String key) {
+        return Long.valueOf(key.substring(VIEW_KEY_PREFIX.length()));
     }
 }

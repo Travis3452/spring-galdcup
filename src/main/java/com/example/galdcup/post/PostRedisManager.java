@@ -7,18 +7,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
 public class PostRedisManager {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     private static final String LIST_KEY_PREFIX = "galdcup:posts:list:";
     private static final String VIEW_KEY_PREFIX = "galdcup:posts:view:";
@@ -57,8 +58,7 @@ public class PostRedisManager {
      */
     public void incrementViewCount(Long postId) {
         String key = VIEW_KEY_PREFIX + postId;
-        redisTemplate.opsForValue().increment(key);
-        redisTemplate.expire(key, 1, TimeUnit.DAYS);
+        stringRedisTemplate.opsForValue().increment(key);
     }
 
     /**

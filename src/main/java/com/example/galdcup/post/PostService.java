@@ -1,7 +1,6 @@
 package com.example.galdcup.post;
 
 import com.example.galdcup.board.Board;
-import com.example.galdcup.board.event.BoardChangedEvent;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.post.dto.PostDto;
 import com.example.galdcup.post.embedded.Author;
@@ -167,5 +166,10 @@ public class PostService {
         }
         return postRepository.searchByTitleAndContent(boardId, categoryId, threshold, keyword, pageable)
                 .map(PostDto::from);
+    }
+
+    @Transactional
+    public void updateViewCountInDb(Long postId, Long viewCount) {
+        postRepository.incrementViewCount(postId, viewCount);
     }
 }
