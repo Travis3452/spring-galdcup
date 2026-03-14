@@ -14,7 +14,7 @@ public record PostDto(
         String categoryType,
         Long authorId,
         String authorNickname,
-        Long view,
+        Long viewCount,
         String title,
         String content,
         Long likeCount,
@@ -31,7 +31,7 @@ public record PostDto(
                 .categoryType(post.getPostCategory().getType().name())
                 .authorId(post.getAuthor().getId())
                 .authorNickname(post.getAuthor().getNickname())
-                .view(post.getViewCount())
+                .viewCount(post.getViewCount())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .likeCount(post.getLikeCount())
