@@ -26,7 +26,7 @@ import java.util.List;
 public class Post {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Oracle 12c 이상에서는 IDENTITY가 효율적입니다.
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,11 +40,11 @@ public class Post {
     @Embedded
     private Author author;
 
-    @Column(nullable = false, length = 300) // 제목 길이를 300으로 넉넉하게 확장
+    @Column(nullable = false, length = 50)
     private String title;
 
     @Lob
-    @Column(nullable = false) // Oracle CLOB 매핑
+    @Column(nullable = false)
     private String content;
 
     @Builder.Default
@@ -59,7 +59,7 @@ public class Post {
     @Column(nullable = false)
     private long dislikeCount = 0;
 
-    @Column(updatable = false) // 생성일은 수정 불가
+    @Column(updatable = false)
     private OffsetDateTime createdAt;
 
     private OffsetDateTime updatedAt;
@@ -79,11 +79,6 @@ public class Post {
             this.createdAt = now;
         }
         this.updatedAt = now;
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
     public void addLike() { this.likeCount++; }

@@ -139,6 +139,9 @@ public class PostService {
         return postRepository.findByAuthorNickname(nickname, pageable).map(PostDto::from);
     }
 
+    /**
+     * 전체 조회
+     */
     private Page<PostDto> getList(Long boardId, Long categoryId, Long threshold, Pageable pageable) {
         if (pageable.getPageNumber() == 0) {
             return postRedisManager.getPostPage(boardId, categoryId, threshold, pageable)
