@@ -11,8 +11,6 @@ import com.example.galdcup.postCategory.PostCategoryService;
 import com.example.galdcup.postCategory.dto.PostCategoryDto;
 import com.example.galdcup.user.User;
 import com.example.galdcup.user.validator.UserValidator;
-import com.example.galdcup.voteSession.VoteSessionService;
-import com.example.galdcup.voteSession.dto.VoteSessionDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -36,7 +34,6 @@ public class BoardService {
 
     private final UserValidator userValidator;
     private final PostCategoryService postCategoryService;
-    private final VoteSessionService voteSessionService;
 
     private final BoardRedisManager boardRedisManager;
     private final ApplicationEventPublisher eventPublisher;
@@ -88,15 +85,12 @@ public class BoardService {
         return boardRedisManager.getBoardDetail(boardId)
                 .orElseGet(() -> {
                     Board board = boardValidator.findBoardWithPolicyById(boardId);
-                    VoteSessionDto activeVoteSession = voteSessionService.getActiveVoteSession(boardId)
-                            .orElse(null);
                     List<PostCategoryDto> categories = postCategoryService.findByBoardId(boardId);
 
                     BoardDetailResponse response = BoardDetailResponse.builder()
                             .board(BoardDto.from(board))
                             .policy(BoardPolicyDto.from(board.getBoardPolicy()))
                             .categories(categories)
-                            .activeVoteSession(activeVoteSession)
                             .build();
 
                     boardRedisManager.saveBoardDetail(boardId, response);
