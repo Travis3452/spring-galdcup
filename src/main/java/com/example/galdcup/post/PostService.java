@@ -11,6 +11,7 @@ import com.example.galdcup.postCategory.PostCategory;
 import com.example.galdcup.postCategory.validator.PostCategoryValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.owasp.html.PolicyFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,8 @@ public class PostService {
     private final BoardValidator boardValidator;
     private final PostValidator postValidator;
     private final PostCategoryValidator postCategoryValidator;
+
+    private final PolicyFactory htmlSanitizer;
 
     /**
      * 게시글 목록 조회
@@ -63,12 +66,14 @@ public class PostService {
             boardValidator.getBoardIfManager(boardId, authorId);
         }
 
+        String safeContent = htmlSanitizer.sanitize(content);
+
         Post post = Post.builder()
                 .board(board)
                 .postCategory(category)
                 .author(new Author(authorId, authorNickname))
                 .title(title)
-                .content(content)
+                .content(safeContent)
                 .build();
 
         Post saved = postRepository.save(post);
@@ -95,8 +100,10 @@ public class PostService {
         Post post = postValidator.findByIdOrThrow(postId);
         postValidator.validateIsAuthor(post, authorId);
 
+        String safeContent = htmlSanitizer.sanitize(content);
+
         post.setTitle(title);
-        post.setContent(content);
+        post.setContent(safeContent);
         post.setUpdatedAt(OffsetDateTime.now(ZoneId.of("Asia/Seoul")));
 
         Post updated = postRepository.save(post);

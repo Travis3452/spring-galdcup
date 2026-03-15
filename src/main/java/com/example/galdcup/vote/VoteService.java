@@ -33,11 +33,6 @@ public class VoteService {
         VoteSession session = voteSessionValidator.validateAndGetVoteSession(voteSessionId);
         userValidator.findByIdOrThrow(userId);
 
-        String redisKey = "galdcup:vote-sessions:" + voteSessionId + ":user:" + userId;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(redisKey))) {
-            throw new IllegalStateException("이미 해당 게시판에 투표하였습니다.");
-        }
-
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
         if (now.isBefore(session.getStartTime()) || now.isAfter(session.getEndTime())) {
             throw new IllegalStateException("현재는 투표 가능 시간이 아닙니다.");
@@ -50,8 +45,14 @@ public class VoteService {
         OffsetDateTime expireAt = session.getEndTime().plusDays(1);
         long ttl = ChronoUnit.SECONDS.between(OffsetDateTime.now(), expireAt);
 
+        String redisKey = "galdcup:vote-sessions:" + voteSessionId + ":user:" + userId;
         Vote vote = Vote.of(voteSessionId, userId, selectedOptionIndex, ttl);
-        redisTemplate.opsForValue().set(redisKey, vote, ttl, TimeUnit.SECONDS);
+
+        Boolean isFirstVote = redisTemplate.opsForValue().setIfAbsent(redisKey, vote, ttl, TimeUnit.SECONDS);
+
+        if (!Boolean.TRUE.equals(isFirstVote)) {
+            throw new IllegalStateException("이미 해당 게시판에 투표하였습니다.");
+        }
 
         voteSessionRedisManager.incrementVoteCount(session.getId(), selectedOptionIndex);
 
