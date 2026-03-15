@@ -26,8 +26,8 @@ public class BoardRankingScheduler {
 
     @Scheduled(fixedRate = 5 * 60 * 1000)
     public void updateDailyBoardRanking() {
-        String viewsKey = "boards:views";
-        String rankingKey = "boards:popular:ranking";
+        String viewsKey = "galdcup:boards:views";
+        String rankingKey = "galdcup:boards:list:ranking";
 
         try {
             Set<ZSetOperations.TypedTuple<Object>> topBoards =
@@ -51,10 +51,11 @@ public class BoardRankingScheduler {
                         .toList();
 
                 BoardListResponse response = new BoardListResponse(boardDtos);
+
                 redisTemplate.opsForValue().set(rankingKey, response, Duration.ofMinutes(10));
             }
 
-            redisTemplate.delete(viewsKey);
+            redisTemplate.unlink(viewsKey);
 
         } catch (Exception ignored) { }
     }

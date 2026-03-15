@@ -5,6 +5,7 @@ import com.example.galdcup.board.dto.BoardDto;
 import com.example.galdcup.board.dto.BoardListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -29,12 +30,14 @@ public class BoardRedisManager {
         return Optional.ofNullable(cached).map(BoardListResponse::getBoardDtos);
     }
 
+    @Async
     public void saveBoardList(String type, List<BoardDto> boards) {
         if (boards != null && !boards.isEmpty()) {
             redisTemplate.opsForValue().set(LIST_KEY + type, new BoardListResponse(boards), LIST_TTL);
         }
     }
 
+    @Async
     public void deleteBoardListCache() {
         redisTemplate.delete(LIST_KEY + "latest");
         redisTemplate.delete(LIST_KEY + "ranking");
@@ -45,12 +48,14 @@ public class BoardRedisManager {
         return Optional.ofNullable(cached);
     }
 
+    @Async
     public void saveBoardDetail(Long boardId, BoardDetailResponse detail) {
         if (detail != null) {
             redisTemplate.opsForValue().set(DETAIL_KEY + boardId, detail, DETAIL_TTL);
         }
     }
 
+    @Async
     public void deleteBoardDetailCache(Long boardId) {
         redisTemplate.delete(DETAIL_KEY + boardId);
     }

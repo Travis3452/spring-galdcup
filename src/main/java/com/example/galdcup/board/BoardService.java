@@ -177,7 +177,10 @@ public class BoardService {
     public BoardDto create(String topic, String description, Long currentUserId) {
         User boardManager = userValidator.findByIdOrThrow(currentUserId);
         Board board = Board.builder()
-                .topic(topic).description(description).status(Board.Status.OPEN).build();
+                .topic(topic)
+                .description(description)
+                .status(Board.Status.OPEN).build();
+
         board.setBoardPolicy(BoardPolicy.builder().board(board).boardManager(boardManager).likeThreshold(20).build());
         board.setDefaultCategories();
 
