@@ -1,19 +1,17 @@
 package com.example.galdcup.voteSession;
 
 import com.example.galdcup.board.Board;
-import com.example.galdcup.board.event.BoardChangedEvent;
 import com.example.galdcup.board.validator.BoardValidator;
-import com.example.galdcup.vote.VoteOption;
+import com.example.galdcup.common.CachedPageResponse;
 import com.example.galdcup.vote.VoteOptionRepository;
 import com.example.galdcup.vote.dto.VoteOptionDto;
 import com.example.galdcup.voteSession.dto.CreateVoteSessionRequest;
 import com.example.galdcup.voteSession.dto.VoteSessionDto;
 import com.example.galdcup.voteSession.validator.VoteSessionValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,112 +22,85 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VoteSessionService {
 
     private final VoteSessionRepository voteSessionRepository;
     private final VoteOptionRepository voteOptionRepository;
-
     private final BoardValidator boardValidator;
     private final VoteSessionValidator voteSessionValidator;
+    private final VoteSessionRedisManager voteSessionRedisManager;
 
-    private final StringRedisTemplate redisTemplate;
-
-    private final ApplicationEventPublisher eventPublisher;
-
-    /**
-     * 투표 세션 생성
-     */
+    /** 투표 세션 생성 */
     @Transactional
     public VoteSessionDto createVoteSession(Long boardId, Long adminId, CreateVoteSessionRequest request) {
         Board board = boardValidator.getBoardIfBoardManager(boardId, adminId);
-
         voteSessionValidator.validateNoActiveVoteSession(board);
 
         VoteSession voteSession = voteSessionValidator.validateAndCreateVoteSession(board, request);
-
         voteSession.setBoard(board);
         board.getVoteSessions().add(voteSession);
 
         VoteSession saved = voteSessionRepository.save(voteSession);
 
-        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
+        voteSessionRedisManager.deleteVoteSession(boardId);
 
         return VoteSessionDto.from(saved);
     }
 
-    /**
-     * 게시판의 현재 진행 중인 투표 세션 조회
-     */
+    /** 현재 진행 중인 투표 세션 조회 */
     @Transactional(readOnly = true)
     public Optional<VoteSessionDto> getActiveVoteSession(Long boardId) {
-        return voteSessionRepository.findByBoardIdAndIsFinishedFalse(boardId)
-                .map(voteSession -> {
-                    String hashKey = "voteSession:count:" + voteSession.getId();
-                    Map<Object, Object> votes = redisTemplate.opsForHash().entries(hashKey);
+        Optional<VoteSessionDto> cachedVoteSession = voteSessionRedisManager.getActiveVoteSession(boardId);
 
-                    List<VoteOptionDto> voteOptionDtos = IntStream.range(0, voteSession.getOptions().size())
-                            .mapToObj(i -> {
-                                VoteOption opt = voteSession.getOptions().get(i);
-                                Object redisValue = votes.get(String.valueOf(i));
-                                Long count = (redisValue != null) ? Long.parseLong(redisValue.toString()) : opt.getCount();
-                                return new VoteOptionDto(opt.getLabel(), opt.getImageUrl(), count);
-                            })
-                            .toList();
+        VoteSessionDto cached;
+        if (cachedVoteSession.isPresent()) {
+            cached = cachedVoteSession.get();
+        } else {
+            Optional<VoteSession> optionalVoteSession = voteSessionRepository.findByBoardIdAndIsFinishedFalse(boardId);
+            if (optionalVoteSession.isEmpty()) return Optional.empty();
 
-                    return new VoteSessionDto(
-                            voteSession.getId(),
-                            boardId,
-                            voteSession.getStartTime(),
-                            voteSession.getEndTime(),
-                            voteOptionDtos
-                    );
-                });
+            cached = VoteSessionDto.from(optionalVoteSession.get());
+            voteSessionRedisManager.saveVoteSession(boardId, cached);
+        }
+
+        Map<Object, Object> realTimeCounts = voteSessionRedisManager.getVoteCounts(cached.getId());
+        return Optional.of(assembleVoteSession(cached, realTimeCounts));
     }
 
-    /**
-     * 게시판의 종료된 투표 세션 조회
-     */
+    /** 종료된 투표 세션 목록 조회 */
     @Transactional(readOnly = true)
     public Page<VoteSessionDto> getPastVoteSessions(Long boardId, Pageable pageable) {
-        Board board = boardValidator.getBoardIfOpen(boardId);
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
 
-        Page<VoteSession> voteSessionPage = voteSessionRepository.findByBoardAndIsFinishedTrue(board, pageable);
+        Optional<CachedPageResponse<VoteSessionDto>> cached = voteSessionRedisManager.getPastVoteSessions(boardId, page, size);
+        if (cached.isPresent()) {
+            return cached.get().toPage(pageable);
+        }
 
-        return voteSessionPage.map(session -> {
-            List<VoteOptionDto> optionDtos = session.getOptions().stream()
-                    .map(opt -> new VoteOptionDto(
-                            opt.getLabel(),
-                            opt.getImageUrl(),
-                            opt.getCount()
-                    ))
-                    .toList();
+        Page<VoteSession> dbPage = voteSessionRepository.findByBoardAndIsFinishedTrue(
+                boardValidator.getBoardIfOpen(boardId), pageable);
 
-            return new VoteSessionDto(
-                    session.getId(),
-                    board.getId(),
-                    session.getStartTime(),
-                    session.getEndTime(),
-                    optionDtos
-            );
-        });
+        Page<VoteSessionDto> dtoPage = dbPage.map(VoteSessionDto::from);
+
+        voteSessionRedisManager.savePastVoteSessions(boardId, page, size, CachedPageResponse.of(dtoPage));
+
+        return dtoPage;
     }
 
-    /**
-     * 투표 세션 종료 처리
-     */
+    /** 투표 세션 종료 처리 */
     @Transactional
     public void finishVoteSession(Long boardId, Long voteSessionId, Long userId) {
         Board board = boardValidator.getBoardIfBoardManager(boardId, userId);
-
         VoteSession session = voteSessionValidator.validateAndGetVoteSession(voteSessionId);
+
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
         session.setEndTime(now);
 
-        String countKey = "voteSession:count:" + voteSessionId;
-        Map<Object, Object> entries = redisTemplate.opsForHash().entries(countKey);
-
+        Map<Object, Object> entries = voteSessionRedisManager.getVoteCounts(voteSessionId);
         if (!entries.isEmpty()) {
             entries.forEach((optionIndexObj, countObj) -> {
                 int selectedOptionIndex = Integer.parseInt(optionIndexObj.toString());
@@ -140,12 +111,32 @@ public class VoteSessionService {
                     voteOptionRepository.incrementVoteCount(optionId, voteCount);
                 }
             });
-
-            redisTemplate.delete(countKey);
+            voteSessionRedisManager.deleteVoteCounts(voteSessionId);
         }
 
         session.setFinished(true);
 
-        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
+        voteSessionRedisManager.deleteVoteSession(boardId);
+        voteSessionRedisManager.deletePastVoteSessions(boardId);
+    }
+
+    /** 정적 데이터와 동적 수치를 병합하는 헬퍼 */
+    private VoteSessionDto assembleVoteSession(VoteSessionDto cached, Map<Object, Object> counts) {
+        List<VoteOptionDto> mergedOptions = IntStream.range(0, cached.getOptions().size())
+                .mapToObj(i -> {
+                    VoteOptionDto opt = cached.getOptions().get(i);
+                    Object redisVal = counts.get(String.valueOf(i));
+                    Long currentCount = (redisVal != null) ? Long.parseLong(redisVal.toString()) : opt.getCount();
+                    return new VoteOptionDto(opt.getLabel(), opt.getImageUrl(), currentCount);
+                })
+                .toList();
+
+        return VoteSessionDto.builder()
+                .id(cached.getId())
+                .boardId(cached.getBoardId())
+                .startTime(cached.getStartTime())
+                .endTime(cached.getEndTime())
+                .options(mergedOptions)
+                .build();
     }
 }

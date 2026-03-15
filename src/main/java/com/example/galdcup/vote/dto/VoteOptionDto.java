@@ -1,17 +1,26 @@
 package com.example.galdcup.vote.dto;
 
 import com.example.galdcup.vote.VoteOption;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record VoteOptionDto(
-        String label,
-        String imageUrl,
-        Long count
-) {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class VoteOptionDto {
+
+    private String label;
+    private String imageUrl;
+    private Long count;
+
     public static VoteOptionDto from(VoteOption option) {
-        return new VoteOptionDto(
-                option.getLabel(),
-                option.getImageUrl(),
-                option.getCount()
-        );
+        return VoteOptionDto.builder()
+                .label(option.getLabel())
+                .imageUrl(option.getImageUrl())
+                .count(option.getCount())
+                .build();
     }
 }
