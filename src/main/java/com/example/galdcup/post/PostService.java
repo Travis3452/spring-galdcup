@@ -2,6 +2,7 @@ package com.example.galdcup.post;
 
 import com.example.galdcup.board.Board;
 import com.example.galdcup.board.validator.BoardValidator;
+import com.example.galdcup.common.CachedPageResponse;
 import com.example.galdcup.post.dto.PostDto;
 import com.example.galdcup.post.embedded.Author;
 import com.example.galdcup.post.event.PostChangedEvent;
@@ -140,22 +141,26 @@ public class PostService {
     }
 
     /**
-     * 전체 조회
+     * 전체 조회 (5페이지까지 캐싱)
      */
     private Page<PostDto> getList(Long boardId, Long categoryId, Long threshold, Pageable pageable) {
-        if (pageable.getPageNumber() == 0) {
-            return postRedisManager.getPostPage(boardId, categoryId, threshold, pageable)
-                    .orElseGet(() -> {
-                        Page<PostDto> page = postRepository.findPostsFiltered(boardId, categoryId, threshold, pageable)
-                                .map(PostDto::from);
+        if (pageable.getPageNumber()< 5) {
+            Optional<CachedPageResponse<PostDto>> cached =
+                    postRedisManager.getPostPage(boardId, categoryId, threshold, pageable);
 
-                        postRedisManager.savePostList(boardId, categoryId, threshold,
-                                page.getContent(), page.getTotalElements());
-                        return page;
-                    });
+            if (cached.isPresent()) {
+                return cached.get().toPage(pageable);
+            }
         }
-        return postRepository.findPostsFiltered(boardId, categoryId, threshold, pageable)
+
+        Page<PostDto> page = postRepository.findPostsFiltered(boardId, categoryId, threshold, pageable)
                 .map(PostDto::from);
+
+        if (pageable.getPageNumber() < 5 && !page.isEmpty()) {
+            postRedisManager.savePostList(boardId, categoryId, threshold, pageable, CachedPageResponse.of(page));
+        }
+
+        return page;
     }
 
     /**
