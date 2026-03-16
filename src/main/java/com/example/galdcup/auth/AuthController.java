@@ -38,26 +38,17 @@ public class AuthController {
     /**
      * 구글 OAuth 콜백
      */
-    @GetMapping("/callback/google")
-    public ResponseEntity<Void> googleCallback(@RequestParam("code") String code) {
+    @PostMapping("/callback/google")
+    public ResponseEntity<AuthProfileResponse> googleCallback(@RequestParam("code") String code) {
         AuthDto result = authService.handleGoogleCallback(code);
 
         ResponseCookie refreshCookie = createCookie("refreshToken", result.refreshToken(), result.refreshTokenMaxAge());
         ResponseCookie accessCookie = createCookie("accessToken", result.accessToken(), accessTokenMaxAge);
 
-        String redirectUrl = String.format(
-                "%s/auth/callback/google?userId=%d&nickname=%s&role=%s",
-                frontendUrl,
-                result.profile().userId(),
-                URLEncoder.encode(result.profile().nickname(), StandardCharsets.UTF_8),
-                result.profile().role()
-        );
-
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(redirectUrl))
+        return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-                .build();
+                .body(result.profile());
     }
 
     /**
