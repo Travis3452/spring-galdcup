@@ -49,12 +49,7 @@ public class CommentController {
             @Valid @RequestBody CreateCommentRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        CommentDto commentDto = commentService.create(
-                request.postId(),
-                principal.getId(),
-                principal.getNickname(),
-                request.content()
-        );
+        CommentDto commentDto = commentService.create(request.postId(), principal.getId(), request.content());
 
         return ResponseEntity.created(URI.create("/api/comments/" + commentDto.id()))
                 .body(commentDto);

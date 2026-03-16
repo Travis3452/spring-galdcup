@@ -72,7 +72,6 @@ public class PostController {
                 request.boardId(),
                 request.categoryId(),
                 principal.getId(),
-                principal.getNickname(),
                 request.title(),
                 request.content()
         );

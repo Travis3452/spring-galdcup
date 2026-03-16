@@ -9,6 +9,8 @@ import com.example.galdcup.post.event.PostChangedEvent;
 import com.example.galdcup.post.validator.PostValidator;
 import com.example.galdcup.postCategory.PostCategory;
 import com.example.galdcup.postCategory.validator.PostCategoryValidator;
+import com.example.galdcup.user.User;
+import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.owasp.html.PolicyFactory;
@@ -36,6 +38,7 @@ public class PostService {
     private final PostCategoryValidator postCategoryValidator;
 
     private final PolicyFactory htmlSanitizer;
+    private final UserValidator userValidator;
 
     /**
      * 게시글 목록 조회
@@ -58,12 +61,13 @@ public class PostService {
      * 게시글 생성
      */
     @Transactional
-    public PostDto create(Long boardId, Long categoryId, Long authorId, String authorNickname, String title, String content) {
+    public PostDto create(Long boardId, Long categoryId, Long authorId, String title, String content) {
         Board board = boardValidator.getBoardIfOpen(boardId);
+        User author = userValidator.findByIdOrThrow(authorId);
         PostCategory category = postCategoryValidator.getIfBelongsToBoard(categoryId, boardId);
 
         if (category.getType() == PostCategory.CategoryType.NOTICE) {
-            boardValidator.getBoardIfManager(boardId, authorId);
+            boardValidator.getBoardIfManager(boardId, author.getId());
         }
 
         String safeContent = htmlSanitizer.sanitize(content);
@@ -71,7 +75,7 @@ public class PostService {
         Post post = Post.builder()
                 .board(board)
                 .postCategory(category)
-                .author(new Author(authorId, authorNickname))
+                .author(new Author(authorId, author.getNickname()))
                 .title(title)
                 .content(safeContent)
                 .build();

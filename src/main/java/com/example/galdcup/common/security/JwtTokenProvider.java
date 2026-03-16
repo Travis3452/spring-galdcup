@@ -1,7 +1,6 @@
 package com.example.galdcup.common.security;
 
 import com.example.galdcup.user.User;
-import com.example.galdcup.user.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -10,17 +9,16 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
-@Service
+@Component
 public class JwtTokenProvider {
 
-    private final UserRepository userRepository;
     private final SecretKey secretKey;
 
     @Value("${jwt.expiration}")
@@ -29,8 +27,7 @@ public class JwtTokenProvider {
     @Value("${jwt.refresh-expiration-days}")
     private int refreshExpDays;
 
-    public JwtTokenProvider(UserRepository userRepository, @Value("${jwt.secret}") String secret) {
-        this.userRepository = userRepository;
+    public JwtTokenProvider(@Value("${jwt.secret}") String secret) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -79,10 +76,14 @@ public class JwtTokenProvider {
         Claims claims = parseClaims(token);
         Long userId = Long.parseLong(claims.getSubject());
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<String> roles = claims.get("roles", List.class);
 
-        CustomUserDetails userDetails = new CustomUserDetails(user);
+        User dummyUser = User.builder()
+                .id(userId)
+                .role(User.Role.valueOf(roles.get(0)))
+                .build();
+
+        CustomUserDetails userDetails = new CustomUserDetails(dummyUser);
 
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
@@ -103,8 +104,7 @@ public class JwtTokenProvider {
      */
     public Long getUserIdFromToken(String token) {
         try {
-            Claims claims = parseClaims(token);
-            return Long.parseLong(claims.getSubject());
+            return Long.parseLong(parseClaims(token).getSubject());
         } catch (Exception e) {
             throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
         }
@@ -115,12 +115,5 @@ public class JwtTokenProvider {
      */
     public int getRefreshTokenMaxAgeSeconds() {
         return refreshExpDays * 24 * 60 * 60;
-    }
-
-    /**
-     * RefreshToken 파싱
-     */
-    public Claims parseRefreshToken(String token) {
-        return parseClaims(token);
     }
 }

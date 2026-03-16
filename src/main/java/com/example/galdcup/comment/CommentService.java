@@ -5,6 +5,8 @@ import com.example.galdcup.comment.embedded.Author;
 import com.example.galdcup.comment.validator.CommentValidator;
 import com.example.galdcup.post.Post;
 import com.example.galdcup.post.validator.PostValidator;
+import com.example.galdcup.user.User;
+import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +22,7 @@ public class CommentService {
     private final PostValidator postValidator;
     private final CommentValidator commentValidator;
     private final CommentRepository commentRepository;
+    private final UserValidator userValidator;
 
     /** 게시글별 댓글 조회 (오래된 순 정렬) */
     @Transactional(readOnly = true)
@@ -49,12 +52,13 @@ public class CommentService {
 
     /** 댓글 작성 */
     @Transactional
-    public CommentDto create(Long postId, Long authorId, String authorNickname, String content) {
+    public CommentDto create(Long postId, Long authorId, String content) {
         Post post = postValidator.findByIdOrThrow(postId);
+        User author = userValidator.findByIdOrThrow(authorId);
 
         Comment comment = Comment.builder()
                 .post(post)
-                .author(new Author(authorId, authorNickname))
+                .author(new Author(author.getId(), author.getNickname()))
                 .content(content)
                 .build();
 

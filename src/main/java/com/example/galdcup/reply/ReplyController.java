@@ -28,12 +28,7 @@ public class ReplyController {
             @Valid @RequestBody CreateReplyRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        ReplyDto reply = replyService.create(
-                request.commentId(),
-                principal.getId(),
-                principal.getNickname(),
-                request.content()
-        );
+        ReplyDto reply = replyService.create(request.commentId(), principal.getId(), request.content());
 
         return ResponseEntity.created(URI.create("/api/replies/" + reply.id()))
                 .body(reply);

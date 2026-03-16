@@ -1,16 +1,18 @@
 package com.example.galdcup.auth;
 
 import com.example.galdcup.auth.dto.AuthDto;
+import com.example.galdcup.auth.dto.AuthProfileResponse;
 import com.example.galdcup.common.security.CustomUserDetails;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -30,64 +32,80 @@ public class AuthController {
     @Value("${cookie.sameSite}")
     private String cookieSameSite;
 
+    @Value("${jwt.access-expiration:3600}")
+    private long accessTokenMaxAge;
+
+    /**
+     * 구글 OAuth 콜백
+     */
     @GetMapping("/callback/google")
-    public void googleCallback(
-            @RequestParam("code") String code,
-            HttpServletResponse response
-    ) throws IOException {
+    public ResponseEntity<Void> googleCallback(@RequestParam("code") String code) {
         AuthDto result = authService.handleGoogleCallback(code);
 
-        Cookie refreshCookie = new Cookie("refreshToken", result.refreshToken());
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(cookieSecure);
-        refreshCookie.setPath("/");
-        refreshCookie.setMaxAge(result.refreshTokenMaxAge());
-        refreshCookie.setAttribute("SameSite", cookieSameSite);
-        response.addCookie(refreshCookie);
+        ResponseCookie refreshCookie = createCookie("refreshToken", result.refreshToken(), result.refreshTokenMaxAge());
+        ResponseCookie accessCookie = createCookie("accessToken", result.accessToken(), accessTokenMaxAge);
 
         String redirectUrl = String.format(
-                "%s/auth/callback/google?accessToken=%s&nickname=%s",
+                "%s/auth/callback/google?userId=%d&nickname=%s&role=%s",
                 frontendUrl,
-                URLEncoder.encode(result.accessToken(), StandardCharsets.UTF_8),
-                URLEncoder.encode(result.nickname(), StandardCharsets.UTF_8)
+                result.profile().userId(),
+                URLEncoder.encode(result.profile().nickname(), StandardCharsets.UTF_8),
+                result.profile().role()
         );
 
-        response.sendRedirect(redirectUrl);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(redirectUrl))
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .build();
     }
 
+    /**
+     * 토큰 재발급 (Refresh)
+     */
     @PostMapping("/refresh")
-    public ResponseEntity<AuthDto> refresh(
-            @CookieValue(value = "refreshToken", required = false) String refreshToken,
-            HttpServletResponse response
-    ) {
+    public ResponseEntity<AuthProfileResponse> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         AuthDto result = authService.refreshTokens(refreshToken);
 
-        Cookie refreshCookie = new Cookie("refreshToken", result.refreshToken());
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(cookieSecure);
-        refreshCookie.setPath("/");
-        refreshCookie.setMaxAge(result.refreshTokenMaxAge());
-        refreshCookie.setAttribute("SameSite", cookieSameSite);
-        response.addCookie(refreshCookie);
+        ResponseCookie refreshCookie = createCookie("refreshToken", result.refreshToken(), result.refreshTokenMaxAge());
+        ResponseCookie accessCookie = createCookie("accessToken", result.accessToken(), accessTokenMaxAge);
 
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .body(result.profile());
     }
 
+    /**
+     * 로그아웃
+     */
     @DeleteMapping("/logout")
-    public ResponseEntity<Void> logout(
-            @AuthenticationPrincipal CustomUserDetails user,
-            HttpServletResponse response
-    ) {
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails user) {
         authService.deleteRefreshTokens(user.getId());
 
-        Cookie refreshCookie = new Cookie("refreshToken", null);
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(cookieSecure);
-        refreshCookie.setPath("/");
-        refreshCookie.setMaxAge(0);
-        refreshCookie.setAttribute("SameSite", "None");
-        response.addCookie(refreshCookie);
+        ResponseCookie refreshCookie = createCookie("refreshToken", "", 0);
+        ResponseCookie accessCookie = createCookie("accessToken", "", 0);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .build();
+    }
+
+    /**
+     * 쿠키 생성 헬퍼 메서드
+     */
+    private ResponseCookie createCookie(String name, String value, long maxAge) {
+        return ResponseCookie.from(name, value)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path("/")
+                .maxAge(maxAge)
+                .build();
     }
 }

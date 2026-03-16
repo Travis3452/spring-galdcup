@@ -71,22 +71,20 @@ public class AuthService {
     @Transactional
     public AuthDto createTokens(User user) {
         String refreshTokenStr = jwtTokenProvider.createRefreshToken(user.getId());
-
-        String redisKey = "refreshToken:" + user.getId();
-        long ttlSeconds = refreshExpDays * 24L * 60L * 60L;
-
-        redisTemplate.opsForValue().set(redisKey, refreshTokenStr, Duration.ofSeconds(ttlSeconds));
-
         String accessToken = jwtTokenProvider.createAccessToken(
                 user.getId(),
                 Collections.singletonList(user.getRole().name())
         );
 
-        return AuthDto.of(
+        String redisKey = "refreshToken:" + user.getId();
+        long ttlSeconds = refreshExpDays * 24L * 60L * 60L;
+        redisTemplate.opsForValue().set(redisKey, refreshTokenStr, Duration.ofSeconds(ttlSeconds));
+
+        return AuthDto.from(
+                user,
                 accessToken,
                 refreshTokenStr,
-                jwtTokenProvider.getRefreshTokenMaxAgeSeconds(),
-                user.getNickname()
+                jwtTokenProvider.getRefreshTokenMaxAgeSeconds()
         );
     }
 

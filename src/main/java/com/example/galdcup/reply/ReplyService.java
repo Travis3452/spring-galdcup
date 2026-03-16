@@ -5,6 +5,8 @@ import com.example.galdcup.comment.embedded.Author;
 import com.example.galdcup.comment.validator.CommentValidator;
 import com.example.galdcup.reply.dto.ReplyDto;
 import com.example.galdcup.reply.dto.ReplyValidator;
+import com.example.galdcup.user.User;
+import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,17 +20,19 @@ public class ReplyService {
     private final ReplyRepository replyRepository;
     private final ReplyValidator replyValidator;
     private final CommentValidator commentValidator;
+    private final UserValidator userValidator;
 
     /**
      * 대댓글 작성
      */
     @Transactional
-    public ReplyDto create(Long commentId, Long authorId, String authorNickname, String content) {
+    public ReplyDto create(Long commentId, Long authorId, String content) {
         Comment parentComment = commentValidator.findByIdOrThrow(commentId);
+        User author = userValidator.findByIdOrThrow(authorId);
 
         Reply reply = Reply.builder()
                 .parentComment(parentComment)
-                .author(new Author(authorId, authorNickname))
+                .author(new Author(author.getId(), author.getNickname()))
                 .content(content)
                 .build();
 
