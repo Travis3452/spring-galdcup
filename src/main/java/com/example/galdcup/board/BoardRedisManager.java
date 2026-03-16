@@ -21,8 +21,8 @@ public class BoardRedisManager {
     private static final String DETAIL_KEY = KEY_PREFIX + "detail:";
     private static final String LIST_KEY = KEY_PREFIX + "list:";
 
-    private static final Duration DETAIL_TTL = Duration.ofHours(1);
-    private static final Duration LIST_TTL = Duration.ofMinutes(5);
+    private static final Duration DETAIL_TTL = Duration.ofMinutes(5);
+    private static final Duration LIST_TTL = Duration.ofMinutes(10);
 
     public Optional<List<BoardDto>> getBoardList(String type) {
         BoardListResponse cached = (BoardListResponse) redisTemplate.opsForValue().get(LIST_KEY + type);
