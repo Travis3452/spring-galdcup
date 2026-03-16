@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -47,9 +46,8 @@ public class PostRedisManager {
     }
 
     /**
-     * 게시글 목록 캐시 저장 (비동기)
+     * 게시글 목록 캐시 저장
      */
-    @Async
     public void savePostList(Long boardId, Long categoryId, Long threshold, Pageable pageable, CachedPageResponse<PostDto> response) {
         if (pageable.getPageNumber() >= MAX_CACHE_PAGE) {
             return;
@@ -60,9 +58,8 @@ public class PostRedisManager {
     }
 
     /**
-     * 해당 게시판의 모든 목록 캐시 비동기 삭제 (정합성을 위해 UNLINK 사용)
+     * 해당 게시판의 모든 목록 캐시 삭제
      */
-    @Async
     public void deletePostListCache(Long boardId) {
         String pattern = LIST_KEY_PREFIX + boardId + ":*";
         Set<String> keys = redisTemplate.keys(pattern); // 주의: 키가 너무 많으면 keys가 차단될 수 있음
@@ -73,18 +70,16 @@ public class PostRedisManager {
     }
 
     /**
-     * 게시글 조회수 증가 (비동기)
+     * 게시글 조회수 증가
      */
-    @Async
     public void incrementViewCount(Long postId) {
         String key = VIEW_KEY_PREFIX + postId;
         stringRedisTemplate.opsForValue().increment(key);
     }
 
     /**
-     * 게시글 조회수 캐시 삭제 (비동기)
+     * 게시글 조회수 캐시 삭제
      */
-    @Async
     public void deleteViewCache(Long postId) {
         redisTemplate.delete(VIEW_KEY_PREFIX + postId);
     }

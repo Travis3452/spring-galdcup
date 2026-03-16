@@ -4,6 +4,7 @@ import com.example.galdcup.board.Board;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.common.CachedPageResponse;
 import com.example.galdcup.vote.VoteOptionRepository;
+import com.example.galdcup.vote.VoteRedisManager;
 import com.example.galdcup.vote.dto.VoteOptionDto;
 import com.example.galdcup.voteSession.dto.CreateVoteSessionRequest;
 import com.example.galdcup.voteSession.dto.VoteSessionDto;
@@ -32,6 +33,7 @@ public class VoteSessionService {
     private final BoardValidator boardValidator;
     private final VoteSessionValidator voteSessionValidator;
     private final VoteSessionRedisManager voteSessionRedisManager;
+    private final VoteRedisManager voteRedisManager;
 
     /** 투표 세션 생성 */
     @Transactional
@@ -66,7 +68,7 @@ public class VoteSessionService {
             voteSessionRedisManager.saveVoteSession(boardId, cached);
         }
 
-        Map<Object, Object> realTimeCounts = voteSessionRedisManager.getVoteCounts(cached.getId());
+        Map<Object, Object> realTimeCounts = voteRedisManager.getVoteCounts(cached.getId());
         return Optional.of(assembleVoteSession(cached, realTimeCounts));
     }
 
@@ -100,7 +102,7 @@ public class VoteSessionService {
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
         session.setEndTime(now);
 
-        Map<Object, Object> entries = voteSessionRedisManager.getVoteCounts(voteSessionId);
+        Map<Object, Object> entries = voteRedisManager.getVoteCounts(voteSessionId);
         if (!entries.isEmpty()) {
             entries.forEach((optionIndexObj, countObj) -> {
                 int selectedOptionIndex = Integer.parseInt(optionIndexObj.toString());
@@ -111,7 +113,7 @@ public class VoteSessionService {
                     voteOptionRepository.incrementVoteCount(optionId, voteCount);
                 }
             });
-            voteSessionRedisManager.deleteVoteCounts(voteSessionId);
+            voteRedisManager.deleteVoteCounts(voteSessionId);
         }
 
         session.setFinished(true);

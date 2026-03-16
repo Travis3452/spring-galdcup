@@ -18,7 +18,7 @@ public class VoteSessionValidator {
     private final VoteSessionRepository voteSessionRepository;
 
     /**
-     * 투표 생성 시 값 검증 및 엔티티 생성 (객체 리스트 방식)
+     * VoteSession 생성 시 값 검증 및 엔티티 생성 (객체 리스트 방식)
      */
     public VoteSession validateAndCreateVoteSession(Board board, CreateVoteSessionRequest request) {
         OffsetDateTime startTime = request.startTime();
@@ -78,9 +78,17 @@ public class VoteSessionValidator {
                 .orElseThrow(() -> new IllegalArgumentException("투표 세션을 찾을 수 없습니다."));
     }
 
-    public void validateVoteSessionNotFinished(VoteSession voteSession) {
-        if (voteSession.isFinished()) {
-            throw new IllegalStateException("이미 종료된 투표 세션입니다.");
+    /**
+     * 올바른 투표인지 검증
+     */
+    public void validateVote(VoteSession voteSession, int selectedOptionIndex, OffsetDateTime now) {
+
+        if (now.isBefore(voteSession.getStartTime()) || now.isAfter(voteSession.getEndTime())) {
+            throw new IllegalStateException("현재는 투표 가능 시간이 아닙니다.");
+        }
+
+        if (selectedOptionIndex < 0 || selectedOptionIndex >= voteSession.getOptions().size()) {
+            throw new IllegalArgumentException("잘못된 투표 옵션입니다.");
         }
     }
 }
