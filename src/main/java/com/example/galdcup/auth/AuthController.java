@@ -12,10 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -76,7 +72,9 @@ public class AuthController {
      */
     @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails user) {
-        authService.deleteRefreshTokens(user.getId());
+        if (user != null) {
+            authService.deleteRefreshTokens(user.getId());
+        }
 
         ResponseCookie refreshCookie = createCookie("refreshToken", "", 0);
         ResponseCookie accessCookie = createCookie("accessToken", "", 0);

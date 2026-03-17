@@ -7,10 +7,10 @@ import lombok.Builder;
 public record AuthDto(
         String accessToken,
         String refreshToken,
-        int refreshTokenMaxAge,
+        long refreshTokenMaxAge,
         AuthProfileResponse profile
 ) {
-    public static AuthDto from(User user, String accessToken, String refreshToken, int maxAge) {
+    public static AuthDto from(User user, String accessToken, String refreshToken, long maxAge) {
         return AuthDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

@@ -1,9 +1,9 @@
 package com.example.galdcup.user;
 
 import com.example.galdcup.board.BoardRepository;
-import com.example.galdcup.common.security.AES256Encryptor;
 import com.example.galdcup.user.dto.UserDetailDto;
 import com.example.galdcup.user.dto.UserDto;
+import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,80 +17,73 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
-    private final AES256Encryptor encryptor;
+    private final UserValidator userValidator;
+    private final UserNicknameGenerator nicknameGenerator;
 
-    /** ID로 사용자 조회 후 DTO 반환 */
-    public UserDto findById(Long id) {
-        User user =  userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + id));
-
-        return UserDto.from(user);
-    }
-
-    public UserDetailDto findUserDetailById(Long id) {
-        User me = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + id));
-
-        return decryptToDto(me);
+    /**
+     * OAuth 정보를 바탕으로 유저를 조회하거나 새로 생성 (회원가입/로그인)
+     */
+    @Transactional
+    public User getOrCreateUser(String oauthId, String email) {
+        return userRepository.findByOauthId(oauthId)
+                .orElseGet(() -> userRepository.save(User.builder()
+                        .email(email)
+                        .oauthId(oauthId)
+                        .nickname(nicknameGenerator.generate())
+                        .role(User.Role.MANAGER)
+                        .build()));
     }
 
     /**
-     * Nickname으로 사용자 조회 후 DTO 반환
+     * ID로 사용자 조회 (간단 정보 DTO)
      */
-    public Page<UserDto> findByNicknameContaining(String keyword, Pageable pageable) {
-        Page<User> users = userRepository.findByNicknameContaining(keyword, pageable);
-        return users.map(UserDto::from);
+    public UserDto findById(Long id) {
+        User user = userValidator.findByIdOrThrow(id);
+        return UserDto.from(user);
     }
 
+    /**
+     * ID로 사용자 상세 정보 조회
+     */
+    public UserDetailDto findUserDetailById(Long id) {
+        User user = userValidator.findByIdOrThrow(id);
+        return UserDetailDto.from(user);
+    }
 
+    /**
+     * 닉네임 키워드로 사용자 검색 (페이징)
+     */
+    public Page<UserDto> findByNicknameContaining(String keyword, Pageable pageable) {
+        return userRepository.findByNicknameContaining(keyword, pageable)
+                .map(UserDto::from);
+    }
 
-    /** 사용자 프로필 수정 (본인만 가능) */
+    /**
+     * 사용자 프로필 수정 (닉네임 변경)
+     */
     @Transactional
     public UserDetailDto updateProfile(Long id, String nickname, Long currentUserId) {
-        if (!id.equals(currentUserId)) {
-            throw new IllegalArgumentException("본인만 프로필을 수정할 수 있습니다.");
-        }
-
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + id));
+        userValidator.validateOwnership(id, currentUserId);
+        User user = userValidator.findByIdOrThrow(id);
 
         if (nickname != null && !nickname.equals(user.getNickname())) {
-            if (userRepository.existsByNickname(nickname)) {
-                throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
-            }
+            userValidator.validateNicknameUniqueness(nickname);
             user.setNickname(nickname);
         }
 
-        User updated = userRepository.save(user);
-        return decryptToDto(updated);
+        return UserDetailDto.from(user);
     }
 
-    /** 사용자 삭제 (본인만 가능) */
+    /**
+     * 사용자 삭제 (회원 탈퇴)
+     */
     @Transactional
     public void delete(Long id, Long currentUserId) {
-        if (!id.equals(currentUserId)) {
-            throw new IllegalArgumentException("본인 계정만 삭제할 수 있습니다.");
-        }
-
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        userValidator.validateOwnership(id, currentUserId);
+        User user = userValidator.findByIdOrThrow(id);
 
         boardRepository.removeBoardManagerByUserId(user.getId());
 
         userRepository.delete(user);
-    }
-
-    /** 엔티티를 DTO로 변환 (이메일, OAuth ID 복호화 포함) */
-    private UserDetailDto decryptToDto(User user) {
-        String decryptedEmail = user.getEncryptedEmail() != null
-                ? encryptor.decrypt(user.getEncryptedEmail())
-                : null;
-
-        return new UserDetailDto(
-                user.getId(),
-                decryptedEmail,
-                user.getNickname(),
-                user.getRole().name()
-        );
     }
 }

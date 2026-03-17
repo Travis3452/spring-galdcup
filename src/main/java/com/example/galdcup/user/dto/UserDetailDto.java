@@ -4,10 +4,10 @@ import com.example.galdcup.user.User;
 
 public record UserDetailDto(Long id, String email, String nickname, String role) {
 
-    public static UserDetailDto from(User user, String decryptedEmail) {
+    public static UserDetailDto from(User user) {
         return new UserDetailDto(
                 user.getId(),
-                decryptedEmail,
+                user.getEmail(),
                 user.getNickname(),
                 user.getRole().name()
         );

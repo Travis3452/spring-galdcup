@@ -17,12 +17,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String encryptedEmail;   // AES 암호화된 이메일
-    private String hashEmail;        // SHA-256 해시된 이메일
+    @Column(unique = true, nullable = false)
+    private String email;
 
-    private String encryptedOauthId; // AES 암호화된 OAuth ID
-    private String hashOauthId;      // SHA-256 해시된 OAuth ID
+    @Column(unique = true, nullable = false)
+    private String oauthId;
 
+    @Column(unique = true, nullable = false, length = 14)
     private String nickname;
 
     @Enumerated(EnumType.STRING)
@@ -35,8 +36,10 @@ public class User {
     }
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
     private List<RoleRequest> roleRequests = new ArrayList<>();
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Builder.Default
     private List<BoardManagerRequest> boardManagerRequests = new ArrayList<>();
 }
