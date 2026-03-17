@@ -2,7 +2,7 @@ package com.example.galdcup.post;
 
 import com.example.galdcup.board.Board;
 import com.example.galdcup.board.validator.BoardValidator;
-import com.example.galdcup.common.CachedPageResponse;
+import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.post.dto.PostDto;
 import com.example.galdcup.post.embedded.Author;
 import com.example.galdcup.post.event.PostChangedEvent;
@@ -43,7 +43,6 @@ public class PostService {
     /**
      * 게시글 목록 조회
      */
-    @Transactional(readOnly = true)
     public Page<PostDto> getPosts(Long boardId, Long categoryId, boolean isPopular,
                                   String searchType, String keyword, Pageable pageable) {
 
@@ -89,7 +88,6 @@ public class PostService {
     /**
      * 게시글 단건 조회 (조회수 증가 포함)
      */
-    @Transactional(readOnly = true)
     public Optional<PostDto> findById(Long id) {
         Optional<Post> postOpt = postRepository.findById(id);
         postOpt.ifPresent(post -> postRedisManager.incrementViewCount(post.getId()));
@@ -146,7 +144,6 @@ public class PostService {
     /**
      * 사용자별 작성 게시글 조회
      */
-    @Transactional(readOnly = true)
     public Page<PostDto> findByAuthorNickname(String nickname, Pageable pageable) {
         return postRepository.findByAuthorNickname(nickname, pageable).map(PostDto::from);
     }

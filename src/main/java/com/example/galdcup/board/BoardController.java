@@ -39,9 +39,7 @@ public class BoardController {
     /** 게시판 단건 조회 */
     @GetMapping("/{boardId}")
     public ResponseEntity<BoardDto> getBoard(@PathVariable Long boardId) {
-        return boardService.findById(boardId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(boardService.findById(boardId));
     }
 
     /**

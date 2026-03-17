@@ -33,8 +33,10 @@ public class VoteSession {
     private OffsetDateTime endTime;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isFinished = false;
 
     @OneToMany(mappedBy = "voteSession", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<VoteOption> options = new ArrayList<>();
 }

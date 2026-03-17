@@ -41,7 +41,6 @@ public class BoardService {
     /**
      * 게시판 페이지 조회 (첫 페이지 캐싱)
      */
-    @Transactional(readOnly = true)
     public Page<BoardDto> findAll(Pageable pageable) {
         if (pageable.getPageNumber() == 0) {
             return boardRedisManager.getBoardList("latest")
@@ -62,9 +61,8 @@ public class BoardService {
     }
 
     /**
-     * 인기 게시판 목록 조회
+     * 인기 게시판 목록 조회 (캐싱 적용)
      */
-    @Transactional(readOnly = true)
     public List<BoardDto> getPopularBoards() {
         return boardRedisManager.getBoardList("latest")
                 .orElseGet(() -> {
@@ -80,7 +78,6 @@ public class BoardService {
     /**
      * 게시판 상세 데이터 통합 조회 (캐싱 적용)
      */
-    @Transactional(readOnly = true)
     public BoardDetailResponse getBoardDetail(Long boardId) {
         return boardRedisManager.getBoardDetail(boardId)
                 .orElseGet(() -> {
@@ -101,15 +98,14 @@ public class BoardService {
     /**
      * 특정 게시판 조회 (조회수 증가 포함)
      */
-    @Transactional(readOnly = true)
-    public Optional<BoardDto> findById(Long id) {
-        Optional<Board> boardOpt = boardRepository.findById(id);
-        boardOpt.ifPresent(board -> {
-            if (board.getStatus() == Board.Status.OPEN) {
-                boardViewService.incrementViewCount(board.getId());
-            }
-        });
-        return boardOpt.map(BoardDto::from);
+    public BoardDto findById(Long id) {
+        Board board = boardValidator.findByIdOrThrow(id);
+
+        if (board.getStatus() == Board.Status.OPEN) {
+            boardViewService.incrementViewCount(board.getId());
+        }
+
+        return BoardDto.from(board);
     }
 
     /**

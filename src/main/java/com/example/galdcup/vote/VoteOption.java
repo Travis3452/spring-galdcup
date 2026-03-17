@@ -23,5 +23,6 @@ public class VoteOption {
     private String imageUrl;
 
     @Column(nullable = false)
+    @Builder.Default
     private long count = 0;
 }

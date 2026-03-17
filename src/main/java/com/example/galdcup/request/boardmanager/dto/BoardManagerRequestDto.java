@@ -11,11 +11,11 @@ public record BoardManagerRequestDto(
         String boardTopic,
         BoardManagerRequest.Status status
 ) {
-    public static BoardManagerRequestDto from(BoardManagerRequest boardManagerRequest, String decryptedEmail) {
+    public static BoardManagerRequestDto from(BoardManagerRequest boardManagerRequest) {
         return new BoardManagerRequestDto(
                 boardManagerRequest.getId(),
                 boardManagerRequest.getApplicant().getId(),
-                decryptedEmail,
+                boardManagerRequest.getApplicant().getEmail(),
                 boardManagerRequest.getApplicant().getNickname(),
                 boardManagerRequest.getBoard().getId(),
                 boardManagerRequest.getBoard().getTopic(),

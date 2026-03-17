@@ -1,6 +1,5 @@
 package com.example.galdcup.request.role;
 
-import com.example.galdcup.common.security.AES256Encryptor;
 import com.example.galdcup.request.role.dto.RoleRequestDto;
 import com.example.galdcup.user.User;
 import com.example.galdcup.user.UserRepository;
@@ -16,7 +15,6 @@ public class RoleRequestService {
 
     private final RoleRequestRepository roleRequestRepository;
     private final UserRepository userRepository;
-    private final AES256Encryptor encryptor;
 
     /** USER → MANAGER 요청 생성 */
     @Transactional

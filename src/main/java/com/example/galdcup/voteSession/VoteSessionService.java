@@ -2,7 +2,7 @@ package com.example.galdcup.voteSession;
 
 import com.example.galdcup.board.Board;
 import com.example.galdcup.board.validator.BoardValidator;
-import com.example.galdcup.common.CachedPageResponse;
+import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.vote.VoteOptionRepository;
 import com.example.galdcup.vote.VoteRedisManager;
 import com.example.galdcup.vote.dto.VoteOptionDto;

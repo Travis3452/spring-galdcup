@@ -1,4 +1,4 @@
-package com.example.galdcup.common;
+package com.example.galdcup.common.redis;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

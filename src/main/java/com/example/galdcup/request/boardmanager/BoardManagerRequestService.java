@@ -2,7 +2,6 @@ package com.example.galdcup.request.boardmanager;
 
 import com.example.galdcup.board.Board;
 import com.example.galdcup.board.BoardRepository;
-import com.example.galdcup.common.security.AES256Encryptor;
 import com.example.galdcup.request.boardmanager.dto.BoardManagerRequestDto;
 import com.example.galdcup.user.User;
 import com.example.galdcup.user.UserRepository;
@@ -19,7 +18,6 @@ public class BoardManagerRequestService {
     private final BoardManagerRequestRepository boardManagerRequestRepository;
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
-    private final AES256Encryptor encryptor;
 
     @Transactional
     public BoardManagerRequestDto createBoardManagerRequest(Long applicantId, Long boardId) {
@@ -51,9 +49,8 @@ public class BoardManagerRequestService {
 
         BoardManagerRequest saved = boardManagerRequestRepository.save(request);
 
-        return toDto(saved);
+        return BoardManagerRequestDto.from(saved);
     }
-
 
     @Transactional(readOnly = true)
     public List<BoardManagerRequestDto> getPendingRequests(Long boardId, Long userId) {
@@ -66,7 +63,7 @@ public class BoardManagerRequestService {
 
         return boardManagerRequestRepository.findByBoardIdAndStatus(boardId, BoardManagerRequest.Status.WAITING)
                 .stream()
-                .map(this::toDto)
+                .map(BoardManagerRequestDto::from)
                 .toList();
     }
 
@@ -99,23 +96,5 @@ public class BoardManagerRequestService {
 
         request.setStatus(BoardManagerRequest.Status.DENIED);
         boardManagerRequestRepository.save(request);
-    }
-
-    /** 엔티티 → DTO 변환 (이메일 복호화 포함) */
-    private BoardManagerRequestDto toDto(BoardManagerRequest boardManagerRequest) {
-        User applicant = boardManagerRequest.getApplicant();
-        String decryptedEmail = applicant.getEncryptedEmail() != null
-                ? encryptor.decrypt(applicant.getEncryptedEmail())
-                : null;
-
-        return new BoardManagerRequestDto(
-                boardManagerRequest.getId(),
-                boardManagerRequest.getApplicant().getId(),
-                decryptedEmail,
-                boardManagerRequest.getApplicant().getNickname(),
-                boardManagerRequest.getBoard().getId(),
-                boardManagerRequest.getBoard().getTopic(),
-                boardManagerRequest.getStatus()
-        );
     }
 }

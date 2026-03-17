@@ -1,4 +1,4 @@
-package com.example.galdcup.common;
+package com.example.galdcup.common.redis;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -35,6 +35,7 @@ public class BoardPolicy {
             joinColumns = @JoinColumn(name = "policy_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
+    @Builder.Default
     private List<User> subManagers = new ArrayList<>();
 
     private long likeThreshold;

@@ -1,6 +1,6 @@
 package com.example.galdcup.post;
 
-import com.example.galdcup.common.CachedPageResponse;
+import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.post.dto.PostDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,6 +1,6 @@
 package com.example.galdcup.voteSession;
 
-import com.example.galdcup.common.CachedPageResponse;
+import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.voteSession.dto.VoteSessionDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
