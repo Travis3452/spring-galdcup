@@ -141,6 +141,10 @@ public class BoardService {
             throw new IllegalArgumentException("이미 서브 매니저로 등록된 사용자입니다.");
         }
 
+        if (board.getBoardPolicy().getBoardManager().getId().equals(currentUserId)) {
+            throw new IllegalArgumentException("게시판 관리자로 등록된 사용자입니다.");
+        }
+
         board.getBoardPolicy().getSubManagers().add(subManager);
 
         eventPublisher.publishEvent(new BoardChangedEvent(boardId));
