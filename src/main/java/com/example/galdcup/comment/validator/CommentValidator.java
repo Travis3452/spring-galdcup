@@ -26,4 +26,14 @@ public class CommentValidator {
             throw new SecurityException("본인이 작성한 댓글만 수정할 수 있습니다.");
         }
     }
+
+    public Comment getValidatedParentComment(Long parentCommentId, Long postId) {
+        Comment parentComment = this.findByIdOrThrow(parentCommentId);
+
+        if (!parentComment.getPost().getId().equals(postId)) {
+            throw new IllegalArgumentException("부모 댓글이 해당 게시글에 존재하지 않습니다.");
+        }
+
+        return parentComment;
+    }
 }

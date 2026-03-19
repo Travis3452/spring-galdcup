@@ -1,6 +1,7 @@
 package com.example.galdcup.comment;
 
 import com.example.galdcup.comment.dto.CommentDto;
+import com.example.galdcup.comment.dto.CreateCommentRequest;
 import com.example.galdcup.comment.embedded.Author;
 import com.example.galdcup.comment.validator.CommentValidator;
 import com.example.galdcup.post.Post;
@@ -32,8 +33,9 @@ public class CommentService {
                 pageable.getPageSize(),
                 Sort.by(Sort.Direction.ASC, "createdAt")
         );
+        Page<Comment> parentComments = commentRepository.findByPostIdAndParentCommentIsNull(postId, sortedPageable);
 
-        return commentRepository.findByPostId(postId, sortedPageable)
+        return parentComments
                 .map(CommentDto::from);
     }
 
@@ -52,14 +54,20 @@ public class CommentService {
 
     /** 댓글 작성 */
     @Transactional
-    public CommentDto create(Long postId, Long authorId, String content) {
+    public CommentDto create(Long postId, Long authorId, CreateCommentRequest createCommentRequest) {
         Post post = postValidator.findByIdOrThrow(postId);
         User author = userValidator.findByIdOrThrow(authorId);
+
+        Comment parentComment = null;
+        if (createCommentRequest.parentCommentId() != null) {
+            parentComment = commentValidator.getValidatedParentComment(createCommentRequest.parentCommentId(), post.getId());
+        }
 
         Comment comment = Comment.builder()
                 .post(post)
                 .author(new Author(author.getId(), author.getNickname()))
-                .content(content)
+                .content(createCommentRequest.content())
+                .parentComment(parentComment)
                 .build();
 
         return CommentDto.from(commentRepository.save(comment));

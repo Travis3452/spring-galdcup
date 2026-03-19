@@ -2,9 +2,9 @@ package com.example.galdcup.comment;
 
 import com.example.galdcup.comment.embedded.Author;
 import com.example.galdcup.post.Post;
-import com.example.galdcup.reply.Reply;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -35,9 +35,14 @@ public class Comment {
     @Column(nullable = false, length = 300)
     private String content;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    private Comment parentComment;
+
     @Builder.Default
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Reply> replies = new ArrayList<>();
+    private List<Comment> childrenComments = new ArrayList<>();
 
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
@@ -65,4 +70,3 @@ public class Comment {
         return this.deletedAt != null;
     }
 }
-

@@ -42,21 +42,22 @@ public class CommentController {
     }
 
     /**
-     * 댓글 작성
+     * 댓글 및 대댓글 작성
      */
-    @PostMapping
+    @PostMapping("/post/{postId}")
     public ResponseEntity<CommentDto> createComment(
+            @PathVariable Long postId,
             @Valid @RequestBody CreateCommentRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        CommentDto commentDto = commentService.create(request.postId(), principal.getId(), request.content());
+        CommentDto commentDto = commentService.create(postId, principal.getId(), request);
 
         return ResponseEntity.created(URI.create("/api/comments/" + commentDto.id()))
                 .body(commentDto);
     }
 
     /**
-     * 댓글 수정
+     * 댓글 및 대댓글 수정
      */
     @PutMapping("/{id}")
     public ResponseEntity<CommentDto> updateComment(
@@ -69,7 +70,7 @@ public class CommentController {
     }
 
     /**
-     * 댓글 삭제
+     * 댓글 및 대댓글 삭제
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<CommentDto> deleteComment(
