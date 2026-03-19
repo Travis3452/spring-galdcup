@@ -1,11 +1,11 @@
-package com.example.galdcup.request.role;
+package com.example.galdcup.user.role;
 
 import com.example.galdcup.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "role_changes")
+@Table(name = "role_requests")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class RoleRequest {
 
@@ -24,8 +24,8 @@ public class RoleRequest {
     private Status status;
 
     public enum Status {
-        WAITING,
-        ACCEPTED,
+        PENDING,
+        APPROVED,
         DENIED
     }
 }

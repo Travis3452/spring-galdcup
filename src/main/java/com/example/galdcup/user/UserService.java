@@ -1,8 +1,12 @@
 package com.example.galdcup.user;
 
 import com.example.galdcup.board.BoardRepository;
+import com.example.galdcup.user.dto.RoleChangeRequestDto;
 import com.example.galdcup.user.dto.UserDetailDto;
 import com.example.galdcup.user.dto.UserDto;
+import com.example.galdcup.user.role.RoleRequest;
+import com.example.galdcup.user.role.RoleRequestRepository;
+import com.example.galdcup.user.validator.RoleRequestValidator;
 import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,7 +21,9 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BoardRepository boardRepository;
+    private final RoleRequestRepository roleRequestRepository;
     private final UserValidator userValidator;
+    private final RoleRequestValidator roleRequestValidator;
     private final UserNicknameGenerator nicknameGenerator;
 
     /**
@@ -30,7 +36,7 @@ public class UserService {
                         .email(email)
                         .oauthId(oauthId)
                         .nickname(nicknameGenerator.generate())
-                        .role(User.Role.MANAGER)
+                        .role(User.Role.USER)
                         .build()));
     }
 
@@ -85,5 +91,71 @@ public class UserService {
         boardRepository.removeBoardManagerByUserId(user.getId());
 
         userRepository.delete(user);
+    }
+
+    // ==========================================
+    // 권한 신청 관리 (Role Management)
+    // ==========================================
+
+    /**
+     * 나의 권한 신청 내역 조회
+     */
+    public Page<RoleChangeRequestDto> findMyRoleRequests(Long userId, Pageable pageable) {
+        return roleRequestRepository.findAllByApplicantId(userId, pageable)
+                .map(RoleChangeRequestDto::from);
+    }
+
+    /**
+     * 권한 변경 신청 접수
+     */
+    @Transactional
+    public void requestRoleChange(Long userId, String requestedRole) {
+        User user = userValidator.findByIdOrThrow(userId);
+        User.Role targetRole = User.Role.valueOf(requestedRole);
+
+        roleRequestValidator.validateRequestAvailability(user, targetRole);
+
+        RoleRequest roleRequest = RoleRequest.builder()
+                .applicant(user)
+                .requestedRole(targetRole)
+                .status(RoleRequest.Status.PENDING)
+                .build();
+
+        roleRequestRepository.save(roleRequest);
+    }
+
+    /**
+     * [관리자] 대기 상태의 신청 목록 조회
+     */
+    public Page<RoleChangeRequestDto> findRoleRequestsByStatus(RoleRequest.Status status, Pageable pageable) {
+        return roleRequestRepository.findAllByStatus(status, pageable)
+                .map(RoleChangeRequestDto::from);
+    }
+
+    /**
+     * [관리자] 권한 신청 승인
+     */
+    @Transactional
+    public void approveRoleChange(Long requestId) {
+        RoleRequest roleRequest = roleRequestValidator.findByIdOrThrow(requestId);
+
+        roleRequestValidator.validatePendingStatus(roleRequest);
+
+        User applicant = roleRequest.getApplicant();
+        applicant.setRole(roleRequest.getRequestedRole());
+
+        roleRequest.setStatus(RoleRequest.Status.APPROVED);
+    }
+
+    /**
+     * [관리자] 권한 신청 거절
+     */
+    @Transactional
+    public void denyRoleChange(Long requestId) {
+        RoleRequest roleRequest = roleRequestValidator.findByIdOrThrow(requestId);
+
+        roleRequestValidator.validatePendingStatus(roleRequest);
+
+        roleRequest.setStatus(RoleRequest.Status.DENIED);
     }
 }
