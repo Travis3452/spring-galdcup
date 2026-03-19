@@ -67,11 +67,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/posts/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/posts/**").authenticated()
 
-                        .requestMatchers(HttpMethod.GET, "/api/replies/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/replies/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/replies/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/replies/**").authenticated()
-
                         .requestMatchers(HttpMethod.POST, "/api/role-changes").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/role-changes").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/role-changes/*/approve").authenticated()
