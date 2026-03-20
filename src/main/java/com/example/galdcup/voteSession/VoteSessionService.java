@@ -52,7 +52,7 @@ public class VoteSessionService {
         return VoteSessionDto.from(saved);
     }
 
-    /** 현재 진행 중인 투표 세션 조회 */
+    /** 현재 진행 중인 투표 세션 조회 (실시간 Redis 합계 반영) */
     @Transactional(readOnly = true)
     public Optional<VoteSessionDto> getActiveVoteSession(Long boardId) {
         Optional<VoteSessionDto> cachedVoteSession = voteSessionRedisManager.getActiveVoteSession(boardId);
@@ -93,7 +93,7 @@ public class VoteSessionService {
         return dtoPage;
     }
 
-    /** 투표 세션 종료 처리 */
+    /** 관리자에 의한 투표 세션 수동 종료 */
     @Transactional
     public void finishVoteSession(Long boardId, Long voteSessionId, Long userId) {
         Board board = boardValidator.getBoardIfBoardManager(boardId, userId);
@@ -106,11 +106,11 @@ public class VoteSessionService {
         if (!entries.isEmpty()) {
             entries.forEach((optionIndexObj, countObj) -> {
                 int selectedOptionIndex = Integer.parseInt(optionIndexObj.toString());
-                long voteCount = Long.parseLong(countObj.toString());
+                long totalCount = Long.parseLong(countObj.toString());
 
                 if (selectedOptionIndex >= 0 && selectedOptionIndex < session.getOptions().size()) {
                     Long optionId = session.getOptions().get(selectedOptionIndex).getId();
-                    voteOptionRepository.incrementVoteCount(optionId, voteCount);
+                    voteOptionRepository.updateVoteCount(optionId, totalCount);
                 }
             });
             voteRedisManager.deleteVoteCounts(voteSessionId);
@@ -122,14 +122,22 @@ public class VoteSessionService {
         voteSessionRedisManager.deletePastVoteSessions(boardId);
     }
 
-    /** 정적 데이터와 동적 수치를 병합하는 헬퍼 */
+    /**
+     * 정적 데이터(DTO)와 Redis의 실시간 누적 수치를 병합하는 헬퍼.
+     */
     private VoteSessionDto assembleVoteSession(VoteSessionDto cached, Map<Object, Object> counts) {
         List<VoteOptionDto> mergedOptions = IntStream.range(0, cached.getOptions().size())
                 .mapToObj(i -> {
                     VoteOptionDto opt = cached.getOptions().get(i);
                     Object redisVal = counts.get(String.valueOf(i));
+
                     Long currentCount = (redisVal != null) ? Long.parseLong(redisVal.toString()) : opt.getCount();
-                    return new VoteOptionDto(opt.getLabel(), opt.getImageUrl(), currentCount);
+
+                    return VoteOptionDto.builder()
+                            .label(opt.getLabel())
+                            .imageUrl(opt.getImageUrl())
+                            .count(currentCount)
+                            .build();
                 })
                 .toList();
 

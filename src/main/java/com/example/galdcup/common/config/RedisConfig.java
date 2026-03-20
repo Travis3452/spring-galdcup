@@ -33,7 +33,7 @@ public class RedisConfig {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
-        GenericJacksonJsonRedisSerializer serializer = GenericJacksonJsonRedisSerializer.create(serializerBuilder -> {
+        GenericJacksonJsonRedisSerializer jsonSerializer = GenericJacksonJsonRedisSerializer.create(serializerBuilder -> {
             serializerBuilder.customize(mapperBuilder -> {
                 mapperBuilder
                         .configure(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS, false)
@@ -48,9 +48,11 @@ public class RedisConfig {
         });
 
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(serializer);
         template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(serializer);
+
+        template.setValueSerializer(jsonSerializer);
+
+        template.setHashValueSerializer(new StringRedisSerializer());
 
         return template;
     }

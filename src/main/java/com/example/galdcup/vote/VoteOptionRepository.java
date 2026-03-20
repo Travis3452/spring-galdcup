@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 public interface VoteOptionRepository extends JpaRepository<VoteOption, Long> {
     @Modifying
     @Transactional
-    @Query("UPDATE VoteOption o SET o.count = o.count + :increment WHERE o.id = :optionId")
-    void incrementVoteCount(@Param("optionId") Long optionId, @Param("increment") long increment);
+    @Query("UPDATE VoteOption o SET o.count = :totalCount WHERE o.id = :optionId")
+    void updateVoteCount(@Param("optionId") Long optionId, @Param("totalCount") long totalCount);
 }
 

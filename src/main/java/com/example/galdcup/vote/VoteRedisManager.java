@@ -5,7 +5,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -16,14 +15,12 @@ public class VoteRedisManager {
 
     private static final String USER_VOTE_KEY_PREFIX = "galdcup:vote-sessions:%d:user:%d";
     private static final String VOTE_COUNT_KEY_PREFIX = "voteSession:count:%d";
-    private static final String VOTE_COUNT_KEY_PATTERN = "voteSession:count:*";
 
     /**
-     * 투표 실행 및 카운트
+     * 투표 실행 및 전체 카운트 증가
      */
     public void castVote(Vote vote) {
         String userKey = String.format(USER_VOTE_KEY_PREFIX, vote.getVoteSessionId(), vote.getUserId());
-
         Boolean isFirstVote = redisTemplate.opsForValue()
                 .setIfAbsent(userKey, vote, vote.getTtl(), TimeUnit.SECONDS);
 
@@ -36,7 +33,24 @@ public class VoteRedisManager {
     }
 
     /**
-     * 특정 투표 세션의 실시간 득표수 조회 (WebSocket 브로드캐스트 등에서 사용)
+     * Redis에 해당 세션의 카운트 데이터가 존재하는지 확인
+     */
+    public boolean hasVoteCounts(Long voteSessionId) {
+        String countKey = String.format(VOTE_COUNT_KEY_PREFIX, voteSessionId);
+        return Boolean.TRUE.equals(redisTemplate.hasKey(countKey));
+    }
+
+    /**
+     * DB의 데이터를 Redis로 초기 로드
+     */
+    public void warmUpVoteCounts(Long voteSessionId, Map<String, String> initialCounts, long ttl) {
+        String countKey = String.format(VOTE_COUNT_KEY_PREFIX, voteSessionId);
+        redisTemplate.opsForHash().putAll(countKey, initialCounts);
+        redisTemplate.expire(countKey, ttl, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 실시간 전체 득표수 조회
      */
     public Map<Object, Object> getVoteCounts(Long voteSessionId) {
         String countKey = String.format(VOTE_COUNT_KEY_PREFIX, voteSessionId);
@@ -44,31 +58,9 @@ public class VoteRedisManager {
     }
 
     /**
-     * 투표 세션이 완전히 삭제되거나 강제 초기화될 때 카운트 비동기 삭제 (unlink)
+     * 세션 종료 시나 삭제 시 메모리 정리
      */
     public void deleteVoteCounts(Long voteSessionId) {
-        String countKey = String.format(VOTE_COUNT_KEY_PREFIX, voteSessionId);
-        redisTemplate.unlink(countKey);
-    }
-
-    /**
-     * DB 동기화를 위한 모든 세션의 카운트 키 목록 조회
-     */
-    public Set<String> getAllVoteCountKeys() {
-        return redisTemplate.keys(VOTE_COUNT_KEY_PATTERN);
-    }
-
-    /**
-     * 스케줄러에서 특정 키의 해시(투표 항목별 득표수) 데이터를 읽어올 때 사용
-     */
-    public Map<Object, Object> getVoteCountEntries(String key) {
-        return redisTemplate.opsForHash().entries(key);
-    }
-
-    /**
-     * DB 동기화가 끝난 카운트 데이터를 메모리에서 비동기 삭제 (성능 최적화)
-     */
-    public void unlinkKey(String key) {
-        redisTemplate.unlink(key);
+        redisTemplate.unlink(String.format(VOTE_COUNT_KEY_PREFIX, voteSessionId));
     }
 }
