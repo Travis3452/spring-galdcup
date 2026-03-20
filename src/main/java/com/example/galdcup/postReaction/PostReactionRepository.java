@@ -1,6 +1,6 @@
 package com.example.galdcup.postReaction;
 
-import com.example.galdcup.post.Post;
+import com.example.galdcup.post.domain.Post;
 import com.example.galdcup.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 

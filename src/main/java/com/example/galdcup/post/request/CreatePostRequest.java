@@ -1,4 +1,4 @@
-package com.example.galdcup.post.dto;
+package com.example.galdcup.post.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

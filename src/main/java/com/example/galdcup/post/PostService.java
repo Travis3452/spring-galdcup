@@ -3,9 +3,12 @@ package com.example.galdcup.post;
 import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.common.redis.CachedPageResponse;
-import com.example.galdcup.post.dto.PostDto;
-import com.example.galdcup.post.embedded.Author;
+import com.example.galdcup.post.domain.Post;
+import com.example.galdcup.post.domain.PostRepository;
+import com.example.galdcup.post.response.PostDto;
+import com.example.galdcup.post.domain.embedded.Author;
 import com.example.galdcup.post.event.PostChangedEvent;
+import com.example.galdcup.post.redis.PostRedisManager;
 import com.example.galdcup.post.validator.PostValidator;
 import com.example.galdcup.postCategory.PostCategory;
 import com.example.galdcup.postCategory.validator.PostCategoryValidator;
@@ -88,10 +91,20 @@ public class PostService {
     /**
      * 게시글 단건 조회 (조회수 증가 포함)
      */
-    public Optional<PostDto> findById(Long id) {
-        Optional<Post> postOpt = postRepository.findById(id);
-        postOpt.ifPresent(post -> postRedisManager.incrementViewCount(post.getId()));
-        return postOpt.map(PostDto::from);
+    public PostDto findById(Long id) {
+        Optional<PostDto> cachedPostDto = postRedisManager.getPostDetail(id);
+
+        PostDto cached;
+        if (cachedPostDto.isPresent()) {
+            cached = cachedPostDto.get();
+        } else {
+            Post post = postValidator.findByIdOrThrow(id);
+            cached = PostDto.from(post);
+
+            postRedisManager.savePostDetail(cached);
+            return cached;
+        }
+        return cached;
     }
 
     /**

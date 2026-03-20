@@ -1,7 +1,7 @@
-package com.example.galdcup.post;
+package com.example.galdcup.post.redis;
 
 import com.example.galdcup.common.redis.CachedPageResponse;
-import com.example.galdcup.post.dto.PostDto;
+import com.example.galdcup.post.response.PostDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -21,11 +21,22 @@ public class PostRedisManager {
     private final RedisTemplate<String, Object> redisTemplate;
     private final StringRedisTemplate stringRedisTemplate;
 
-    private static final String LIST_KEY_PREFIX = "galdcup:posts:list:";
-    private static final String VIEW_KEY_PREFIX = "galdcup:posts:view:";
+    private static final String POST_KEY_PREFIX = "galdcup:posts:";
+    private static final String DETAIL_KEY_PREFIX = POST_KEY_PREFIX + "detail:";
+    private static final String LIST_KEY_PREFIX = POST_KEY_PREFIX + "list:";
+    private static final String VIEW_KEY_PREFIX =  POST_KEY_PREFIX + "view:";
 
+    private static final Duration DETAIL_TTL = Duration.ofMinutes(10);
     private static final Duration LIST_TTL = Duration.ofMinutes(1);
     private static final int MAX_CACHE_PAGE = 5;
+
+    /**
+     * 게시글 상세 조회
+     */
+    public Optional<PostDto> getPostDetail(Long postId) {
+        PostDto optionalPostDto = (PostDto) redisTemplate.opsForValue().get(DETAIL_KEY_PREFIX + postId);
+        return Optional.ofNullable(optionalPostDto);
+    }
 
     /**
      * 게시글 목록 캐시 조회 (상위 5페이지만)
@@ -43,6 +54,14 @@ public class PostRedisManager {
             log.error("Redis 조회 중 에러 발생: {}", e.getMessage());
             return Optional.empty();
         }
+    }
+
+    /**
+     * 게시글 상세 캐시 저장
+     */
+    public void savePostDetail(PostDto postDto) {
+        String key = POST_KEY_PREFIX + postDto.id();
+        redisTemplate.opsForValue().set(key, postDto, DETAIL_TTL);
     }
 
     /**
@@ -83,6 +102,11 @@ public class PostRedisManager {
     public void deleteViewCache(Long postId) {
         redisTemplate.delete(VIEW_KEY_PREFIX + postId);
     }
+
+    /**
+     * 게시글 상세 캐시 삭제
+     */
+    public void deletePostDetailCache(Long postId) { redisTemplate.delete(DETAIL_KEY_PREFIX + postId); }
 
     private String generateListKey(Long boardId, Long categoryId, Long threshold, Pageable pageable) {
         String cat = (categoryId == null) ? "all" : categoryId.toString();

@@ -1,6 +1,6 @@
-package com.example.galdcup.post.dto;
+package com.example.galdcup.post.response;
 
-import com.example.galdcup.post.Post;
+import com.example.galdcup.post.domain.Post;
 import lombok.Builder;
 
 import java.time.OffsetDateTime;

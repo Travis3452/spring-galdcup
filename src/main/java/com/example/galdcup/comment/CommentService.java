@@ -4,7 +4,7 @@ import com.example.galdcup.comment.dto.CommentDto;
 import com.example.galdcup.comment.dto.CreateCommentRequest;
 import com.example.galdcup.comment.embedded.Author;
 import com.example.galdcup.comment.validator.CommentValidator;
-import com.example.galdcup.post.Post;
+import com.example.galdcup.post.domain.Post;
 import com.example.galdcup.post.validator.PostValidator;
 import com.example.galdcup.user.User;
 import com.example.galdcup.user.validator.UserValidator;

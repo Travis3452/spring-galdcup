@@ -3,7 +3,7 @@ package com.example.galdcup.postCategory;
 import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.board.event.BoardChangedEvent;
 import com.example.galdcup.board.validator.BoardValidator;
-import com.example.galdcup.post.PostRepository;
+import com.example.galdcup.post.domain.PostRepository;
 import com.example.galdcup.postCategory.dto.PostCategoryDto;
 import com.example.galdcup.postCategory.dto.PostCategoryRequest;
 import com.example.galdcup.postCategory.dto.UpdatePostCategoryRequest;

@@ -1,4 +1,4 @@
-package com.example.galdcup.post.embedded;
+package com.example.galdcup.post.domain.embedded;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

@@ -1,4 +1,4 @@
-package com.example.galdcup.post;
+package com.example.galdcup.post.domain;
 
 import com.example.galdcup.postCategory.PostCategory;
 import org.springframework.data.domain.Page;

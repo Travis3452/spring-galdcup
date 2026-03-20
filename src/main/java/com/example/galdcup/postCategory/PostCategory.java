@@ -1,7 +1,7 @@
 package com.example.galdcup.postCategory;
 
 import com.example.galdcup.board.domain.Board;
-import com.example.galdcup.post.Post;
+import com.example.galdcup.post.domain.Post;
 import jakarta.persistence.*;
 import lombok.*;
 

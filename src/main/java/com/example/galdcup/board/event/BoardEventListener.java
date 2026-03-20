@@ -1,7 +1,7 @@
 package com.example.galdcup.board.event;
 
 import com.example.galdcup.board.redis.BoardRedisManager;
-import com.example.galdcup.post.PostRedisManager;
+import com.example.galdcup.post.redis.PostRedisManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

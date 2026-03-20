@@ -1,7 +1,7 @@
 package com.example.galdcup.post.validator;
 
-import com.example.galdcup.post.Post;
-import com.example.galdcup.post.PostRepository;
+import com.example.galdcup.post.domain.Post;
+import com.example.galdcup.post.domain.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
