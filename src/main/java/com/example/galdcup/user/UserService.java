@@ -1,6 +1,6 @@
 package com.example.galdcup.user;
 
-import com.example.galdcup.board.BoardRepository;
+import com.example.galdcup.board.domain.BoardRepository;
 import com.example.galdcup.user.dto.RoleChangeRequestDto;
 import com.example.galdcup.user.dto.UserDetailDto;
 import com.example.galdcup.user.dto.UserDto;

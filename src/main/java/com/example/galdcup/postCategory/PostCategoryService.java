@@ -1,6 +1,6 @@
 package com.example.galdcup.postCategory;
 
-import com.example.galdcup.board.Board;
+import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.board.event.BoardChangedEvent;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.post.PostRepository;

@@ -1,6 +1,6 @@
-package com.example.galdcup.board.dto;
+package com.example.galdcup.board.response;
 
-import com.example.galdcup.board.Board;
+import com.example.galdcup.board.domain.Board;
 import lombok.Builder;
 
 import java.io.Serializable;

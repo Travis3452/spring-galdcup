@@ -1,4 +1,4 @@
-package com.example.galdcup.board.dto;
+package com.example.galdcup.board.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

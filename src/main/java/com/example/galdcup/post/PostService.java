@@ -1,6 +1,6 @@
 package com.example.galdcup.post;
 
-import com.example.galdcup.board.Board;
+import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.post.dto.PostDto;

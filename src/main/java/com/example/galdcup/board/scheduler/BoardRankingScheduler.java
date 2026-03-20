@@ -1,9 +1,9 @@
 package com.example.galdcup.board.scheduler;
 
-import com.example.galdcup.board.Board;
-import com.example.galdcup.board.BoardRepository;
-import com.example.galdcup.board.dto.BoardDto;
-import com.example.galdcup.board.dto.BoardListResponse;
+import com.example.galdcup.board.domain.Board;
+import com.example.galdcup.board.domain.BoardRepository;
+import com.example.galdcup.board.response.BoardDto;
+import com.example.galdcup.board.response.BoardListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;

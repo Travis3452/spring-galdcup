@@ -1,7 +1,9 @@
 package com.example.galdcup.board.validator;
 
-import com.example.galdcup.board.Board;
-import com.example.galdcup.board.BoardRepository;
+import com.example.galdcup.board.domain.Board;
+import com.example.galdcup.board.domain.BoardManagerRequest;
+import com.example.galdcup.board.domain.BoardManagerRequestRepository;
+import com.example.galdcup.board.domain.BoardRepository;
 import com.example.galdcup.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -13,6 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BoardValidator {
     private final BoardRepository boardRepository;
+    private final BoardManagerRequestRepository boardManagerRequestRepository;
     
     /**
      * 게시판이 존재하는지 검증
@@ -72,5 +75,31 @@ public class BoardValidator {
         }
 
         return board;
+    }
+
+    /**
+     * 해당 유저가 서브 매니저인지 확인
+     */
+    public boolean isSubManager(Board board, User user) {
+        return board.getBoardPolicy().getSubManagers().contains(user);
+    }
+
+    /**
+     * 해당 게시판에 서브 매니저가 한 명이라도 존재하는지 확인
+     */
+    public boolean hasAnySubManager(Board board) {
+        return !board.getBoardPolicy().getSubManagers().isEmpty();
+    }
+
+    /**
+     * 이미 해당 게시판에 대기 중인 신청이 있는지 검증
+     */
+    public void validateNoPendingRequest(Long applicantId, Long boardId) {
+        boolean exists = boardManagerRequestRepository.existsByApplicantIdAndBoardIdAndStatus(
+                applicantId, boardId, BoardManagerRequest.Status.PENDING);
+
+        if (exists) {
+            throw new IllegalStateException("이미 해당 게시판에 승인 대기 중인 신청이 있습니다.");
+        }
     }
 }

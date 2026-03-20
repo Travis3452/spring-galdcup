@@ -1,6 +1,5 @@
-package com.example.galdcup.request.boardmanager;
+package com.example.galdcup.board.domain;
 
-import com.example.galdcup.board.Board;
 import com.example.galdcup.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,8 +26,8 @@ public class BoardManagerRequest {
     private Status status;
 
     public enum Status {
-        WAITING,
-        ACCEPTED,
+        PENDING,
+        APPROVED,
         DENIED
     }
 }

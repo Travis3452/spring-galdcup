@@ -1,6 +1,5 @@
-package com.example.galdcup.board;
+package com.example.galdcup.board.domain;
 
-import com.example.galdcup.boardPolicy.BoardPolicy;
 import com.example.galdcup.post.Post;
 import com.example.galdcup.postCategory.PostCategory;
 import com.example.galdcup.voteSession.VoteSession;

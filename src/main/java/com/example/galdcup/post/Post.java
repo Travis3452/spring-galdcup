@@ -1,6 +1,6 @@
 package com.example.galdcup.post;
 
-import com.example.galdcup.board.Board;
+import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.comment.Comment;
 import com.example.galdcup.post.embedded.Author;
 import com.example.galdcup.postCategory.PostCategory;

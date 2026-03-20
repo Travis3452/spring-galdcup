@@ -1,6 +1,6 @@
 package com.example.galdcup.user;
 
-import com.example.galdcup.request.boardmanager.BoardManagerRequest;
+import com.example.galdcup.board.domain.BoardManagerRequest;
 import com.example.galdcup.user.role.RoleRequest;
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,6 +1,5 @@
-package com.example.galdcup.board.dto;
+package com.example.galdcup.board.response;
 
-import com.example.galdcup.boardPolicy.dto.BoardPolicyDto;
 import com.example.galdcup.postCategory.dto.PostCategoryDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

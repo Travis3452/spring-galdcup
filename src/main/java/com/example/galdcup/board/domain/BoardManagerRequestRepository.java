@@ -1,4 +1,4 @@
-package com.example.galdcup.request.boardmanager;
+package com.example.galdcup.board.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

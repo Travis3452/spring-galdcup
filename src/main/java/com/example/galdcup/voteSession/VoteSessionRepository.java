@@ -1,6 +1,6 @@
 package com.example.galdcup.voteSession;
 
-import com.example.galdcup.board.Board;
+import com.example.galdcup.board.domain.Board;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;

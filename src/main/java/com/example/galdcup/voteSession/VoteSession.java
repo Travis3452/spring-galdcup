@@ -1,6 +1,6 @@
 package com.example.galdcup.voteSession;
 
-import com.example.galdcup.board.Board;
+import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.vote.VoteOption;
 import jakarta.persistence.*;
 import lombok.*;

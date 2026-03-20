@@ -1,6 +1,6 @@
 package com.example.galdcup.voteSession.validator;
 
-import com.example.galdcup.board.Board;
+import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.vote.VoteOption;
 import com.example.galdcup.voteSession.VoteSession;
 import com.example.galdcup.voteSession.VoteSessionRepository;

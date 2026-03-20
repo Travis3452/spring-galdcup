@@ -1,4 +1,4 @@
-package com.example.galdcup.board;
+package com.example.galdcup.board.domain;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

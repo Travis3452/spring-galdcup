@@ -1,9 +1,10 @@
-package com.example.galdcup.board;
+package com.example.galdcup.board.redis;
 
-import com.example.galdcup.board.dto.BoardDetailResponse;
-import com.example.galdcup.board.dto.BoardDto;
-import com.example.galdcup.board.dto.BoardListResponse;
+import com.example.galdcup.board.response.BoardDetailResponse;
+import com.example.galdcup.board.response.BoardDto;
+import com.example.galdcup.board.response.BoardListResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class BoardRedisManager {
@@ -20,6 +22,7 @@ public class BoardRedisManager {
     private static final String KEY_PREFIX = "galdcup:boards:";
     private static final String DETAIL_KEY = KEY_PREFIX + "detail:";
     private static final String LIST_KEY = KEY_PREFIX + "list:";
+    private static final String BOARD_VIEWS_KEY = KEY_PREFIX + "views";
 
     private static final Duration DETAIL_TTL = Duration.ofMinutes(5);
     private static final Duration LIST_TTL = Duration.ofMinutes(10);
@@ -53,5 +56,16 @@ public class BoardRedisManager {
 
     public void deleteBoardDetailCache(Long boardId) {
         redisTemplate.delete(DETAIL_KEY + boardId);
+    }
+
+    /**
+     * 게시판 조회수 증가
+     */
+    public void incrementViewCount(Long boardId) {
+        try {
+            redisTemplate.opsForZSet().incrementScore(BOARD_VIEWS_KEY, boardId.toString(), 1);
+        } catch (Exception e) {
+            log.error("Redis error during view count increment: {}", e.getMessage());
+        }
     }
 }
