@@ -5,7 +5,7 @@ import jakarta.persistence.Embeddable;
 import lombok.*;
 
 @Embeddable
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Author {
     @Column(name = "author_id")
     private Long id;

@@ -81,7 +81,7 @@ public class PostRedisManager {
      */
     public void deletePostListCache(Long boardId) {
         String pattern = LIST_KEY_PREFIX + boardId + ":*";
-        Set<String> keys = redisTemplate.keys(pattern); // 주의: 키가 너무 많으면 keys가 차단될 수 있음
+        Set<String> keys = redisTemplate.keys(pattern);
         if (keys != null && !keys.isEmpty()) {
             redisTemplate.unlink(keys);
             log.info("🗑️ [Async Cache Delete] Board: {}, Count: {}", boardId, keys.size());

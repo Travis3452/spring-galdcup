@@ -1,6 +1,6 @@
 package com.example.galdcup.vote.dto;
 
-import com.example.galdcup.vote.Vote;
+import com.example.galdcup.vote.domain.Vote;
 
 public record VoteDto(String id, Long voteSessionId, Long userId, int selectedOptionIndex) {
     public static VoteDto from(Vote vote) {

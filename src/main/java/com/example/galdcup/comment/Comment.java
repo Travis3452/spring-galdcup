@@ -2,6 +2,7 @@ package com.example.galdcup.comment;
 
 import com.example.galdcup.comment.embedded.Author;
 import com.example.galdcup.post.domain.Post;
+import com.example.galdcup.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
@@ -19,7 +20,7 @@ import java.util.List;
                 @Index(name = "idx_comment_post_created_at", columnList = "post_id, createdAt")
         }
 )
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Comment {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,8 +56,27 @@ public class Comment {
         updatedAt = now;
     }
 
-    @PreUpdate
-    public void preUpdate() {
+    public static Comment create(Post post, User user, String content, Comment parentComment) {
+        if (parentComment != null && parentComment.getParentComment() != null) {
+            throw new IllegalArgumentException("댓글에만 대댓글을 달 수 있습니다.");
+        }
+
+        Comment comment = Comment.builder()
+                .post(post)
+                .author(new Author(user.getId(), user.getNickname()))
+                .content(content)
+                .parentComment(parentComment)
+                .build();
+
+        if (parentComment != null) {
+            parentComment.getChildrenComments().add(comment);
+        }
+
+        return comment;
+    }
+
+    public void update(String content) {
+        this.content = content;
         updatedAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
@@ -69,4 +89,5 @@ public class Comment {
     public boolean isDeleted() {
         return this.deletedAt != null;
     }
+
 }

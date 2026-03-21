@@ -1,6 +1,6 @@
 package com.example.galdcup.postCategory.dto;
 
-import com.example.galdcup.postCategory.PostCategory;
+import com.example.galdcup.postCategory.domain.PostCategory;
 import lombok.Builder;
 
 import java.io.Serializable;

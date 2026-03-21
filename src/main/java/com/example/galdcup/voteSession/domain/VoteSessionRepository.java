@@ -1,4 +1,4 @@
-package com.example.galdcup.voteSession;
+package com.example.galdcup.voteSession.domain;
 
 import com.example.galdcup.board.domain.Board;
 import org.springframework.data.domain.Page;

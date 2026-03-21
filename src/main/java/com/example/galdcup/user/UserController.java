@@ -52,8 +52,8 @@ public class UserController {
     /**
      * 프로필 수정 (닉네임 변경) - 본인만 가능
      */
-    @PutMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
+    @PutMapping("/{id}")
     public ResponseEntity<UserDetailDto> updateUser(
             @PathVariable Long id,
             @Valid @RequestBody UserRequest.UpdateNickname request,
@@ -65,8 +65,8 @@ public class UserController {
     /**
      * 사용자 삭제 (회원 탈퇴) - 본인만 가능
      */
-    @DeleteMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails principal) {
@@ -82,8 +82,8 @@ public class UserController {
     /**
      * [내 정보] 나의 권한 신청 내역 조회
      */
-    @GetMapping("/me/role-requests")
     @PreAuthorize("isAuthenticated()")
+    @GetMapping("/me/role-requests")
     public ResponseEntity<Page<RoleChangeRequestDto>> getMyRoleRequests(
             @AuthenticationPrincipal CustomUserDetails principal,
             Pageable pageable) {
@@ -94,8 +94,8 @@ public class UserController {
     /**
      * 권한 변경 신청 (USER -> MANAGER 등)
      */
-    @PostMapping("/role-requests")
     @PreAuthorize("isAuthenticated()")
+    @PostMapping("/role-requests")
     public ResponseEntity<Void> requestRole(
             @Valid @RequestBody UserRequest.RoleChange request,
             @AuthenticationPrincipal CustomUserDetails principal) {
@@ -107,8 +107,8 @@ public class UserController {
     /**
      * [관리자 전용] 권한 신청 목록 조회 (상태 필터링 + 페이징)
      */
-    @GetMapping("/role-requests")
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/role-requests")
     public ResponseEntity<Page<RoleChangeRequestDto>> getRoleRequests(
             @RequestParam(defaultValue = "PENDING") RoleRequest.Status status,
             Pageable pageable) {
@@ -119,8 +119,9 @@ public class UserController {
     /**
      * [관리자 전용] 권한 신청 승인
      */
-    @PostMapping("/role-requests/{requestId}/approve")
+
     @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/role-requests/{requestId}/approve")
     public ResponseEntity<Void> approveRole(@PathVariable Long requestId) {
         userService.approveRoleChange(requestId);
         return ResponseEntity.ok().build();
@@ -129,8 +130,9 @@ public class UserController {
     /**
      * [관리자 전용] 권한 신청 거절
      */
-    @PostMapping("/role-requests/{requestId}/deny")
+
     @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/role-requests/{requestId}/deny")
     public ResponseEntity<Void> denyRole(@PathVariable Long requestId) {
         userService.denyRoleChange(requestId);
         return ResponseEntity.noContent().build();

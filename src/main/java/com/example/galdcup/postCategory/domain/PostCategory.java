@@ -1,4 +1,4 @@
-package com.example.galdcup.postCategory;
+package com.example.galdcup.postCategory.domain;
 
 import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.post.domain.Post;
@@ -15,8 +15,7 @@ import java.util.List;
                 @Index(name = "idx_category_board_sort", columnList = "board_id, sortOrder")
         }
 )
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class PostCategory {
 
     @Id
@@ -41,6 +40,14 @@ public class PostCategory {
     @OneToMany(mappedBy = "postCategory")
     @Builder.Default
     private List<Post> posts = new ArrayList<>();
+
+    public void assignBoard(Board board) {
+        this.board = board;
+    }
+
+    public void changeSortOrder(int newSortOrder) {
+        this.sortOrder = newSortOrder;
+    }
 
     public enum CategoryType {
         GENERAL,
@@ -77,5 +84,21 @@ public class PostCategory {
                 .sortOrder(sortOrder)
                 .board(board)
                 .build();
+    }
+
+    /**
+     * 카테고리 정보 수정 (이름, 순서)
+     */
+    public void update(String newName, Integer newSortOrder) {
+        if (newName != null && !this.name.equals(newName)) {
+            if (this.type != CategoryType.CUSTOM) {
+                throw new IllegalArgumentException("기본 카테고리의 이름은 변경할 수 없습니다.");
+            }
+            this.name = newName;
+        }
+
+        if (newSortOrder != null) {
+            this.sortOrder = newSortOrder;
+        }
     }
 }

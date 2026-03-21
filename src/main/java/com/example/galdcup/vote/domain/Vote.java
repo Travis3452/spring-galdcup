@@ -1,8 +1,8 @@
-package com.example.galdcup.vote;
+package com.example.galdcup.vote.domain;
 
 import lombok.*;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Vote {
     private String id;
 

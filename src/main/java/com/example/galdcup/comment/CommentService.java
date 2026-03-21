@@ -63,12 +63,7 @@ public class CommentService {
             parentComment = commentValidator.getValidatedParentComment(createCommentRequest.parentCommentId(), post.getId());
         }
 
-        Comment comment = Comment.builder()
-                .post(post)
-                .author(new Author(author.getId(), author.getNickname()))
-                .content(createCommentRequest.content())
-                .parentComment(parentComment)
-                .build();
+        Comment comment = Comment.create(post, author, createCommentRequest.content(), parentComment);
 
         return CommentDto.from(commentRepository.save(comment));
     }
@@ -80,7 +75,7 @@ public class CommentService {
         commentValidator.validateNotDeleted(comment);
         commentValidator.validateIsAuthor(comment, authorId);
 
-        comment.setContent(content);
+        comment.update(content);
         return CommentDto.from(comment);
     }
 

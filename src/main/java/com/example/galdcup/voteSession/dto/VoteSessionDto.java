@@ -1,7 +1,7 @@
 package com.example.galdcup.voteSession.dto;
 
 import com.example.galdcup.vote.dto.VoteOptionDto;
-import com.example.galdcup.voteSession.VoteSession;
+import com.example.galdcup.voteSession.domain.VoteSession;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

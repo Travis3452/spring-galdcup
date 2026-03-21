@@ -3,8 +3,8 @@ package com.example.galdcup.post.domain;
 import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.comment.Comment;
 import com.example.galdcup.post.domain.embedded.Author;
-import com.example.galdcup.postCategory.PostCategory;
-import com.example.galdcup.postReaction.PostReaction;
+import com.example.galdcup.postCategory.domain.PostCategory;
+import com.example.galdcup.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,7 +22,7 @@ import java.util.List;
                 @Index(name = "idx_post_author", columnList = "board_id, author_nickname, createdAt DESC")
         }
 )
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Post {
 
     @Id
@@ -81,6 +81,59 @@ public class Post {
         this.updatedAt = now;
     }
 
-    public void addLike() { this.likeCount++; }
-    public void addDislike() { this.dislikeCount++; }
+    /**
+     * 게시글 생성 정적 팩토리 메서드
+     */
+    public static Post create(Board board, PostCategory category, User user, String title, String content) {
+        return Post.builder()
+                .board(board)
+                .postCategory(category)
+                .author(Author.from(user))
+                .title(title)
+                .content(content)
+                .build();
+    }
+
+    /**
+     * 게시글 수정 (제목, 내용, 카테고리 변경 포함)
+     */
+    public void update(String title, String content, PostCategory newCategory) {
+        if (title == null || title.isBlank()) throw new IllegalArgumentException("제목은 필수입니다.");
+
+        if (this.postCategory.getType() == PostCategory.CategoryType.NOTICE ||
+                newCategory.getType() == PostCategory.CategoryType.NOTICE) {
+
+            throw new IllegalArgumentException("공지사항 카테고리는 다른 카테고리로 변경할 수 없습니다.");
+        }
+
+        this.title = title;
+        this.content = content;
+        this.postCategory = newCategory;
+        this.updatedAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
+    }
+
+    /**
+     * [관리자 전용] 게시글 수정 (카테고리 제약 없음)
+     */
+    public void updateByManager(String title, String content, PostCategory newCategory) {
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("제목은 필수입니다.");
+        }
+
+        this.title = title;
+        this.content = content;
+        this.postCategory = newCategory;
+        this.updatedAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
+    }
+
+    /**
+     * 게시글 좋아요/싫어요
+     */
+    public void addReaction(PostReaction reaction) {
+        if (reaction.getType() == PostReaction.ReactionType.LIKE) {
+            this.likeCount++;
+        } else {
+            this.dislikeCount++;
+        }
+    }
 }

@@ -6,7 +6,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "board_manager_requests")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class BoardManagerRequest {
 
     @Id
@@ -29,5 +29,13 @@ public class BoardManagerRequest {
         PENDING,
         APPROVED,
         DENIED
+    }
+
+    public static BoardManagerRequest create(Board board, User applicant, Status status) {
+        return BoardManagerRequest.builder()
+                .board(board)
+                .applicant(applicant)
+                .status(status)
+                .build();
     }
 }

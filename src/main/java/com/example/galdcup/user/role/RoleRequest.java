@@ -6,7 +6,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "role_requests")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class RoleRequest {
 
     @Id
@@ -27,5 +27,22 @@ public class RoleRequest {
         PENDING,
         APPROVED,
         DENIED
+    }
+
+    public static RoleRequest create(User applicant, User.Role requestedRole) {
+        return RoleRequest.builder()
+                .applicant(applicant)
+                .requestedRole(requestedRole)
+                .status(Status.PENDING)
+                .build();
+    }
+
+    public void approve() {
+        this.status = Status.APPROVED;
+        this.applicant.upgradeRole(this.requestedRole);
+    }
+
+    public void deny() {
+        this.status = Status.DENIED;
     }
 }

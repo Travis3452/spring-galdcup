@@ -1,6 +1,5 @@
-package com.example.galdcup.postReaction;
+package com.example.galdcup.post.domain;
 
-import com.example.galdcup.post.domain.Post;
 import com.example.galdcup.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +10,7 @@ import java.time.ZoneId;
 @Entity
 @Table(name = "post_reactions",
         uniqueConstraints = @UniqueConstraint(columnNames = {"post_id", "user_id"}))
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class PostReaction {
 
     public enum ReactionType { LIKE, DISLIKE }
@@ -36,5 +35,13 @@ public class PostReaction {
     @PrePersist
     public void prePersist() {
         createdAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
+    }
+
+    public static PostReaction create(Post post, User user, ReactionType type) {
+        return PostReaction.builder()
+                .post(post)
+                .user(user)
+                .type(type)
+                .build();
     }
 }

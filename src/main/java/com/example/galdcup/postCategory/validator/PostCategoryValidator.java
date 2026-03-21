@@ -1,7 +1,7 @@
 package com.example.galdcup.postCategory.validator;
 
-import com.example.galdcup.postCategory.PostCategory;
-import com.example.galdcup.postCategory.PostCategoryRepository;
+import com.example.galdcup.postCategory.domain.PostCategory;
+import com.example.galdcup.postCategory.domain.PostCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -4,13 +4,14 @@ import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.post.domain.Post;
+import com.example.galdcup.post.domain.PostReaction;
+import com.example.galdcup.post.domain.PostReactionRepository;
 import com.example.galdcup.post.domain.PostRepository;
-import com.example.galdcup.post.response.PostDto;
-import com.example.galdcup.post.domain.embedded.Author;
 import com.example.galdcup.post.event.PostChangedEvent;
 import com.example.galdcup.post.redis.PostRedisManager;
+import com.example.galdcup.post.response.PostDto;
 import com.example.galdcup.post.validator.PostValidator;
-import com.example.galdcup.postCategory.PostCategory;
+import com.example.galdcup.postCategory.domain.PostCategory;
 import com.example.galdcup.postCategory.validator.PostCategoryValidator;
 import com.example.galdcup.user.User;
 import com.example.galdcup.user.validator.UserValidator;
@@ -23,8 +24,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.Optional;
 
 @Service
@@ -42,6 +41,7 @@ public class PostService {
 
     private final PolicyFactory htmlSanitizer;
     private final UserValidator userValidator;
+    private final PostReactionRepository postReactionRepository;
 
     /**
      * 게시글 목록 조회
@@ -74,13 +74,7 @@ public class PostService {
 
         String safeContent = htmlSanitizer.sanitize(content);
 
-        Post post = Post.builder()
-                .board(board)
-                .postCategory(category)
-                .author(new Author(authorId, author.getNickname()))
-                .title(title)
-                .content(safeContent)
-                .build();
+        Post post = Post.create(board, category, author, title, safeContent);
 
         Post saved = postRepository.save(post);
         eventPublisher.publishEvent(new PostChangedEvent(boardId, saved.getId()));
@@ -94,37 +88,39 @@ public class PostService {
     public PostDto findById(Long id) {
         Optional<PostDto> cachedPostDto = postRedisManager.getPostDetail(id);
 
-        PostDto cached;
         if (cachedPostDto.isPresent()) {
-            cached = cachedPostDto.get();
-        } else {
-            Post post = postValidator.findByIdOrThrow(id);
-            cached = PostDto.from(post);
-
-            postRedisManager.savePostDetail(cached);
-            return cached;
+            return cachedPostDto.get();
         }
-        return cached;
+
+        Post post = postValidator.findByIdOrThrow(id);
+        PostDto dto = PostDto.from(post);
+        postRedisManager.savePostDetail(dto);
+        return dto;
     }
 
     /**
      * 게시글 수정
      */
     @Transactional
-    public PostDto update(Long postId, Long authorId, String title, String content) {
+    public PostDto update(Long postId, Long categoryId, Long authorId, String title, String content) {
         Post post = postValidator.findByIdOrThrow(postId);
+        User user = userValidator.findByIdOrThrow(authorId);
+
         postValidator.validateIsAuthor(post, authorId);
 
+        PostCategory newCategory = postCategoryValidator.getIfBelongsToBoard(categoryId, post.getBoard().getId());
         String safeContent = htmlSanitizer.sanitize(content);
 
-        post.setTitle(title);
-        post.setContent(safeContent);
-        post.setUpdatedAt(OffsetDateTime.now(ZoneId.of("Asia/Seoul")));
+        boolean isManager = post.getBoard().getBoardPolicy().isMainManager(user);
 
-        Post updated = postRepository.save(post);
+        if (isManager) {
+            post.updateByManager(title, safeContent, newCategory);
+        } else {
+            post.update(title, safeContent, newCategory);
+        }
+
         eventPublisher.publishEvent(new PostChangedEvent(post.getBoard().getId(), postId));
-
-        return PostDto.from(updated);
+        return PostDto.from(post);
     }
 
     /**
@@ -136,7 +132,7 @@ public class PostService {
         postValidator.validateIsAuthor(post, authorId);
         Long boardId = post.getBoard().getId();
 
-        postRepository.deleteById(postId);
+        postRepository.delete(post);
         postRedisManager.deleteViewCache(postId);
         eventPublisher.publishEvent(new PostChangedEvent(boardId, postId));
     }
@@ -146,10 +142,10 @@ public class PostService {
      */
     @Transactional
     public void deleteForBoardManager(Long postId, Long boardId, Long managerId) {
-        postValidator.findByIdOrThrow(postId);
+        Post post = postValidator.findByIdOrThrow(postId);
         boardValidator.getBoardIfManager(boardId, managerId);
 
-        postRepository.deleteById(postId);
+        postRepository.delete(post);
         postRedisManager.deleteViewCache(postId);
         eventPublisher.publishEvent(new PostChangedEvent(boardId, postId));
     }
@@ -165,7 +161,7 @@ public class PostService {
      * 전체 조회 (5페이지까지 캐싱)
      */
     private Page<PostDto> getList(Long boardId, Long categoryId, Long threshold, Pageable pageable) {
-        if (pageable.getPageNumber()< 5) {
+        if (pageable.getPageNumber() < 5) {
             Optional<CachedPageResponse<PostDto>> cached =
                     postRedisManager.getPostPage(boardId, categoryId, threshold, pageable);
 
@@ -195,6 +191,24 @@ public class PostService {
         }
         return postRepository.searchByTitleAndContent(boardId, categoryId, threshold, keyword, pageable)
                 .map(PostDto::from);
+    }
+
+    /**
+     * 반응(좋아요/싫어요) 추가
+     */
+    @Transactional
+    public void addReaction(Long postId, Long currentUserId, PostReaction.ReactionType type) {
+        Post post = postValidator.findByIdOrThrow(postId);
+        User user = userValidator.findByIdOrThrow(currentUserId);
+
+        if (postReactionRepository.findByPostAndUser(post, user).isPresent()) {
+            throw new IllegalStateException("이미 좋아요/싫어요를 남긴 게시물입니다.");
+        }
+
+        PostReaction reaction = PostReaction.create(post, user, type);
+        postReactionRepository.save(reaction);
+
+        post.addReaction(reaction);
     }
 
     @Transactional

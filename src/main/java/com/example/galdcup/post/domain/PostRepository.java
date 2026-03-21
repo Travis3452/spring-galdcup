@@ -1,6 +1,6 @@
 package com.example.galdcup.post.domain;
 
-import com.example.galdcup.postCategory.PostCategory;
+import com.example.galdcup.postCategory.domain.PostCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

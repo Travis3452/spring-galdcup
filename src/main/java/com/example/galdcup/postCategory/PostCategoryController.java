@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +32,7 @@ public class PostCategoryController {
     /**
      * 카테고리 생성
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<PostCategoryDto> createPostCategory(@PathVariable Long boardId,
                                                               @RequestBody @Valid PostCategoryRequest request,
@@ -42,6 +44,7 @@ public class PostCategoryController {
     /**
      * 단일 카테고리 수정 (이름 및 정렬 순서)
      */
+    @PreAuthorize("isAuthenticated()")
     @PatchMapping
     public ResponseEntity<PostCategoryDto> updatePostCategory(@PathVariable Long boardId,
                                                               @RequestBody @Valid UpdatePostCategoryRequest request,
@@ -53,6 +56,7 @@ public class PostCategoryController {
     /**
      * 카테고리 일괄 수정 (전체 순서 재정렬)
      */
+    @PreAuthorize("isAuthenticated()")
     @PatchMapping("/batch")
     public ResponseEntity<Void> updateCategoriesBatch(@PathVariable Long boardId,
                                                       @RequestBody @Valid List<UpdatePostCategoryRequest> requests,
@@ -65,6 +69,7 @@ public class PostCategoryController {
     /**
      * 카테고리 삭제 및 게시글 이관
      */
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<Void> deleteAndMigratePostCategory(@PathVariable Long boardId,
                                                              @PathVariable Long categoryId,

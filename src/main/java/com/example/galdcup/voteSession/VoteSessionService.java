@@ -3,11 +3,15 @@ package com.example.galdcup.voteSession;
 import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.common.redis.CachedPageResponse;
-import com.example.galdcup.vote.VoteOptionRepository;
-import com.example.galdcup.vote.VoteRedisManager;
+import com.example.galdcup.vote.domain.VoteOption;
+import com.example.galdcup.vote.domain.VoteOptionRepository;
+import com.example.galdcup.vote.redis.VoteRedisManager;
 import com.example.galdcup.vote.dto.VoteOptionDto;
+import com.example.galdcup.voteSession.domain.VoteSession;
+import com.example.galdcup.voteSession.domain.VoteSessionRepository;
 import com.example.galdcup.voteSession.dto.CreateVoteSessionRequest;
 import com.example.galdcup.voteSession.dto.VoteSessionDto;
+import com.example.galdcup.voteSession.redis.VoteSessionRedisManager;
 import com.example.galdcup.voteSession.validator.VoteSessionValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +20,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,15 +43,17 @@ public class VoteSessionService {
         Board board = boardValidator.getBoardIfBoardManager(boardId, adminId);
         voteSessionValidator.validateNoActiveVoteSession(board);
 
-        VoteSession voteSession = voteSessionValidator.validateAndCreateVoteSession(board, request);
-        voteSession.setBoard(board);
-        board.getVoteSessions().add(voteSession);
+        List<VoteOption> options = request.options().stream()
+                .map(opt -> VoteOption.create(opt.label(), opt.imageUrl()))
+                .toList();
 
-        VoteSession saved = voteSessionRepository.save(voteSession);
+        VoteSession voteSession = VoteSession.create(
+                board, request.startTime(), request.endTime(), options);
 
+        voteSessionRepository.save(voteSession);
         voteSessionRedisManager.deleteVoteSession(boardId);
 
-        return VoteSessionDto.from(saved);
+        return VoteSessionDto.from(voteSession);
     }
 
     /** 현재 진행 중인 투표 세션 조회 (실시간 Redis 합계 반영) */
@@ -96,30 +100,36 @@ public class VoteSessionService {
     /** 관리자에 의한 투표 세션 수동 종료 */
     @Transactional
     public void finishVoteSession(Long boardId, Long voteSessionId, Long userId) {
-        Board board = boardValidator.getBoardIfBoardManager(boardId, userId);
+        boardValidator.getBoardIfBoardManager(boardId, userId);
         VoteSession session = voteSessionValidator.validateAndGetVoteSession(voteSessionId);
 
-        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
-        session.setEndTime(now);
+        session.terminate();
 
-        Map<Object, Object> entries = voteRedisManager.getVoteCounts(voteSessionId);
-        if (!entries.isEmpty()) {
-            entries.forEach((optionIndexObj, countObj) -> {
-                int selectedOptionIndex = Integer.parseInt(optionIndexObj.toString());
-                long totalCount = Long.parseLong(countObj.toString());
+        syncRedisVotesToDb(session);
 
-                if (selectedOptionIndex >= 0 && selectedOptionIndex < session.getOptions().size()) {
-                    Long optionId = session.getOptions().get(selectedOptionIndex).getId();
-                    voteOptionRepository.updateVoteCount(optionId, totalCount);
-                }
-            });
-            voteRedisManager.deleteVoteCounts(voteSessionId);
-        }
-
-        session.setFinished(true);
-
+        voteRedisManager.deleteVoteCounts(voteSessionId);
         voteSessionRedisManager.deleteVoteSession(boardId);
         voteSessionRedisManager.deletePastVoteSessions(boardId);
+    }
+
+    /**
+     * Redis에 쌓인 투표 카운트를 DB(VoteOption)에 최종 동기화하는 헬퍼 메서드
+     */
+    @Transactional
+    public void syncRedisVotesToDb(VoteSession session) {
+        Map<Object, Object> entries = voteRedisManager.getVoteCounts(session.getId());
+
+        if (entries.isEmpty()) return;
+
+        entries.forEach((optionIndexObj, countObj) -> {
+            int selectedOptionIndex = Integer.parseInt(optionIndexObj.toString());
+            long totalCount = Long.parseLong(countObj.toString());
+
+            if (selectedOptionIndex >= 0 && selectedOptionIndex < session.getOptions().size()) {
+                Long optionId = session.getOptions().get(selectedOptionIndex).getId();
+                voteOptionRepository.updateVoteCount(optionId, totalCount);
+            }
+        });
     }
 
     /**

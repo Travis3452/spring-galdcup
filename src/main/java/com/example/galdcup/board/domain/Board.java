@@ -1,8 +1,8 @@
 package com.example.galdcup.board.domain;
 
 import com.example.galdcup.post.domain.Post;
-import com.example.galdcup.postCategory.PostCategory;
-import com.example.galdcup.voteSession.VoteSession;
+import com.example.galdcup.postCategory.domain.PostCategory;
+import com.example.galdcup.voteSession.domain.VoteSession;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,9 +13,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "boards")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
-@Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Board {
 
     public enum Status { OPEN, CLOSED }
@@ -54,22 +52,40 @@ public class Board {
     @PrePersist
     public void prePersist() {
         this.createdAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
-        this.status = Status.OPEN;
+        if (this.status == null) {
+            this.status = Status.OPEN;
+        }
+    }
+
+    public static Board create(String topic, String description) {
+        return Board.builder()
+                .topic(topic)
+                .description(description)
+                .status(Status.OPEN)
+                .build();
+    }
+
+    public void changeStatus(Status newStatus) {
+        this.status = newStatus;
+    }
+
+    public void closeBoard() {
+        this.status = Status.CLOSED;
+    }
+
+    public void assignPolicy(BoardPolicy policy) {
+        this.boardPolicy = policy;
     }
 
     public void addPostCategory(PostCategory category) {
         this.postCategories.add(category);
         if (category.getBoard() != this) {
-            category.setBoard(this);
+            category.assignBoard(this);
         }
     }
 
     public void setDefaultCategories() {
         this.addPostCategory(PostCategory.createNotice(this));
         this.addPostCategory(PostCategory.createGeneral(this));
-    }
-
-    public void closeBoard() {
-        this.status = Status.CLOSED;
     }
 }

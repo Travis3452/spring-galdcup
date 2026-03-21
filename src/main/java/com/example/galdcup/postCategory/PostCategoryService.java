@@ -4,6 +4,8 @@ import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.board.event.BoardChangedEvent;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.post.domain.PostRepository;
+import com.example.galdcup.postCategory.domain.PostCategory;
+import com.example.galdcup.postCategory.domain.PostCategoryRepository;
 import com.example.galdcup.postCategory.dto.PostCategoryDto;
 import com.example.galdcup.postCategory.dto.PostCategoryRequest;
 import com.example.galdcup.postCategory.dto.UpdatePostCategoryRequest;
@@ -49,12 +51,7 @@ public class PostCategoryService {
 
         int maxOrder = postCategoryRepository.findMaxSortOrderByBoardId(boardId).orElse(0);
 
-        PostCategory postCategory = PostCategory.builder()
-                .name(request.name())
-                .type(PostCategory.CategoryType.CUSTOM)
-                .sortOrder(maxOrder + 1)
-                .board(board)
-                .build();
+        PostCategory postCategory = PostCategory.createCustom(board, request.name(), maxOrder + 1);
 
         postCategoryRepository.save(postCategory);
 
@@ -69,18 +66,13 @@ public class PostCategoryService {
     @Transactional
     public PostCategoryDto updateCategory(Long boardId, UpdatePostCategoryRequest request, Long boardManagerId) {
         boardValidator.getBoardIfBoardManager(boardId, boardManagerId);
-
         PostCategory postCategory = postCategoryValidator.getIfBelongsToBoard(request.id(), boardId);
 
         if (request.name() != null && !postCategory.getName().equals(request.name())) {
-            postCategoryValidator.validateRemovable(postCategory);
             postCategoryValidator.validateUniqueNameInBoard(boardId, request.name());
-            postCategory.setName(request.name());
         }
 
-        if (request.sortOrder() != null) {
-            postCategory.setSortOrder(request.sortOrder());
-        }
+        postCategory.update(request.name(), request.sortOrder());
 
         eventPublisher.publishEvent(new BoardChangedEvent(boardId));
 
@@ -98,7 +90,7 @@ public class PostCategoryService {
             PostCategory category = postCategoryValidator.getIfBelongsToBoard(req.id(), boardId);
 
             if (req.sortOrder() != null) {
-                category.setSortOrder(req.sortOrder());
+                category.changeSortOrder(req.sortOrder());
             }
         }
 

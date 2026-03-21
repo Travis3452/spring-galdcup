@@ -78,13 +78,6 @@ public class BoardValidator {
     }
 
     /**
-     * 해당 유저가 서브 매니저인지 확인
-     */
-    public boolean isSubManager(Board board, User user) {
-        return board.getBoardPolicy().getSubManagers().contains(user);
-    }
-
-    /**
      * 해당 게시판에 서브 매니저가 한 명이라도 존재하는지 확인
      */
     public boolean hasAnySubManager(Board board) {

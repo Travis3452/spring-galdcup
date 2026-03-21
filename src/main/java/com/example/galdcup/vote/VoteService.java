@@ -1,8 +1,10 @@
 package com.example.galdcup.vote;
 
 import com.example.galdcup.user.validator.UserValidator;
+import com.example.galdcup.vote.domain.Vote;
 import com.example.galdcup.vote.dto.VoteDto;
-import com.example.galdcup.voteSession.VoteSession;
+import com.example.galdcup.vote.redis.VoteRedisManager;
+import com.example.galdcup.voteSession.domain.VoteSession;
 import com.example.galdcup.voteSession.validator.VoteSessionValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

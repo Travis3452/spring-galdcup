@@ -10,7 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class User {
 
     @Id
@@ -30,9 +30,7 @@ public class User {
     private Role role;
 
     public enum Role {
-        USER,
-        MANAGER,
-        ADMIN
+        USER, MANAGER, ADMIN
     }
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.REMOVE, orphanRemoval = true)
@@ -42,4 +40,30 @@ public class User {
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
     private List<BoardManagerRequest> boardManagerRequests = new ArrayList<>();
+
+    public static User signup(String email, String oauthId, String nickname) {
+        return User.builder()
+                .email(email)
+                .oauthId(oauthId)
+                .nickname(nickname)
+                .role(Role.USER)
+                .build();
+    }
+
+    /**
+     * 닉네임 변경
+     */
+    public void changeNickname(String newNickname) {
+        if (newNickname == null || newNickname.isBlank()) {
+            throw new IllegalArgumentException("닉네임은 비어있을 수 없습니다.");
+        }
+        this.nickname = newNickname;
+    }
+
+    /**
+     * 권한(Role) 변경
+     */
+    public void upgradeRole(Role newRole) {
+        this.role = newRole;
+    }
 }

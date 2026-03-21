@@ -32,12 +32,11 @@ public class UserService {
     @Transactional
     public User getOrCreateUser(String oauthId, String email) {
         return userRepository.findByOauthId(oauthId)
-                .orElseGet(() -> userRepository.save(User.builder()
-                        .email(email)
-                        .oauthId(oauthId)
-                        .nickname(nicknameGenerator.generate())
-                        .role(User.Role.USER)
-                        .build()));
+                .orElseGet(() -> {
+                    String nickname = nicknameGenerator.generate();
+                    User newUser = User.signup(email, oauthId, nickname);
+                    return userRepository.save(newUser);
+                });
     }
 
     /**
@@ -74,7 +73,7 @@ public class UserService {
 
         if (nickname != null && !nickname.equals(user.getNickname())) {
             userValidator.validateNicknameUniqueness(nickname);
-            user.setNickname(nickname);
+            user.changeNickname(nickname);
         }
 
         return UserDetailDto.from(user);
@@ -115,11 +114,7 @@ public class UserService {
 
         roleRequestValidator.validateRequestAvailability(user, targetRole);
 
-        RoleRequest roleRequest = RoleRequest.builder()
-                .applicant(user)
-                .requestedRole(targetRole)
-                .status(RoleRequest.Status.PENDING)
-                .build();
+        RoleRequest roleRequest = RoleRequest.create(user, targetRole);
 
         roleRequestRepository.save(roleRequest);
     }
@@ -138,13 +133,9 @@ public class UserService {
     @Transactional
     public void approveRoleChange(Long requestId) {
         RoleRequest roleRequest = roleRequestValidator.findByIdOrThrow(requestId);
-
         roleRequestValidator.validatePendingStatus(roleRequest);
 
-        User applicant = roleRequest.getApplicant();
-        applicant.setRole(roleRequest.getRequestedRole());
-
-        roleRequest.setStatus(RoleRequest.Status.APPROVED);
+        roleRequest.approve();
     }
 
     /**
@@ -153,9 +144,8 @@ public class UserService {
     @Transactional
     public void denyRoleChange(Long requestId) {
         RoleRequest roleRequest = roleRequestValidator.findByIdOrThrow(requestId);
-
         roleRequestValidator.validatePendingStatus(roleRequest);
 
-        roleRequest.setStatus(RoleRequest.Status.DENIED);
+        roleRequest.deny();
     }
 }

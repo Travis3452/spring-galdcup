@@ -24,7 +24,7 @@ public class VoteSessionController {
     /**
      * 투표 세션 생성
      */
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<VoteSessionDto> createVoteSession(@PathVariable Long boardId,
                                                             @AuthenticationPrincipal CustomUserDetails principal,
@@ -60,6 +60,7 @@ public class VoteSessionController {
     /**
      * 투표 세션 즉시 마감
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{voteSessionId}/finish")
     public ResponseEntity<Void> finishVoteSession(@PathVariable Long boardId,
                                                   @PathVariable Long voteSessionId,

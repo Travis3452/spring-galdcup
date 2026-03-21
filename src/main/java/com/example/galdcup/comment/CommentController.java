@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,6 +45,7 @@ public class CommentController {
     /**
      * 댓글 및 대댓글 작성
      */
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/post/{postId}")
     public ResponseEntity<CommentDto> createComment(
             @PathVariable Long postId,
@@ -59,6 +61,7 @@ public class CommentController {
     /**
      * 댓글 및 대댓글 수정
      */
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}")
     public ResponseEntity<CommentDto> updateComment(
             @PathVariable Long id,
@@ -72,6 +75,7 @@ public class CommentController {
     /**
      * 댓글 및 대댓글 삭제
      */
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{id}")
     public ResponseEntity<CommentDto> deleteComment(
             @PathVariable Long id,

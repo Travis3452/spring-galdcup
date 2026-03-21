@@ -1,4 +1,4 @@
-package com.example.galdcup.voteSession;
+package com.example.galdcup.voteSession.redis;
 
 import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.voteSession.dto.VoteSessionDto;

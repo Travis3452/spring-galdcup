@@ -8,7 +8,7 @@ public record CreatePostRequest(
         @NotNull(message = "게시판 ID는 필수입니다.")
         Long boardId,
 
-        @NotNull(message = "카테고리 ID는 필수입니다.") // 추가
+        @NotNull(message = "카테고리 ID는 필수입니다.")
         Long categoryId,
 
         @NotBlank(message = "제목은 비어 있을 수 없습니다.")

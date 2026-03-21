@@ -1,5 +1,6 @@
-package com.example.galdcup.vote;
+package com.example.galdcup.vote.redis;
 
+import com.example.galdcup.vote.domain.Vote;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;

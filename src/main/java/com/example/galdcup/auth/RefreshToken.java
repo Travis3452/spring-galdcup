@@ -7,7 +7,7 @@ import org.springframework.data.redis.core.RedisHash;
 import java.time.OffsetDateTime;
 
 @RedisHash(value = "refreshToken")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class RefreshToken {
     @Id
     private Long userId;
