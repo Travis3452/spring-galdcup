@@ -1,8 +1,8 @@
 package com.example.galdcup.vote;
 
 import com.example.galdcup.common.security.CustomUserDetails;
-import com.example.galdcup.vote.dto.CreateVoteRequest;
-import com.example.galdcup.vote.dto.VoteDto;
+import com.example.galdcup.vote.request.CreateVoteRequest;
+import com.example.galdcup.vote.response.VoteDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

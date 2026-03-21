@@ -1,6 +1,6 @@
 package com.example.galdcup.common.security;
 
-import com.example.galdcup.user.User;
+import com.example.galdcup.user.domain.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

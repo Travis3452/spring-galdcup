@@ -1,6 +1,6 @@
 package com.example.galdcup.post.domain;
 
-import com.example.galdcup.user.User;
+import com.example.galdcup.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

@@ -1,8 +1,9 @@
 package com.example.galdcup.comment;
 
-import com.example.galdcup.comment.dto.CommentDto;
-import com.example.galdcup.comment.dto.CreateCommentRequest;
-import com.example.galdcup.comment.dto.UpdateCommentRequest;
+import com.example.galdcup.comment.domain.CommentService;
+import com.example.galdcup.comment.response.CommentDto;
+import com.example.galdcup.comment.request.CreateCommentRequest;
+import com.example.galdcup.comment.request.UpdateCommentRequest;
 import com.example.galdcup.common.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

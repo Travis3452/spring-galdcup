@@ -1,7 +1,7 @@
 package com.example.galdcup.board.response;
 
 import com.example.galdcup.board.domain.BoardPolicy;
-import com.example.galdcup.user.dto.UserDto;
+import com.example.galdcup.user.response.UserDto;
 import lombok.Builder;
 
 import java.io.Serializable;

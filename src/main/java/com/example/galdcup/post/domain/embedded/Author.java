@@ -1,6 +1,6 @@
 package com.example.galdcup.post.domain.embedded;
 
-import com.example.galdcup.user.User;
+import com.example.galdcup.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.*;

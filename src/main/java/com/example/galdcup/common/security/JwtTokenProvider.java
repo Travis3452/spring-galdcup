@@ -1,6 +1,6 @@
 package com.example.galdcup.common.security;
 
-import com.example.galdcup.user.User;
+import com.example.galdcup.user.domain.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

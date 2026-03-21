@@ -4,7 +4,7 @@ import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.board.domain.BoardManagerRequest;
 import com.example.galdcup.board.domain.BoardManagerRequestRepository;
 import com.example.galdcup.board.domain.BoardRepository;
-import com.example.galdcup.user.User;
+import com.example.galdcup.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;

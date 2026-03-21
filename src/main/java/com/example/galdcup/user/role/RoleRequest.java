@@ -1,6 +1,6 @@
 package com.example.galdcup.user.role;
 
-import com.example.galdcup.user.User;
+import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 

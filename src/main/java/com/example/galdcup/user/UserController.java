@@ -1,9 +1,9 @@
 package com.example.galdcup.user;
 
 import com.example.galdcup.common.security.CustomUserDetails;
-import com.example.galdcup.user.dto.RoleChangeRequestDto;
-import com.example.galdcup.user.dto.UserDetailDto;
-import com.example.galdcup.user.dto.UserDto;
+import com.example.galdcup.user.response.RoleChangeRequestDto;
+import com.example.galdcup.user.response.UserDetailDto;
+import com.example.galdcup.user.response.UserDto;
 import com.example.galdcup.user.request.UserRequest;
 import com.example.galdcup.user.role.RoleRequest;
 import jakarta.validation.Valid;

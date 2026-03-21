@@ -15,7 +15,7 @@ import com.example.galdcup.board.response.BoardPolicyDto;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.postCategory.PostCategoryService;
 import com.example.galdcup.postCategory.dto.PostCategoryDto;
-import com.example.galdcup.user.User;
+import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

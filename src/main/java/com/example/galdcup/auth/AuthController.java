@@ -1,7 +1,7 @@
 package com.example.galdcup.auth;
 
-import com.example.galdcup.auth.dto.AuthDto;
-import com.example.galdcup.auth.dto.AuthProfileResponse;
+import com.example.galdcup.auth.response.AuthDto;
+import com.example.galdcup.auth.response.AuthProfileResponse;
 import com.example.galdcup.common.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

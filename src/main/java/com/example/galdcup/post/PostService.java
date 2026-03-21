@@ -13,7 +13,7 @@ import com.example.galdcup.post.response.PostDto;
 import com.example.galdcup.post.validator.PostValidator;
 import com.example.galdcup.postCategory.domain.PostCategory;
 import com.example.galdcup.postCategory.validator.PostCategoryValidator;
-import com.example.galdcup.user.User;
+import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

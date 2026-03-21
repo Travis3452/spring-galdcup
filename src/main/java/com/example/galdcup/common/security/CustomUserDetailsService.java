@@ -1,7 +1,7 @@
 package com.example.galdcup.common.security;
 
-import com.example.galdcup.user.User;
-import com.example.galdcup.user.UserRepository;
+import com.example.galdcup.user.domain.User;
+import com.example.galdcup.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

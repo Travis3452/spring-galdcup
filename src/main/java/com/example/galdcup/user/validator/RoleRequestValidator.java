@@ -1,6 +1,6 @@
 package com.example.galdcup.user.validator;
 
-import com.example.galdcup.user.User;
+import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.role.RoleRequest;
 import com.example.galdcup.user.role.RoleRequestRepository;
 import lombok.RequiredArgsConstructor;

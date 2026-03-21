@@ -1,9 +1,12 @@
 package com.example.galdcup.user;
 
 import com.example.galdcup.board.domain.BoardRepository;
-import com.example.galdcup.user.dto.RoleChangeRequestDto;
-import com.example.galdcup.user.dto.UserDetailDto;
-import com.example.galdcup.user.dto.UserDto;
+import com.example.galdcup.user.domain.User;
+import com.example.galdcup.user.domain.UserNicknameGenerator;
+import com.example.galdcup.user.domain.UserRepository;
+import com.example.galdcup.user.response.RoleChangeRequestDto;
+import com.example.galdcup.user.response.UserDetailDto;
+import com.example.galdcup.user.response.UserDto;
 import com.example.galdcup.user.role.RoleRequest;
 import com.example.galdcup.user.role.RoleRequestRepository;
 import com.example.galdcup.user.validator.RoleRequestValidator;

@@ -2,8 +2,8 @@ package com.example.galdcup.postCategory;
 
 import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.postCategory.dto.PostCategoryDto;
-import com.example.galdcup.postCategory.dto.PostCategoryRequest;
-import com.example.galdcup.postCategory.dto.UpdatePostCategoryRequest;
+import com.example.galdcup.postCategory.request.PostCategoryRequest;
+import com.example.galdcup.postCategory.request.UpdatePostCategoryRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

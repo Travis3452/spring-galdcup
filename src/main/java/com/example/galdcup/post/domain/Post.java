@@ -4,7 +4,7 @@ import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.comment.Comment;
 import com.example.galdcup.post.domain.embedded.Author;
 import com.example.galdcup.postCategory.domain.PostCategory;
-import com.example.galdcup.user.User;
+import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 

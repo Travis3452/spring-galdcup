@@ -1,7 +1,7 @@
 package com.example.galdcup.common.client;
 
-import com.example.galdcup.auth.dto.GoogleTokenDto;
-import com.example.galdcup.auth.dto.GoogleUserProfile;
+import com.example.galdcup.auth.response.GoogleTokenDto;
+import com.example.galdcup.auth.response.GoogleUserProfile;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;

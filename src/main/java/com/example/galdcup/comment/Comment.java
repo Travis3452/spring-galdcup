@@ -2,7 +2,7 @@ package com.example.galdcup.comment;
 
 import com.example.galdcup.comment.embedded.Author;
 import com.example.galdcup.post.domain.Post;
-import com.example.galdcup.user.User;
+import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
