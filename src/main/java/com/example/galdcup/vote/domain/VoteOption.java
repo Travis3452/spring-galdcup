@@ -2,7 +2,10 @@ package com.example.galdcup.vote.domain;
 
 import com.example.galdcup.voteSession.domain.VoteSession;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "vote_options")
@@ -38,6 +41,10 @@ public class VoteOption {
                 .imageUrl(imageUrl)
                 .count(0L)
                 .build();
+    }
+
+    public void updateCount(long newCount) {
+        this.count = newCount;
     }
 
     /**

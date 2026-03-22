@@ -3,7 +3,10 @@ package com.example.galdcup.user.domain;
 import com.example.galdcup.board.domain.BoardManagerRequest;
 import com.example.galdcup.user.role.RoleRequest;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;

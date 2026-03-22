@@ -1,12 +1,15 @@
 package com.example.galdcup.post.domain;
 
 import com.example.galdcup.board.domain.Board;
-import com.example.galdcup.comment.Comment;
+import com.example.galdcup.comment.domain.Comment;
 import com.example.galdcup.post.domain.embedded.Author;
 import com.example.galdcup.postCategory.domain.PostCategory;
 import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -113,7 +116,7 @@ public class Post {
     }
 
     /**
-     * [관리자 전용] 게시글 수정 (카테고리 제약 없음)
+     * [관리자 전용] 게시글 수정
      */
     public void updateByManager(String title, String content, PostCategory newCategory) {
         if (title == null || title.isBlank()) {

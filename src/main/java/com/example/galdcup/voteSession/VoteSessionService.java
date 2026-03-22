@@ -9,9 +9,9 @@ import com.example.galdcup.vote.redis.VoteRedisManager;
 import com.example.galdcup.vote.response.VoteOptionDto;
 import com.example.galdcup.voteSession.domain.VoteSession;
 import com.example.galdcup.voteSession.domain.VoteSessionRepository;
+import com.example.galdcup.voteSession.redis.VoteSessionRedisManager;
 import com.example.galdcup.voteSession.request.CreateVoteSessionRequest;
 import com.example.galdcup.voteSession.response.VoteSessionDto;
-import com.example.galdcup.voteSession.redis.VoteSessionRedisManager;
 import com.example.galdcup.voteSession.validator.VoteSessionValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -115,10 +115,10 @@ public class VoteSessionService {
     /**
      * Redis에 쌓인 투표 카운트를 DB(VoteOption)에 최종 동기화하는 헬퍼 메서드
      */
+    // VoteSessionService.java 내부
     @Transactional
     public void syncRedisVotesToDb(VoteSession session) {
         Map<Object, Object> entries = voteRedisManager.getVoteCounts(session.getId());
-
         if (entries.isEmpty()) return;
 
         entries.forEach((optionIndexObj, countObj) -> {
@@ -126,8 +126,8 @@ public class VoteSessionService {
             long totalCount = Long.parseLong(countObj.toString());
 
             if (selectedOptionIndex >= 0 && selectedOptionIndex < session.getOptions().size()) {
-                Long optionId = session.getOptions().get(selectedOptionIndex).getId();
-                voteOptionRepository.updateVoteCount(optionId, totalCount);
+                VoteOption option = session.getOptions().get(selectedOptionIndex);
+                option.updateCount(totalCount);
             }
         });
     }

@@ -1,10 +1,13 @@
-package com.example.galdcup.comment;
+package com.example.galdcup.comment.domain;
 
 import com.example.galdcup.comment.embedded.Author;
 import com.example.galdcup.post.domain.Post;
 import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.BatchSize;
 
 import java.time.OffsetDateTime;

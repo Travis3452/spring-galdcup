@@ -1,6 +1,6 @@
 package com.example.galdcup.comment.validator;
 
-import com.example.galdcup.comment.Comment;
+import com.example.galdcup.comment.domain.Comment;
 import com.example.galdcup.comment.domain.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

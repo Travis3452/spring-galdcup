@@ -1,10 +1,6 @@
 package com.example.galdcup.board;
 
-import com.example.galdcup.board.domain.Board;
-import com.example.galdcup.board.domain.BoardManagerRequest;
-import com.example.galdcup.board.domain.BoardManagerRequestRepository;
-import com.example.galdcup.board.domain.BoardPolicy;
-import com.example.galdcup.board.domain.BoardRepository;
+import com.example.galdcup.board.domain.*;
 import com.example.galdcup.board.event.BoardChangedEvent;
 import com.example.galdcup.board.redis.BoardRedisManager;
 import com.example.galdcup.board.request.BoardRequest;

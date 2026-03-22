@@ -3,7 +3,10 @@ package com.example.galdcup.postCategory.domain;
 import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.post.domain.Post;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,8 @@
 package com.example.galdcup.voteSession;
 
 import com.example.galdcup.common.security.CustomUserDetails;
+import com.example.galdcup.gemini.GeminiService;
+import com.example.galdcup.gemini.response.GeminiResponse;
 import com.example.galdcup.voteSession.request.CreateVoteSessionRequest;
 import com.example.galdcup.voteSession.response.VoteSessionDto;
 import jakarta.validation.Valid;
@@ -20,6 +22,7 @@ import java.util.Optional;
 public class VoteSessionController {
 
     private final VoteSessionService voteSessionService;
+    private final GeminiService geminiService;
 
     /**
      * 투표 세션 생성
@@ -67,5 +70,15 @@ public class VoteSessionController {
                                                   @AuthenticationPrincipal CustomUserDetails principal) {
         voteSessionService.finishVoteSession(boardId, voteSessionId, principal.getId());
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * [AI 추천] 게시판 성격에 맞는 갈드컵 주제 및 선택지 추천
+     */
+    @GetMapping("/recommend")
+    public ResponseEntity<GeminiResponse> recommendVoteSession(@PathVariable Long boardId) {
+        GeminiResponse recommendation = geminiService.getRecommendation(boardId);
+
+        return ResponseEntity.ok(recommendation);
     }
 }

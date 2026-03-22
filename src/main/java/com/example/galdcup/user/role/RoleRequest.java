@@ -2,7 +2,10 @@ package com.example.galdcup.user.role;
 
 import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "role_requests")

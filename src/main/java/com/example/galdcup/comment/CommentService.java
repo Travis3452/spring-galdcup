@@ -1,8 +1,9 @@
-package com.example.galdcup.comment.domain;
+package com.example.galdcup.comment;
 
-import com.example.galdcup.comment.Comment;
-import com.example.galdcup.comment.response.CommentDto;
+import com.example.galdcup.comment.domain.Comment;
+import com.example.galdcup.comment.domain.CommentRepository;
 import com.example.galdcup.comment.request.CreateCommentRequest;
+import com.example.galdcup.comment.response.CommentDto;
 import com.example.galdcup.comment.validator.CommentValidator;
 import com.example.galdcup.post.domain.Post;
 import com.example.galdcup.post.validator.PostValidator;

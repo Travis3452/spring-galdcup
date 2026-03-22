@@ -1,9 +1,9 @@
 package com.example.galdcup.vote.scheduler;
 
 import com.example.galdcup.vote.redis.VoteRedisManager;
+import com.example.galdcup.voteSession.VoteSessionService;
 import com.example.galdcup.voteSession.domain.VoteSession;
 import com.example.galdcup.voteSession.domain.VoteSessionRepository;
-import com.example.galdcup.voteSession.VoteSessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -55,9 +55,8 @@ public class VoteSyncScheduler {
                 voteSessionRepository.findByEndTimeBeforeAndIsFinishedFalse(OffsetDateTime.now());
 
         for (VoteSession session : endedSessions) {
-            session.complete(); // 캡슐화된 엔티티 메서드
+            session.complete();
 
-            // ⭕ 서비스의 동기화 로직 재사용
             voteSessionService.syncRedisVotesToDb(session);
 
             voteRedisManager.deleteVoteCounts(session.getId());
