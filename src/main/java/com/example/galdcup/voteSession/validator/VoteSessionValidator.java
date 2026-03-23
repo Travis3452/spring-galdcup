@@ -18,42 +18,6 @@ public class VoteSessionValidator {
     private final VoteSessionRepository voteSessionRepository;
 
     /**
-     * VoteSession 생성 시 값 검증 및 엔티티 생성 (객체 리스트 방식)
-     */
-    public VoteSession validateAndCreateVoteSession(Board board, CreateVoteSessionRequest request) {
-        OffsetDateTime startTime = request.startTime();
-        OffsetDateTime endTime = request.endTime();
-
-        if (startTime == null || endTime == null || !startTime.isBefore(endTime)) {
-            throw new IllegalArgumentException("투표 시작/종료 시간이 올바르지 않습니다.");
-        }
-
-        if (request.options() == null || request.options().size() < 2 || request.options().size() > 50) {
-            throw new IllegalArgumentException("투표 옵션은 최소 2개, 최대 50개까지 가능합니다.");
-        }
-
-        VoteSession voteSession = VoteSession.builder()
-                .board(board)
-                .startTime(startTime)
-                .endTime(endTime)
-                .options(new ArrayList<>())
-                .build();
-
-        List<VoteOption> voteOptions = request.options().stream()
-                .map(opt -> VoteOption.builder()
-                        .voteSession(voteSession)
-                        .label(opt.label())
-                        .imageUrl(opt.imageUrl())
-                        .count(0L)
-                        .build())
-                .toList();
-
-        voteSession.getOptions().addAll(voteOptions);
-
-        return voteSession;
-    }
-
-    /**
      * 게시판에 진행 중인 VoteSession이 있는지 검증하고 반환
      */
     public VoteSession validateAndGetActiveVoteSession(Long boardId) {

@@ -31,7 +31,6 @@ import java.util.stream.IntStream;
 public class VoteSessionService {
 
     private final VoteSessionRepository voteSessionRepository;
-    private final VoteOptionRepository voteOptionRepository;
     private final BoardValidator boardValidator;
     private final VoteSessionValidator voteSessionValidator;
     private final VoteSessionRedisManager voteSessionRedisManager;
@@ -133,7 +132,7 @@ public class VoteSessionService {
     }
 
     /**
-     * 정적 데이터(DTO)와 Redis의 실시간 누적 수치를 병합하는 헬퍼.
+     * 정적 데이터(DTO)와 Redis의 실시간 수치를 병합하는 헬퍼.
      */
     private VoteSessionDto assembleVoteSession(VoteSessionDto cached, Map<Object, Object> counts) {
         List<VoteOptionDto> mergedOptions = IntStream.range(0, cached.getOptions().size())
@@ -154,6 +153,8 @@ public class VoteSessionService {
         return VoteSessionDto.builder()
                 .id(cached.getId())
                 .boardId(cached.getBoardId())
+                .topic(cached.getTopic())
+                .description(cached.getDescription())
                 .startTime(cached.getStartTime())
                 .endTime(cached.getEndTime())
                 .options(mergedOptions)
