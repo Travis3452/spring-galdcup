@@ -19,6 +19,8 @@ public class VoteSessionDto implements Serializable {
 
     private Long id;
     private Long boardId;
+    private String topic;
+    private String description;
     private OffsetDateTime startTime;
     private OffsetDateTime endTime;
     private List<VoteOptionDto> options;
@@ -27,6 +29,8 @@ public class VoteSessionDto implements Serializable {
         return VoteSessionDto.builder()
                 .id(voteSession.getId())
                 .boardId(voteSession.getBoard().getId())
+                .topic(voteSession.getTopic())
+                .description(voteSession.getDescription())
                 .startTime(voteSession.getStartTime())
                 .endTime(voteSession.getEndTime())
                 .options(voteSession.getOptions().stream()

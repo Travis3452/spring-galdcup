@@ -48,7 +48,7 @@ public class VoteSessionService {
                 .toList();
 
         VoteSession voteSession = VoteSession.create(
-                board, request.startTime(), request.endTime(), options);
+                board, request.topic(), request.description(), request.startTime(), request.endTime(), options);
 
         voteSessionRepository.save(voteSession);
         voteSessionRedisManager.deleteVoteSession(boardId);

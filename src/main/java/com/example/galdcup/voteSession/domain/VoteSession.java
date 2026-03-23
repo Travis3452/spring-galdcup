@@ -26,6 +26,12 @@ public class VoteSession {
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
+    @Column(nullable = false, length = 100)
+    private String topic;
+
+    @Column(length = 255)
+    private String description;
+
     private OffsetDateTime startTime;
     private OffsetDateTime endTime;
 
@@ -38,11 +44,13 @@ public class VoteSession {
 
 
     /** 세션 생성 */
-    public static VoteSession create(Board board, OffsetDateTime start, OffsetDateTime end, List<VoteOption> options) {
+    public static VoteSession create(Board board, String topic, String description, OffsetDateTime start, OffsetDateTime end, List<VoteOption> options) {
         if (end.isBefore(start)) throw new IllegalArgumentException("종료 시간은 시작 시간보다 빨라야 합니다.");
 
         VoteSession session = VoteSession.builder()
                 .board(board)
+                .topic(topic)
+                .description(description)
                 .startTime(start)
                 .endTime(end)
                 .options(new ArrayList<>())
