@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * 사용자 권한(Role) 승급 요청 엔티티
+ */
 @Entity
 @Table(name = "role_requests")
 @Getter @NoArgsConstructor @AllArgsConstructor @Builder

@@ -10,6 +10,9 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 게시판별 운영 권한 및 관리 정책을 담당하는 엔티티.
+ */
 @Entity
 @Table(
         name = "board_policies",
@@ -27,10 +30,12 @@ public class BoardPolicy {
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
+    /** 게시판의 메인 관리자 */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_manager_id")
     private User boardManager;
 
+    /** 게시판의 보조 관리자 */
     @ManyToMany
     @JoinTable(
             name = "board_policy_sub_managers",
@@ -40,6 +45,7 @@ public class BoardPolicy {
     @Builder.Default
     private List<User> subManagers = new ArrayList<>();
 
+    /** 인기글 선정 기준이 되는 추천 수 (기본값 20) */
     private long likeThreshold;
 
     public static BoardPolicy create(Board board, User manager) {
@@ -50,6 +56,7 @@ public class BoardPolicy {
                 .build();
     }
 
+    /** 메인 관리자 권한을 특정 유저에게 위임. */
     public void delegateMainManager(User newManager) {
         if (this.boardManager != null && this.boardManager.equals(newManager)) {
             throw new IllegalArgumentException("자기 자신에게는 권한을 위임할 수 없습니다.");
@@ -66,7 +73,7 @@ public class BoardPolicy {
         this.subManagers.add(user);
     }
 
-    public boolean isMainManager(User user) {
+    public boolean isBoardManager(User user) {
         if (user == null || this.boardManager == null) return false;
         return this.boardManager.equals(user);
     }
@@ -76,7 +83,7 @@ public class BoardPolicy {
     }
 
     public boolean isAnyManager(User user) {
-        return isMainManager(user) || isSubManager(user);
+        return isBoardManager(user) || isSubManager(user);
     }
 
     public void removeSubManager(User user) {

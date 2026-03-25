@@ -113,7 +113,7 @@ public class JwtTokenProvider {
     /**
      * RefreshToken 유효기간 반환
      */
-    public int getRefreshTokenMaxAgeSeconds() {
+    public int getRefreshTokenTTLSeconds() {
         return refreshExpDays * 24 * 60 * 60;
     }
 }

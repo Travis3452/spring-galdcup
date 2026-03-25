@@ -1,4 +1,4 @@
-package com.example.galdcup.postCategory.dto;
+package com.example.galdcup.postCategory.response;
 
 import com.example.galdcup.postCategory.domain.PostCategory;
 import lombok.Builder;

@@ -6,7 +6,7 @@ import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.post.domain.PostRepository;
 import com.example.galdcup.postCategory.domain.PostCategory;
 import com.example.galdcup.postCategory.domain.PostCategoryRepository;
-import com.example.galdcup.postCategory.dto.PostCategoryDto;
+import com.example.galdcup.postCategory.response.PostCategoryDto;
 import com.example.galdcup.postCategory.request.PostCategoryRequest;
 import com.example.galdcup.postCategory.request.UpdatePostCategoryRequest;
 import com.example.galdcup.postCategory.validator.PostCategoryValidator;

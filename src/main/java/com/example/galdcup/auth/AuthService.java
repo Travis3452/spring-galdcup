@@ -20,7 +20,7 @@ public class AuthService {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final GoogleOAuthClient googleClient;
-    private final RefreshTokenRedisManager redisManager;
+    private final RefreshTokenRedisManager refreshTokenRedisManager;
     private final UserValidator userValidator;
 
     @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
@@ -48,27 +48,27 @@ public class AuthService {
                 Collections.singletonList(user.getRole().name())
         );
 
-        long maxAgeSeconds = jwtTokenProvider.getRefreshTokenMaxAgeSeconds();
-        redisManager.saveRefreshToken(user.getId(), refreshTokenStr, maxAgeSeconds);
+        long ttlSeconds = jwtTokenProvider.getRefreshTokenTTLSeconds();
+        refreshTokenRedisManager.saveRefreshToken(user.getId(), refreshTokenStr, ttlSeconds);
 
         return AuthDto.from(
                 user,
                 accessToken,
                 refreshTokenStr,
-                maxAgeSeconds
+                ttlSeconds
         );
     }
 
     /**
-     * RefreshToken으로 새 토큰 발급
+     * 리프레시 토큰을 갱신합니다. 기존 토큰을 삭제한 후 새 토큰을 발급합니다.(RTR 전략)
      */
     public AuthDto refreshTokens(String refreshTokenStr) {
         Long userId = jwtTokenProvider.getUserIdFromToken(refreshTokenStr);
         User user = userValidator.findByIdOrThrow(userId);
 
-        redisManager.getRefreshToken(userId, refreshTokenStr);
+        refreshTokenRedisManager.validateRefreshToken(userId, refreshTokenStr);
 
-        redisManager.deleteRefreshToken(user.getId());
+        refreshTokenRedisManager.deleteRefreshToken(user.getId());
 
         return createTokens(user);
     }
@@ -77,6 +77,6 @@ public class AuthService {
      * 로그아웃 시 토큰 삭제
      */
     public void deleteRefreshTokens(Long userId) {
-        redisManager.deleteRefreshToken(userId);
+        refreshTokenRedisManager.deleteRefreshToken(userId);
     }
 }

@@ -16,6 +16,9 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 게시글 정보 엔티티
+ */
 @Entity
 @Table(
         name = "posts",

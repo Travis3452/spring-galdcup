@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * 투표 세션의 개별 선택지 엔티티
+ */
 @Entity
 @Table(name = "vote_options")
 @Getter @NoArgsConstructor @AllArgsConstructor @Builder

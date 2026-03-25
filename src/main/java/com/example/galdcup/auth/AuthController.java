@@ -19,9 +19,6 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Value("${frontend.url}")
-    private String frontendUrl;
-
     @Value("${cookie.secure}")
     private boolean cookieSecure;
 

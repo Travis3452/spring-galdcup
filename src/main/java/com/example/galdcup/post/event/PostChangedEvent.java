@@ -3,6 +3,9 @@ package com.example.galdcup.post.event;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * 게시글 정보 변경 발생 시 후속 처리를 위한 이벤트
+ */
 @Getter
 @RequiredArgsConstructor
 public class PostChangedEvent {

@@ -111,7 +111,7 @@ public class PostService {
         PostCategory newCategory = postCategoryValidator.getIfBelongsToBoard(categoryId, post.getBoard().getId());
         String safeContent = htmlSanitizer.sanitize(content);
 
-        boolean isManager = post.getBoard().getBoardPolicy().isMainManager(user);
+        boolean isManager = post.getBoard().getBoardPolicy().isBoardManager(user);
 
         if (isManager) {
             post.updateByManager(title, safeContent, newCategory);

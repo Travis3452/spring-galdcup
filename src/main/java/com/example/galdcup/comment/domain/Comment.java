@@ -15,6 +15,9 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 게시글의 댓글 및 대댓글을 관리하는 엔티티
+ */
 @Entity
 @Table(
         name = "comments",
@@ -59,6 +62,9 @@ public class Comment {
         updatedAt = now;
     }
 
+    /**
+     * 새로운 댓글 또는 대댓글을 생성
+     */
     public static Comment create(Post post, User user, String content, Comment parentComment) {
         if (parentComment != null && parentComment.getParentComment() != null) {
             throw new IllegalArgumentException("댓글에만 대댓글을 달 수 있습니다.");
@@ -80,9 +86,12 @@ public class Comment {
 
     public void update(String content) {
         this.content = content;
-        updatedAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
+        this.updatedAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
+    /**
+     * 댓글을 삭제 상태로 변경하고 내용을 익명화 처리
+     */
     public void delete() {
         this.deletedAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
         this.content = "삭제된 댓글입니다.";
@@ -92,5 +101,4 @@ public class Comment {
     public boolean isDeleted() {
         return this.deletedAt != null;
     }
-
 }

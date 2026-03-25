@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * 유저의 게시판 매니저 권한 신청 및 처리 상태를 관리하는 엔티티.
+ */
 @Entity
 @Table(name = "board_manager_requests")
 @Getter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -29,9 +32,9 @@ public class BoardManagerRequest {
     private Status status;
 
     public enum Status {
-        PENDING,
-        APPROVED,
-        DENIED
+        PENDING,  // 승인 대기 중
+        APPROVED, // 승인 완료
+        DENIED    // 거절됨
     }
 
     public static BoardManagerRequest create(Board board, User applicant, Status status) {

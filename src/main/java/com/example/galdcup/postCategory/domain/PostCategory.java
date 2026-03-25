@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 게시글 분류 엔티티
+ */
 @Entity
 @Table(
         name="post_categories",

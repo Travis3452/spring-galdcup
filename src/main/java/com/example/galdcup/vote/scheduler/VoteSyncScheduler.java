@@ -15,6 +15,9 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * 투표 데이터 정합성 유지 및 세션 생명주기 관리 스케줄러
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

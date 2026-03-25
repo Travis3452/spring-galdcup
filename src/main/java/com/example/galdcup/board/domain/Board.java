@@ -14,6 +14,9 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 특정 주제에 대한 투표와 커뮤니티 활동이 이루어지는 '갈드컵 게시판' 엔티티.
+ */
 @Entity
 @Table(name = "boards")
 @Getter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -60,6 +63,7 @@ public class Board {
         }
     }
 
+    /** 신규 게시판 생성 시 기본 상태는 OPEN. */
     public static Board create(String topic, String description) {
         return Board.builder()
                 .topic(topic)
@@ -72,6 +76,7 @@ public class Board {
         this.status = newStatus;
     }
 
+    /** 게시판을 폐쇄 상태로 변경. */
     public void closeBoard() {
         this.status = Status.CLOSED;
     }
@@ -80,6 +85,7 @@ public class Board {
         this.boardPolicy = policy;
     }
 
+    /** 게시판에 카테고리를 추가. */
     public void addPostCategory(PostCategory category) {
         this.postCategories.add(category);
         if (category.getBoard() != this) {
@@ -87,6 +93,7 @@ public class Board {
         }
     }
 
+    /** 게시판 생성 시 필수적인 기본 카테고리(공지사항, 자유게시판)를 설정합니다. */
     public void setDefaultCategories() {
         this.addPostCategory(PostCategory.createNotice(this));
         this.addPostCategory(PostCategory.createGeneral(this));

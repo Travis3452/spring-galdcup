@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 실시간 투표 집계 및 중복 투표 방지를 위한 Redis 관리 컴포넌트
+ */
 @Component
 @RequiredArgsConstructor
 public class VoteRedisManager {

@@ -10,12 +10,16 @@ import lombok.NoArgsConstructor;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 
+/**
+ * 게시글 좋아요/싫어요 관리 엔티티
+ */
 @Entity
 @Table(name = "post_reactions",
         uniqueConstraints = @UniqueConstraint(columnNames = {"post_id", "user_id"}))
 @Getter @NoArgsConstructor @AllArgsConstructor @Builder
 public class PostReaction {
 
+    /** 반응 유형 (좋아요/싫어요) */
     public enum ReactionType { LIKE, DISLIKE }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +39,7 @@ public class PostReaction {
 
     private OffsetDateTime createdAt;
 
+    /** 저장 전 한국 표준시(KST) 기준 생성 시각 설정 */
     @PrePersist
     public void prePersist() {
         createdAt = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));

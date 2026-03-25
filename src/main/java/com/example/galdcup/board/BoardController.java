@@ -141,7 +141,7 @@ public class BoardController {
         return ResponseEntity.ok(updated);
     }
 
-    /** 관리자 권한 위임 */
+    /** 게시판 관리자 권한 위임 */
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{boardId}/delegate")
     public ResponseEntity<BoardPolicyDto> delegateManager(
@@ -153,7 +153,7 @@ public class BoardController {
         return ResponseEntity.ok(updated);
     }
 
-    /** 관리자 권한 신청 */
+    /** 게시판 관리자 권한 신청 */
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{boardId}/apply")
     public ResponseEntity<BoardManagerRequestDto> applyForManager(

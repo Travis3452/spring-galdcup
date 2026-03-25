@@ -15,6 +15,9 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
+/**
+ * 생성형 AI(Gemini)를 활용한 투표 세션 자동 생성 서비스
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -27,6 +30,7 @@ public class GeminiService {
     private final ObjectMapper objectMapper;
     private final BoardValidator boardValidator;
 
+    /** 구글 Generative AI 클라이언트 */
     @PostConstruct
     public void init() {
         this.client = Client.builder()
@@ -34,10 +38,14 @@ public class GeminiService {
                 .build();
     }
 
+    /**
+     * 게시판 주제와 설명을 바탕으로 AI가 기획한 갈드컵 투표 세션 추천
+     */
     public GeminiResponse getRecommendation(Long boardId) {
 
         Board board = boardValidator.findByIdOrThrow(boardId);
 
+        // 2030 남초 커뮤니티 정서 및 '근본론'을 반영한 프롬프트 구성
         String prompt = String.format(
                 "당신은 대한민국 2030 남성들이 이용하는 주요 온라인 커뮤니티 정서와 '근본' 문화를 꿰뚫어 보는 갈드컵 설계자입니다.\n\n" +
                         "### [서비스 배경]\n" +
@@ -65,26 +73,30 @@ public class GeminiService {
         );
 
         try {
+            // JSON 응답 강제 및 답변 확산도(Temperature) 설정
             GenerateContentConfig config = GenerateContentConfig.builder()
                     .responseMimeType("application/json")
                     .temperature(0.7F)
                     .build();
 
+            // Gemini 3 Flash 모델 호출
             GenerateContentResponse response = client.models.generateContent("gemini-3-flash-preview", prompt, config);
 
             String jsonResponse = response.text();
             if (jsonResponse == null || jsonResponse.isBlank()) {
-                throw new IllegalStateException("API로부터 빈 응답을 받았습니다.");
+                throw new IllegalStateException("Gemini API로부터 빈 응답 수신");
             }
 
+            // 수신한 JSON 텍스트를 DTO 객체로 변환
             return objectMapper.readValue(jsonResponse, GeminiResponse.class);
 
         } catch (Exception e) {
-            log.error("Gemini 추천 생성 실패: {}", e.getMessage(), e);
+            log.error("AI 추천 콘텐츠 생성 실패 (게시판 ID: {}): {}", boardId, e.getMessage());
 
+            // API 호출 실패 시 기본 데이터 반환
             return new GeminiResponse(
-                    "추천 주제를 불러올 수 없습니다.",
-                    "직접 창의적인 투표를 만들어보세요!",
+                    "추천 주제를 불러올 수 없음",
+                    "직접 창의적인 투표를 만들어보세요",
                     List.of("직접 입력 1", "직접 입력 2")
             );
         }

@@ -11,88 +11,79 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * 게시판 관련 비즈니스 규칙 및 권한의 유효성을 검증하는 컴포넌트.
+ */
 @Component
 @RequiredArgsConstructor
 public class BoardValidator {
+
     private final BoardRepository boardRepository;
     private final BoardManagerRequestRepository boardManagerRequestRepository;
-    
-    /**
-     * 게시판이 존재하는지 검증
-     */
+
+    /** 게시판 존재 여부를 확인하고 게시판 엔티티를 반환. */
     public Board findByIdOrThrow(Long boardId) {
         return boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시판입니다."));
     }
 
-    /**
-     * 게시판이 존재하는지 검증
-     */
+    /** 게시판 존재 여부를 확인하고 게시판 정책을 포함하여 게시판 엔티티를 반환. */
     public Board findBoardWithPolicyById(Long boardId) {
         return boardRepository.findBoardWithPolicyById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("게시판 정보를 불러올 수 없습니다."));
     }
 
-
-    /**
-     * 게시판이 존재하고 OPEN 상태인지 검증
-     */
+    /** 게시판이 OPEN 상태인지 확인 후 반환. */
     public Board getBoardIfOpen(Long boardId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+        Board board = this.findByIdOrThrow(boardId);
 
         if (board.getStatus() == Board.Status.CLOSED) {
-            throw new IllegalArgumentException("닫힌 게시판입니다.");
+            throw new IllegalArgumentException("이미 폐쇄된 게시판입니다.");
         }
         return board;
     }
 
-    /**
-     * 관리자 권한 여부 체크
+    /** 게시판 관리자 또는 서브 매니저 권한이 있는지 확인하고 게시판 엔티티 반환.
+     * @throws AccessDeniedException 관리 권한이 없는 경우
      */
     public Board getBoardIfManager(Long boardId, Long userId) {
         Board board = this.findByIdOrThrow(boardId);
-        User boardManager = board.getBoardPolicy().getBoardManager();
+        User mainManager = board.getBoardPolicy().getBoardManager();
         List<User> subManagers = board.getBoardPolicy().getSubManagers();
 
-        if (subManagers.stream().noneMatch(user -> user.getId().equals(userId))
-                && !boardManager.getId().equals(userId)) {
-            throw new AccessDeniedException("게시판 관리자 권한이 필요합니다.");
+        boolean isSub = subManagers.stream().anyMatch(user -> user.getId().equals(userId));
+        boolean isMain = mainManager != null && mainManager.getId().equals(userId);
+
+        if (!isSub && !isMain) {
+            throw new AccessDeniedException("해당 게시판의 운영진 권한이 필요합니다.");
         }
 
         return board;
     }
 
-    /**
-     * 게시판 관리자 여부 체크
-     */
+    /** 게시판 관리자 권한을 확인하고 게시판 엔티티 반환. */
     public Board getBoardIfBoardManager(Long boardId, Long userId) {
         Board board = this.findByIdOrThrow(boardId);
         User boardManager = board.getBoardPolicy().getBoardManager();
 
-        if (!boardManager.getId().equals(userId)) {
-            throw new AccessDeniedException("게시판 관리자 권한이 필요합니다.");
+        if (boardManager == null || !boardManager.getId().equals(userId)) {
+            throw new AccessDeniedException("게시판 소유자 권한이 필요합니다.");
         }
 
         return board;
     }
 
-    /**
-     * 해당 게시판에 서브 매니저가 한 명이라도 존재하는지 확인
-     */
     public boolean hasAnySubManager(Board board) {
         return !board.getBoardPolicy().getSubManagers().isEmpty();
     }
 
-    /**
-     * 이미 해당 게시판에 대기 중인 신청이 있는지 검증
-     */
+    /** 중복 신청 방지를 위해 대기 중인 매니저 신청 건이 있는지 확인. */
     public void validateNoPendingRequest(Long applicantId, Long boardId) {
         boolean exists = boardManagerRequestRepository.existsByApplicantIdAndBoardIdAndStatus(
                 applicantId, boardId, BoardManagerRequest.Status.PENDING);
 
         if (exists) {
-            throw new IllegalStateException("이미 해당 게시판에 승인 대기 중인 신청이 있습니다.");
+            throw new IllegalStateException("이미 처리를 기다리고 있는 신청 내역이 있습니다.");
         }
     }
 }

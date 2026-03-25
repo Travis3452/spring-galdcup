@@ -9,6 +9,9 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 특정 게시판 내에서 진행되는 투표 세션의 생명주기 및 상태 관리 엔티티
+ */
 @Entity
 @Table(
         name = "vote_sessions",
@@ -45,7 +48,7 @@ public class VoteSession {
 
     /** 세션 생성 */
     public static VoteSession create(Board board, String topic, String description, OffsetDateTime start, OffsetDateTime end, List<VoteOption> options) {
-        if (end.isBefore(start)) throw new IllegalArgumentException("종료 시간은 시작 시간보다 빨라야 합니다.");
+        if (end.isBefore(start)) throw new IllegalArgumentException("투표 시작 시간은 종료 시간보다 빨라야 합니다.");
 
         VoteSession session = VoteSession.builder()
                 .board(board)

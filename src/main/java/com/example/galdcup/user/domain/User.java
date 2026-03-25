@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 서비스 이용자 계정 정보 엔티티
+ */
 @Entity
 @Table(name = "users")
 @Getter @NoArgsConstructor @AllArgsConstructor @Builder
