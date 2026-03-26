@@ -1,5 +1,7 @@
 package com.example.galdcup.user;
 
+import com.example.galdcup.common.rateLimit.RateLimit;
+import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.user.request.UserRequest;
 import com.example.galdcup.user.response.RoleChangeRequestDto;
@@ -52,6 +54,7 @@ public class UserController {
     /**
      * 프로필 수정 (닉네임 변경) - 본인만 가능
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}")
     public ResponseEntity<UserDetailDto> updateUser(
@@ -65,6 +68,7 @@ public class UserController {
     /**
      * 사용자 삭제 (회원 탈퇴) - 본인만 가능
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(
@@ -94,6 +98,7 @@ public class UserController {
     /**
      * 권한 변경 신청 (USER -> MANAGER 등)
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/role-requests")
     public ResponseEntity<Void> requestRole(
@@ -105,7 +110,7 @@ public class UserController {
     }
 
     /**
-     * [관리자 전용] 권한 신청 목록 조회 (상태 필터링 + 페이징)
+     * [관리자 전용] 권한 신청 목록 조회
      */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/role-requests")
@@ -119,7 +124,7 @@ public class UserController {
     /**
      * [관리자 전용] 권한 신청 승인
      */
-
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/role-requests/{requestId}/approve")
     public ResponseEntity<Void> approveRole(@PathVariable Long requestId) {
@@ -130,7 +135,7 @@ public class UserController {
     /**
      * [관리자 전용] 권한 신청 거절
      */
-
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/role-requests/{requestId}/deny")
     public ResponseEntity<Void> denyRole(@PathVariable Long requestId) {

@@ -3,6 +3,8 @@ package com.example.galdcup.comment;
 import com.example.galdcup.comment.request.CreateCommentRequest;
 import com.example.galdcup.comment.request.UpdateCommentRequest;
 import com.example.galdcup.comment.response.CommentDto;
+import com.example.galdcup.common.rateLimit.RateLimit;
+import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,7 @@ public class CommentController {
     /**
      * 댓글 및 대댓글 작성
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/post/{postId}")
     public ResponseEntity<CommentDto> createComment(
@@ -61,6 +64,7 @@ public class CommentController {
     /**
      * 댓글 및 대댓글 수정
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}")
     public ResponseEntity<CommentDto> updateComment(
@@ -75,6 +79,7 @@ public class CommentController {
     /**
      * 댓글 및 대댓글 삭제
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{id}")
     public ResponseEntity<CommentDto> deleteComment(

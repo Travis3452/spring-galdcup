@@ -1,5 +1,7 @@
 package com.example.galdcup.postCategory;
 
+import com.example.galdcup.common.rateLimit.RateLimit;
+import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.postCategory.response.PostCategoryDto;
 import com.example.galdcup.postCategory.request.PostCategoryRequest;
@@ -32,6 +34,7 @@ public class PostCategoryController {
     /**
      * 카테고리 생성
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<PostCategoryDto> createPostCategory(@PathVariable Long boardId,
@@ -44,6 +47,7 @@ public class PostCategoryController {
     /**
      * 단일 카테고리 수정 (이름 및 정렬 순서)
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PatchMapping
     public ResponseEntity<PostCategoryDto> updatePostCategory(@PathVariable Long boardId,
@@ -56,6 +60,7 @@ public class PostCategoryController {
     /**
      * 카테고리 일괄 수정 (전체 순서 재정렬)
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PatchMapping("/batch")
     public ResponseEntity<Void> updateCategoriesBatch(@PathVariable Long boardId,
@@ -69,6 +74,7 @@ public class PostCategoryController {
     /**
      * 카테고리 삭제 및 게시글 이관
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<Void> deleteAndMigratePostCategory(@PathVariable Long boardId,

@@ -4,7 +4,6 @@ import com.example.galdcup.user.domain.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,11 +35,11 @@ public class JwtTokenProvider {
      */
     public String createAccessToken(Long userId, List<String> roles) {
         return Jwts.builder()
-                .setSubject(userId.toString())
+                .subject(userId.toString())
                 .claim("roles", roles)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationMillis))
-                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expirationMillis))
+                .signWith(secretKey)
                 .compact();
     }
 
@@ -50,10 +49,10 @@ public class JwtTokenProvider {
     public String createRefreshToken(Long userId) {
         long refreshMillis = System.currentTimeMillis() + (refreshExpDays * 24L * 60L * 60L * 1000L);
         return Jwts.builder()
-                .setSubject(userId.toString())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(refreshMillis))
-                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .subject(userId.toString())
+                .issuedAt(new Date())
+                .expiration(new Date(refreshMillis))
+                .signWith(secretKey)
                 .compact();
     }
 
@@ -78,9 +77,11 @@ public class JwtTokenProvider {
 
         List<String> roles = claims.get("roles", List.class);
 
+        String roleName = (roles != null && !roles.isEmpty()) ? roles.get(0) : User.Role.USER.name();
+
         User dummyUser = User.builder()
                 .id(userId)
-                .role(User.Role.valueOf(roles.get(0)))
+                .role(User.Role.valueOf(roleName))
                 .build();
 
         CustomUserDetails userDetails = new CustomUserDetails(dummyUser);
@@ -92,11 +93,11 @@ public class JwtTokenProvider {
      * Claims 파싱
      */
     public Claims parseClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
+        return Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     /**

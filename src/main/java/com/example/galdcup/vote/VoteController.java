@@ -1,10 +1,13 @@
 package com.example.galdcup.vote;
 
+import com.example.galdcup.common.rateLimit.RateLimit;
+import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.vote.request.CreateVoteRequest;
 import com.example.galdcup.vote.response.VoteDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +24,8 @@ public class VoteController {
     /**
      * 투표 생성
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<VoteDto> createVote(
             @RequestBody CreateVoteRequest request,

@@ -1,5 +1,7 @@
 package com.example.galdcup.voteSession;
 
+import com.example.galdcup.common.rateLimit.RateLimit;
+import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.gemini.GeminiService;
 import com.example.galdcup.gemini.response.GeminiResponse;
@@ -27,6 +29,7 @@ public class VoteSessionController {
     /**
      * 투표 세션 생성
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<VoteSessionDto> createVoteSession(@PathVariable Long boardId,
@@ -63,6 +66,7 @@ public class VoteSessionController {
     /**
      * 투표 세션 즉시 마감
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{voteSessionId}/finish")
     public ResponseEntity<Void> finishVoteSession(@PathVariable Long boardId,
@@ -75,6 +79,7 @@ public class VoteSessionController {
     /**
      * [AI 추천] 게시판 성격에 맞는 갈드컵 주제 및 선택지 추천
      */
+    @RateLimit(type = RateLimitType.EXTERNAL)
     @GetMapping("/recommend")
     public ResponseEntity<GeminiResponse> recommendVoteSession(@PathVariable Long boardId) {
         GeminiResponse recommendation = geminiService.getRecommendation(boardId);

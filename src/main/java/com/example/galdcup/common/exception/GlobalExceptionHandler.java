@@ -83,6 +83,16 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 429 Too Many Requests
+     * 트래픽 제한 초과 시 전용 예외 처리
+     */
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleRateLimit(RateLimitExceededException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(buildBody(HttpStatus.TOO_MANY_REQUESTS, "TOO_MANY_REQUESTS", ex.getMessage()));
+    }
+
+    /**
      * 디폴트 예외 처리
      */
     @ExceptionHandler(Exception.class)

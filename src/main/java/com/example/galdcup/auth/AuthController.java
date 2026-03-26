@@ -2,6 +2,8 @@ package com.example.galdcup.auth;
 
 import com.example.galdcup.auth.response.AuthDto;
 import com.example.galdcup.auth.response.AuthProfileResponse;
+import com.example.galdcup.common.rateLimit.RateLimit;
+import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +49,7 @@ public class AuthController {
     /**
      * 토큰 재발급 (Refresh)
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PostMapping("/refresh")
     public ResponseEntity<AuthProfileResponse> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
         if (refreshToken == null) {
@@ -67,6 +70,7 @@ public class AuthController {
     /**
      * 로그아웃
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails user) {
         if (user != null) {

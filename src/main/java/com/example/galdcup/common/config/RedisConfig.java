@@ -1,5 +1,6 @@
 package com.example.galdcup.common.config;
 
+import io.lettuce.core.RedisClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +32,10 @@ public class RedisConfig {
     public RedisConnectionFactory redisConnectionFactory() {
         return new LettuceConnectionFactory(host, port);
     }
+
+    /** Bucket4j-redis 확장에서 요구하는 Redis 연결 클라이언트 생성 */
+    @Bean
+    public RedisClient redisClient() { return RedisClient.create(String.format("redis://%s:%d", host, port)); }
 
     /** 애플리케이션 공통 Redis 데이터 조작 템플릿 정의 */
     @Bean

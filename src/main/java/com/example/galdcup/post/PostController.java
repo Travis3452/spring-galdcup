@@ -1,5 +1,7 @@
 package com.example.galdcup.post;
 
+import com.example.galdcup.common.rateLimit.RateLimit;
+import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.post.domain.PostReaction;
 import com.example.galdcup.post.request.CreatePostRequest;
@@ -63,6 +65,7 @@ public class PostController {
     /**
      * 게시글 작성
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<PostDto> createPost(
@@ -76,6 +79,7 @@ public class PostController {
     /**
      * 게시글 수정
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}")
     public ResponseEntity<PostDto> updatePost(
@@ -91,6 +95,7 @@ public class PostController {
     /**
      * 게시글 삭제 (작성자 본인)
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(
@@ -104,6 +109,7 @@ public class PostController {
     /**
      * 게시글 삭제 (게시판 관리자 전용)
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/board/{boardId}/post/{postId}")
     public ResponseEntity<Void> deletePostByManager(
@@ -118,6 +124,7 @@ public class PostController {
     /**
      * 게시글 좋아요/싫어요 추가
      */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{postId}/reactions")
     public ResponseEntity<Void> addReaction(

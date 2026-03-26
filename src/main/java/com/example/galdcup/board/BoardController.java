@@ -5,6 +5,8 @@ import com.example.galdcup.board.response.BoardDetailResponse;
 import com.example.galdcup.board.response.BoardDto;
 import com.example.galdcup.board.response.BoardManagerRequestDto;
 import com.example.galdcup.board.response.BoardPolicyDto;
+import com.example.galdcup.common.rateLimit.RateLimit;
+import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +70,7 @@ public class BoardController {
     // ==========================================
 
     /** 게시판 생성 */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping
     public ResponseEntity<BoardDto> createBoard(
@@ -79,6 +82,7 @@ public class BoardController {
     }
 
     /** 게시판 상태 변경 */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PatchMapping("/{boardId}/status")
     public ResponseEntity<BoardDto> updateStatus(
@@ -91,6 +95,7 @@ public class BoardController {
     }
 
     /** 게시판 삭제 */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{boardId}")
     public ResponseEntity<Void> deleteBoard(
@@ -106,6 +111,7 @@ public class BoardController {
     // ==========================================
 
     /** 게시판 정책 수정 */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PatchMapping("/{boardId}/policy")
     public ResponseEntity<BoardPolicyDto> updateBoardPolicy(
@@ -118,6 +124,7 @@ public class BoardController {
     }
 
     /** 서브 매니저 추가 */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{boardId}/policy/sub-managers")
     public ResponseEntity<BoardPolicyDto> addSubManager(
@@ -130,6 +137,7 @@ public class BoardController {
     }
 
     /** 서브 매니저 해임 */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{boardId}/policy/sub-managers")
     public ResponseEntity<BoardPolicyDto> removeSubManager(
@@ -142,6 +150,7 @@ public class BoardController {
     }
 
     /** 게시판 관리자 권한 위임 */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{boardId}/delegate")
     public ResponseEntity<BoardPolicyDto> delegateManager(
@@ -154,6 +163,7 @@ public class BoardController {
     }
 
     /** 게시판 관리자 권한 신청 */
+    @RateLimit(type = RateLimitType.INTERNAL)
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/{boardId}/apply")
     public ResponseEntity<BoardManagerRequestDto> applyForManager(
