@@ -8,33 +8,45 @@ spring:
     username: ADMIN
     password: ${ORACLE_PASSWORD}
     hikari:
-      maximum-pool-size: ${HIKARI_MAX:10}
+      maximum-pool-size: ${HIKARI_MAX:20}
       minimum-idle: ${HIKARI_IDLE:10}
-      connection-timeout: 30000
-      keepalive-time: 30000
-      max-lifetime: 1800000
-      idle-timeout: 600000
+      connection-timeout: 5000
+      validation-timeout: 3000
+      max-lifetime: 580000
+      idle-timeout: 300000
 
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${JPA_DDL_AUTO:validate}
     show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
         jdbc.batch_size: 50
         order_inserts: true
         order_updates: true
-        default_batch_fetch_size: 1000
-  jackson:
-    time-zone: Asia/Seoul
+        default_batch_fetch_size: ${BATCH_FETCH_SIZE:100}
 
   data:
+    web:
+      pageable:
+        default-page-size: 30
+        one-indexed-parameters: true
+
     redis:
       host: ${REDIS_HOST:10.0.0.223}
       port: ${REDIS_PORT:6379}
       password: ${REDISPASSWORD}
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+
+  jackson:
+    time-zone: Asia/Seoul
+    default-property-inclusion: non_null
 
   security:
     oauth2:
@@ -54,6 +66,11 @@ spring:
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub
 
+  servlet:
+    encoding:
+      force: true
+      charset: UTF-8
+
 aes256:
   key: ${AES256_KEY}
 
@@ -61,6 +78,15 @@ jwt:
   secret: ${JWT_SECRET_KEY}
   expiration: 3600000
   refresh-expiration-days: 7
+
+server:
+  port: 8080
+  forward-headers-strategy: framework
+
+logging:
+  level:
+    root: INFO
+    com.example.galdcup: DEBUG
 
 frontend:
   url: ${FRONTEND_URL}
@@ -73,5 +99,5 @@ cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}
 
 gemini:
-    api:
-      key: ${GEMINI_AI_KEY}
+  api:
+    key: ${GEMINI_AI_KEY}

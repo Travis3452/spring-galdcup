@@ -28,22 +28,28 @@ public class VoteSyncScheduler {
     private final VoteSessionService voteSessionService;
     private final VoteRedisManager voteRedisManager;
 
+    private static final String DIRTY_SESSIONS_KEY = "galdcup:vote:dirty-sessions";
+
     /**
      * 주기적 동기화
      */
     @Scheduled(fixedRate = 60000)
-    @Transactional
     public void syncVotesToDb() {
-        Set<String> keys = redisTemplate.keys("voteSession:count:*");
-        if (keys == null || keys.isEmpty()) return;
+        Set<Object> dirtySessionIds = redisTemplate.opsForSet().members(DIRTY_SESSIONS_KEY);
+        if (dirtySessionIds == null || dirtySessionIds.isEmpty()) return;
 
-        for (String key : keys) {
+        List<Long> ids = dirtySessionIds.stream()
+                .map(id -> Long.valueOf(id.toString()))
+                .toList();
+
+        List<VoteSession> sessions = voteSessionRepository.findAllById(ids);
+
+        for (VoteSession session : sessions) {
             try {
-                Long voteSessionId = Long.valueOf(key.split(":")[2]);
-                voteSessionRepository.findById(voteSessionId)
-                        .ifPresent(voteSessionService::syncRedisVotesToDb);
+                voteSessionService.syncRedisVotesToDb(session);
+                redisTemplate.opsForSet().remove(DIRTY_SESSIONS_KEY, session.getId().toString());
             } catch (Exception e) {
-                log.error("투표 동기화 중 오류 발생: {}", key, e);
+                log.error("투표 동기화 중 오류 발생 - 세션 ID: {}", session.getId(), e);
             }
         }
     }
@@ -58,12 +64,18 @@ public class VoteSyncScheduler {
                 voteSessionRepository.findByEndTimeBeforeAndIsFinishedFalse(OffsetDateTime.now());
 
         for (VoteSession session : endedSessions) {
-            session.complete();
+            try {
+                session.complete();
+                voteSessionRepository.saveAndFlush(session);
+                voteSessionService.syncRedisVotesToDb(session);
+                voteRedisManager.deleteVoteCounts(session.getId());
 
-            voteSessionService.syncRedisVotesToDb(session);
+                redisTemplate.opsForSet().remove(DIRTY_SESSIONS_KEY, session.getId().toString());
 
-            voteRedisManager.deleteVoteCounts(session.getId());
-            log.info("투표 세션 자동 종료 완료: {}", session.getId());
+                log.info("투표 세션 자동 종료 완료: {}", session.getId());
+            } catch (Exception e) {
+                log.error("세션 {} 종료 처리 중 예외 발생", session.getId(), e);
+            }
         }
     }
 }

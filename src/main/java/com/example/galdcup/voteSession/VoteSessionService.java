@@ -49,47 +49,50 @@ public class VoteSessionService {
                 board, request.topic(), request.description(), request.startTime(), request.endTime(), options);
 
         voteSessionRepository.save(voteSession);
+
+        // 진행 중인 세션 캐시 무효화
         voteSessionRedisManager.deleteVoteSession(boardId);
 
         return VoteSessionDto.from(voteSession);
     }
 
-    /** 현재 진행 중인 투표 세션 조회 (실시간 Redis 합계 반영) */
+    /** 진행 중인 세션 조회 */
     @Transactional(readOnly = true)
     public Optional<VoteSessionDto> getActiveVoteSession(Long boardId) {
-        Optional<VoteSessionDto> cachedVoteSession = voteSessionRedisManager.getActiveVoteSession(boardId);
+        VoteSessionDto sessionDto = voteSessionRedisManager.getActiveVoteSession(boardId)
+                .orElseGet(() -> {
+                    return voteSessionRepository.findByBoardIdAndIsFinishedFalse(boardId)
+                            .map(session -> {
+                                VoteSessionDto dto = VoteSessionDto.from(session);
+                                voteSessionRedisManager.saveVoteSession(boardId, dto);
+                                return dto;
+                            }).orElse(null);
+                });
 
-        VoteSessionDto cached;
-        if (cachedVoteSession.isPresent()) {
-            cached = cachedVoteSession.get();
-        } else {
-            Optional<VoteSession> optionalVoteSession = voteSessionRepository.findByBoardIdAndIsFinishedFalse(boardId);
-            if (optionalVoteSession.isEmpty()) return Optional.empty();
+        if (sessionDto == null) return Optional.empty();
 
-            cached = VoteSessionDto.from(optionalVoteSession.get());
-            voteSessionRedisManager.saveVoteSession(boardId, cached);
-        }
-
-        Map<Object, Object> realTimeCounts = voteRedisManager.getVoteCounts(cached.getId());
-        return Optional.of(assembleVoteSession(cached, realTimeCounts));
+        Map<String, String> realTimeCounts = voteRedisManager.getVoteCounts(sessionDto.getId());
+        return Optional.of(assembleVoteSession(sessionDto, realTimeCounts));
     }
 
-    /** 종료된 투표 세션 목록 조회 */
+    /** 종료된 투표 세션 목록 조회 (캐싱) */
     @Transactional(readOnly = true)
     public Page<VoteSessionDto> getPastVoteSessions(Long boardId, Pageable pageable) {
         int page = pageable.getPageNumber();
         int size = pageable.getPageSize();
 
-        Optional<CachedPageResponse<VoteSessionDto>> cached = voteSessionRedisManager.getPastVoteSessions(boardId, page, size);
+        // Redis에서 해당 페이지 캐시 조회
+        Optional<CachedPageResponse<VoteSessionDto>> cached =
+                voteSessionRedisManager.getPastVoteSessions(boardId, page, size);
+
         if (cached.isPresent()) {
             return cached.get().toPage(pageable);
         }
 
-        Page<VoteSession> dbPage = voteSessionRepository.findByBoardAndIsFinishedTrue(
-                boardValidator.getBoardIfOpen(boardId), pageable);
+        // 캐시가 없으면 DB 조회
+        Page<VoteSessionDto> dtoPage = fetchPastSessionsFromDb(boardId, pageable);
 
-        Page<VoteSessionDto> dtoPage = dbPage.map(VoteSessionDto::from);
-
+        // 조회된 페이지를 캐시에 저장
         voteSessionRedisManager.savePastVoteSessions(boardId, page, size, CachedPageResponse.of(dtoPage));
 
         return dtoPage;
@@ -103,43 +106,45 @@ public class VoteSessionService {
 
         session.terminate();
 
+        // Redis 카운트를 DB로 동기화
         syncRedisVotesToDb(session);
 
+        // 기존 캐시 무효화
         voteRedisManager.deleteVoteCounts(voteSessionId);
         voteSessionRedisManager.deleteVoteSession(boardId);
         voteSessionRedisManager.deletePastVoteSessions(boardId);
     }
 
-    /**
-     * Redis에 쌓인 투표 카운트를 DB(VoteOption)에 최종 동기화하는 헬퍼 메서드
-     */
-    // VoteSessionService.java 내부
+    /** DB에서 과거 세션 데이터를 가져오는 헬퍼 메서드 */
+    private Page<VoteSessionDto> fetchPastSessionsFromDb(Long boardId, Pageable pageable) {
+        Board board = boardValidator.getBoardIfOpen(boardId);
+        return voteSessionRepository.findByBoardAndIsFinishedTrue(board, pageable)
+                .map(VoteSessionDto::from);
+    }
+
+    /** Redis 카운트를 DB에 동기화 */
     @Transactional
     public void syncRedisVotesToDb(VoteSession session) {
-        Map<Object, Object> entries = voteRedisManager.getVoteCounts(session.getId());
+        Map<String, String> entries = voteRedisManager.getVoteCounts(session.getId());
         if (entries.isEmpty()) return;
 
-        entries.forEach((optionIndexObj, countObj) -> {
-            int selectedOptionIndex = Integer.parseInt(optionIndexObj.toString());
-            long totalCount = Long.parseLong(countObj.toString());
+        entries.forEach((optionIndex, countStr) -> {
+            int idx = Integer.parseInt(optionIndex);
+            long count = Long.parseLong(countStr);
 
-            if (selectedOptionIndex >= 0 && selectedOptionIndex < session.getOptions().size()) {
-                VoteOption option = session.getOptions().get(selectedOptionIndex);
-                option.updateCount(totalCount);
+            if (idx >= 0 && idx < session.getOptions().size()) {
+                session.getOptions().get(idx).updateCount(count);
             }
         });
     }
 
-    /**
-     * 정적 데이터(DTO)와 Redis의 실시간 수치를 병합하는 헬퍼.
-     */
-    private VoteSessionDto assembleVoteSession(VoteSessionDto cached, Map<Object, Object> counts) {
+    /** 실시간 수치 병합 */
+    private VoteSessionDto assembleVoteSession(VoteSessionDto cached, Map<String, String> counts) {
         List<VoteOptionDto> mergedOptions = IntStream.range(0, cached.getOptions().size())
                 .mapToObj(i -> {
                     VoteOptionDto opt = cached.getOptions().get(i);
-                    Object redisVal = counts.get(String.valueOf(i));
-
-                    Long currentCount = (redisVal != null) ? Long.parseLong(redisVal.toString()) : opt.getCount();
+                    String redisVal = counts.get(String.valueOf(i));
+                    long currentCount = (redisVal != null) ? Long.parseLong(redisVal) : opt.getCount();
 
                     return VoteOptionDto.builder()
                             .label(opt.getLabel())

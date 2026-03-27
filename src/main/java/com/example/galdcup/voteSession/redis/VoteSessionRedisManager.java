@@ -4,11 +4,11 @@ import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.voteSession.response.VoteSessionDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * 투표 세션 데이터 캐싱 관리 컴포넌트
@@ -18,52 +18,46 @@ import java.util.Set;
 public class VoteSessionRedisManager {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
-    /** Redis 키 구분자 */
-    private static final String VOTE_SESSION_META_PREFIX = "galdcup:vote-sessions:meta:";
-    private static final String PAST_SESSIONS_PREFIX = "galdcup:vote-sessions:past:";
+    private static final String KEY_ACTIVE = "galdcup:vote:session:%d:active";
+    private static final String KEY_PAST_PAGE = "galdcup:vote:session:%d:past:v:%s:p:%d:s:%d";
+    private static final String KEY_PAST_VERSION = "galdcup:vote:session:%d:past:version";
 
-    /** 특정 게시판의 현재 진행 중인 투표 세션 조회 */
-    public Optional<VoteSessionDto> getActiveVoteSession(Long boardId) {
-        String key = VOTE_SESSION_META_PREFIX + boardId;
-        return Optional.ofNullable((VoteSessionDto) redisTemplate.opsForValue().get(key));
+    /** 현재 게시판의 과거 이력 캐시 버전 조회 */
+    public String getPastVersion(Long boardId) {
+        String version = stringRedisTemplate.opsForValue().get(String.format(KEY_PAST_VERSION, boardId));
+        return (version != null) ? version : "0";
     }
 
-    /** 진행 중인 투표 세션 정보를 1시간 동안 캐시에 저장 */
-    public void saveVoteSession(Long boardId, VoteSessionDto voteSessionDto) {
-        String key = VOTE_SESSION_META_PREFIX + boardId;
-        redisTemplate.opsForValue().set(key, voteSessionDto, Duration.ofHours(1));
-    }
-
-    /** 특정 게시판의 진행 중인 투표 세션 캐시 무효화 */
-    public void deleteVoteSession(Long boardId) {
-        redisTemplate.unlink(VOTE_SESSION_META_PREFIX + boardId);
-    }
-
-    /** 특정 게시판의 과거 투표 이력 페이징 캐시 조회 */
+    /** 전체 페이지 캐시 조회 */
     public Optional<CachedPageResponse<VoteSessionDto>> getPastVoteSessions(Long boardId, int page, int size) {
-        String key = generatePastKey(boardId, page, size);
+        String version = getPastVersion(boardId);
+        String key = String.format(KEY_PAST_PAGE, boardId, version, page, size);
         return Optional.ofNullable((CachedPageResponse<VoteSessionDto>) redisTemplate.opsForValue().get(key));
     }
 
-    /** 과거 투표 이력 페이징 데이터를 1일 동안 캐시에 저장 */
-    public void savePastVoteSessions(Long boardId, int page, int size, CachedPageResponse<VoteSessionDto> data) {
-        String key = generatePastKey(boardId, page, size);
+    /** 전체 페이지 캐시 저장 */
+    public void savePastVoteSessions(Long boardId, int pageNumber, int pageSize, CachedPageResponse<VoteSessionDto> data) {
+        String version = getPastVersion(boardId);
+        String key = String.format(KEY_PAST_PAGE, boardId, version, pageNumber, pageSize);
         redisTemplate.opsForValue().set(key, data, Duration.ofDays(1));
     }
 
-    /** 특정 게시판과 관련된 모든 페이지의 과거 이력 캐시 일괄 삭제 */
+    /** 버전 번호를 올려서 기존 모든 페이지 캐시를 무효화 */
     public void deletePastVoteSessions(Long boardId) {
-        String pattern = PAST_SESSIONS_PREFIX + boardId + ":*";
-        Set<String> keys = redisTemplate.keys(pattern);
-        if (keys != null && !keys.isEmpty()) {
-            // 여러 개의 키를 한 번에 비차단 방식으로 삭제 처리
-            redisTemplate.unlink(keys);
-        }
+        stringRedisTemplate.opsForValue().increment(String.format(KEY_PAST_VERSION, boardId));
     }
 
-    /** 게시판 ID와 페이징 정보를 조합한 과거 이력용 고유 키 생성 */
-    private String generatePastKey(Long boardId, int page, int size) {
-        return PAST_SESSIONS_PREFIX + boardId + ":" + page + ":" + size;
+    public Optional<VoteSessionDto> getActiveVoteSession(Long boardId) {
+        return Optional.ofNullable((VoteSessionDto) redisTemplate.opsForValue().get(String.format(KEY_ACTIVE, boardId)));
+    }
+
+    public void saveVoteSession(Long boardId, VoteSessionDto dto) {
+        redisTemplate.opsForValue().set(String.format(KEY_ACTIVE, boardId), dto, Duration.ofHours(1));
+    }
+
+    public void deleteVoteSession(Long boardId) {
+        redisTemplate.unlink(String.format(KEY_ACTIVE, boardId));
     }
 }

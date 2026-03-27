@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ public class VoteService {
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
         voteSessionValidator.validateVote(session, selectedOptionIndex, now);
 
-        ensureVoteCountsInRedis(session);
+        ensureVoteCountsInRedis(session, now);
 
         OffsetDateTime expireAt = session.getEndTime().plusDays(1);
         long ttlSeconds = ChronoUnit.SECONDS.between(now, expireAt);
@@ -55,16 +55,15 @@ public class VoteService {
     /**
      * Redis에 카운트 데이터가 없는 경우 DB 값을 로드하여 초기화
      */
-    private void ensureVoteCountsInRedis(VoteSession session) {
+    private void ensureVoteCountsInRedis(VoteSession session, OffsetDateTime now) {
         if (!voteRedisManager.hasVoteCounts(session.getId())) {
-            log.info("Redis에 투표 카운트가 없어 DB에서 데이터를 로드합니다. Session ID: {}", session.getId());
+            Map<String, String> initialCounts = session.getOptions().stream()
+                    .collect(Collectors.toMap(
+                            opt -> String.valueOf(session.getOptions().indexOf(opt)),
+                            opt -> String.valueOf(opt.getCount())
+                    ));
 
-            Map<String, String> initialCounts = new HashMap<>();
-            for (int i = 0; i < session.getOptions().size(); i++) {
-                initialCounts.put(String.valueOf(i), String.valueOf(session.getOptions().get(i).getCount()));
-            }
-
-            long ttl = ChronoUnit.SECONDS.between(OffsetDateTime.now(), session.getEndTime().plusDays(1));
+            long ttl = ChronoUnit.SECONDS.between(now, session.getEndTime().plusDays(1));
             voteRedisManager.warmUpVoteCounts(session.getId(), initialCounts, Math.max(ttl, 3600));
         }
     }
@@ -73,7 +72,7 @@ public class VoteService {
      * Redis에서 현재 누적된 전체 투표 카운트를 읽어와 WebSocket으로 전송
      */
     private void broadcastVoteResults(Long voteSessionId) {
-        Map<Object, Object> results = voteRedisManager.getVoteCounts(voteSessionId);
+        Map<String, String> results = voteRedisManager.getVoteCounts(voteSessionId);
         messagingTemplate.convertAndSend("/topic/votes/" + voteSessionId, results);
     }
 }
