@@ -1,5 +1,6 @@
 package com.example.galdcup.common.rateLimit;
 
+import com.example.galdcup.common.exception.RateLimitExceededException;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import com.example.galdcup.common.exception.RateLimitExceededException;
 
 import java.time.Duration;
 import java.util.function.Supplier;

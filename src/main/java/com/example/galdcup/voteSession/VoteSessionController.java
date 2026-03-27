@@ -5,6 +5,9 @@ import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.gemini.GeminiService;
 import com.example.galdcup.gemini.response.GeminiResponse;
+import com.example.galdcup.vote.VoteService;
+import com.example.galdcup.vote.request.CreateVoteRequest;
+import com.example.galdcup.vote.response.VoteDto;
 import com.example.galdcup.voteSession.request.CreateVoteSessionRequest;
 import com.example.galdcup.voteSession.response.VoteSessionDto;
 import jakarta.validation.Valid;
@@ -24,6 +27,7 @@ import java.util.Optional;
 public class VoteSessionController {
 
     private final VoteSessionService voteSessionService;
+    private final VoteService voteService;
     private final GeminiService geminiService;
 
     /**
@@ -85,5 +89,25 @@ public class VoteSessionController {
         GeminiResponse recommendation = geminiService.getRecommendation(boardId);
 
         return ResponseEntity.ok(recommendation);
+    }
+
+    /**
+     * 투표하기
+     */
+    @RateLimit(type = RateLimitType.INTERNAL)
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/{voteSessionId}/votes")
+    public ResponseEntity<VoteDto> createVote(@PathVariable Long boardId,
+                                              @PathVariable Long voteSessionId,
+                                              @RequestBody CreateVoteRequest request,
+                                              @AuthenticationPrincipal CustomUserDetails principal) {
+
+        VoteDto vote = voteService.createVote(
+                voteSessionId,
+                principal.getId(),
+                request.selectedOptionIndex()
+        );
+
+        return ResponseEntity.ok(vote);
     }
 }

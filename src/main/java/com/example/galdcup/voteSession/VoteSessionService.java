@@ -4,7 +4,6 @@ import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.vote.domain.VoteOption;
-import com.example.galdcup.vote.domain.VoteOptionRepository;
 import com.example.galdcup.vote.redis.VoteRedisManager;
 import com.example.galdcup.vote.response.VoteOptionDto;
 import com.example.galdcup.voteSession.domain.VoteSession;
