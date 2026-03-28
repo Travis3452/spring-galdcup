@@ -5,6 +5,8 @@ import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.gemini.GeminiService;
 import com.example.galdcup.gemini.response.GeminiResponse;
+import com.example.galdcup.gemini.response.OpinionAnalysisResponse;
+import com.example.galdcup.opinionAnalysis.OpinionAnalysisService;
 import com.example.galdcup.vote.VoteService;
 import com.example.galdcup.vote.request.CreateVoteRequest;
 import com.example.galdcup.vote.response.VoteDto;
@@ -29,6 +31,7 @@ public class VoteSessionController {
     private final VoteSessionService voteSessionService;
     private final VoteService voteService;
     private final GeminiService geminiService;
+    private final OpinionAnalysisService opinionAnalysisService;
 
     /**
      * 투표 세션 생성
@@ -89,6 +92,26 @@ public class VoteSessionController {
         GeminiResponse recommendation = geminiService.getRecommendation(boardId);
 
         return ResponseEntity.ok(recommendation);
+    }
+
+    @GetMapping("/{voteSessionId}/opinion-analysis")
+    public ResponseEntity<OpinionAnalysisResponse> getOpinionAnalysis(@PathVariable Long voteSessionId) {
+        OpinionAnalysisResponse cachedAnalysis = opinionAnalysisService.getCachedAnalysis(voteSessionId);
+
+        if (cachedAnalysis == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(cachedAnalysis);
+    }
+
+    /**
+     * [AI 분석] 현재 수집된 댓글을 바탕으로 실시간 여론(지지율) 분석
+     */
+    @RateLimit(type = RateLimitType.EXTERNAL)
+    @PostMapping("/{voteSessionId}/opinion-analysis")
+    public ResponseEntity<OpinionAnalysisResponse> opinionAnalysis(@PathVariable Long voteSessionId) {
+        OpinionAnalysisResponse newAnalysis = opinionAnalysisService.performAnalysisAndCache(voteSessionId);
+        return ResponseEntity.ok(newAnalysis);
     }
 
     /**

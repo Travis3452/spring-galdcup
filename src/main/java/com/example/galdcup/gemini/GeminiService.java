@@ -3,6 +3,7 @@ package com.example.galdcup.gemini;
 import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.gemini.response.GeminiResponse;
+import com.example.galdcup.gemini.response.OpinionAnalysisResponse;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
@@ -100,6 +101,44 @@ public class GeminiService {
                     "직접 창의적인 투표를 만들어보세요",
                     List.of("직접 입력 1", "직접 입력 2")
             );
+        }
+    }
+
+    /**
+     * 수집된 여론(댓글)을 분석하여 후보별 예상 지지율 산출
+     */
+    public OpinionAnalysisResponse analyzeOpinion(String topic, String description, List<String> candidates, String comments) {
+        String prompt = String.format(
+                "당신은 온라인 커뮤니티의 민심을 분석하는 '갈드컵 여론 조사관'입니다.\n\n" +
+                        "### [데이터]\n" +
+                        "- 주제: %s\n" +
+                        "- 설명: %s\n" +
+                        "- 후보: %s\n" +
+                        "- 수집된 댓글:\n%s\n\n" +
+                        "### [미션]\n" +
+                        "제공된 댓글을 바탕으로 각 후보의 현재 지지율(%%)을 예측하세요. 합계는 반드시 100%%여야 합니다.\n" +
+                        "오직 JSON 데이터만 반환하십시오.\n\n" +
+                        "### [응답 형식]\n" +
+                        "{\n" +
+                        "  \"results\": [\n" +
+                        "    { \"label\": \"후보1\", \"supportRate\": 60.0 },\n" +
+                        "    { \"label\": \"후보2\", \"supportRate\": 40.0 }\n" +
+                        "  ]\n" +
+                        "}",
+                topic, description, candidates, comments
+        );
+
+        try {
+            GenerateContentConfig config = GenerateContentConfig.builder()
+                    .responseMimeType("application/json")
+                    .temperature(0.3F)
+                    .build();
+
+            GenerateContentResponse response = client.models.generateContent("gemini-3-flash-preview", prompt, config);
+            return objectMapper.readValue(response.text(), OpinionAnalysisResponse.class);
+        } catch (Exception e) {
+            log.error("여론 분석 실패: {}", e.getMessage());
+            return OpinionAnalysisResponse.defaultResponse(candidates);
         }
     }
 }
