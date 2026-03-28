@@ -87,14 +87,15 @@ public class PostService {
      * 게시글 단건 조회 (조회수 증가 포함)
      */
     @Transactional(readOnly = true)
-    public PostDto findById(Long id) {
-        Optional<PostDto> cachedPostDto = postRedisManager.getPostDetail(id);
+    public PostDto findById(Long postId) {
+        Optional<PostDto> cachedPostDto = postRedisManager.getPostDetail(postId);
+        postRedisManager.incrementViewCount(postId);
 
         if (cachedPostDto.isPresent()) {
             return cachedPostDto.get();
         }
 
-        Post post = postValidator.findByIdOrThrow(id);
+        Post post = postValidator.findByIdOrThrow(postId);
         PostDto dto = PostDto.from(post);
         postRedisManager.savePostDetail(dto);
         return dto;
