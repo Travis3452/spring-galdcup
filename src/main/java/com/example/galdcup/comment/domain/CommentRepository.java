@@ -2,23 +2,23 @@ package com.example.galdcup.comment.domain;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     Page<Comment> findByPostIdAndParentCommentIsNull(Long postId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"post", "post.board"})
     Page<Comment> findByAuthorNickname(String nickname, Pageable pageable);
 
-    /**
-     * [Oracle] 게시판 내 유저별 최신 댓글을 하나씩만 추출하여 총 500개 조회
-     */
+    /** 특정 게시판 내의 최신 댓글 1개를 조회 */
+    Optional<Comment> findTopByPostBoardIdOrderByCreatedAtDesc(Long boardId);
+
+    /** 게시판 내 유저별 최신 댓글을 하나씩 추출하여 조회 */
     @Query(value = """
         SELECT * FROM comments 
         WHERE id IN (

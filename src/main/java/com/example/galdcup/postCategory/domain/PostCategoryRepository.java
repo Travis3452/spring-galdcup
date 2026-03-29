@@ -16,7 +16,5 @@ public interface PostCategoryRepository extends JpaRepository<PostCategory, Long
 
     boolean existsByBoardIdAndName(Long boardId, String name);
 
-    Optional<PostCategory> findByBoardIdAndName(Long boardId, String name);
-
-    List<PostCategory> findAllByBoardId(Long boardId);
+    Optional<PostCategory> findByBoardIdAndType(Long boardId, PostCategory.CategoryType type);
 }

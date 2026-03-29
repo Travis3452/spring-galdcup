@@ -6,16 +6,14 @@ import com.example.galdcup.gemini.GeminiService;
 import com.example.galdcup.gemini.response.OpinionAnalysisResponse;
 import com.example.galdcup.vote.domain.VoteOption;
 import com.example.galdcup.voteSession.domain.VoteSession;
+import com.example.galdcup.voteSession.redis.VoteSessionRedisManager; // 추가
 import com.example.galdcup.voteSession.validator.VoteSessionValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.util.List;
 
 @Service
@@ -26,22 +24,18 @@ public class OpinionAnalysisService {
     private final VoteSessionValidator voteSessionValidator;
     private final CommentRepository commentRepository;
     private final GeminiService geminiService;
-    private final RedisTemplate<String, Object> redisTemplate;
-
-    private static final String CACHE_KEY_FORMAT = "galdcup:vote:session:%d:analysis";
+    private final VoteSessionRedisManager voteSessionRedisManager;
 
     /**
      * 캐싱된 분석 결과 조회
      */
     public OpinionAnalysisResponse getCachedAnalysis(Long sessionId) {
-        String cacheKey = String.format(CACHE_KEY_FORMAT, sessionId);
-        return (OpinionAnalysisResponse) redisTemplate.opsForValue().get(cacheKey);
+        return voteSessionRedisManager.getOpinionAnalysis(sessionId).orElse(null);
     }
 
     /**
      * 실시간 여론 분석 수행 및 결과 캐싱
      */
-    @Transactional(readOnly = true)
     public OpinionAnalysisResponse performAnalysisAndCache(Long sessionId) {
 
         VoteSession session = voteSessionValidator.validateAndGetVoteSession(sessionId);
@@ -70,21 +64,9 @@ public class OpinionAnalysisService {
         );
 
         // 5. Redis 캐시 저장
-        saveToCache(sessionId, response);
+        voteSessionRedisManager.saveOpinionAnalysis(sessionId, response);
 
         return response;
-    }
-
-    /**
-     * Redis 캐시 저장 헬퍼
-     */
-    private void saveToCache(Long sessionId, OpinionAnalysisResponse response) {
-        String cacheKey = String.format(CACHE_KEY_FORMAT, sessionId);
-        try {
-            redisTemplate.opsForValue().set(cacheKey, response, Duration.ofMinutes(30));
-        } catch (Exception e) {
-            log.error("Redis 저장 실패: {}", e.getMessage());
-        }
     }
 
     /**

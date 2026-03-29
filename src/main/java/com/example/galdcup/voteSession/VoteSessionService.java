@@ -59,19 +59,24 @@ public class VoteSessionService {
     /** 진행 중인 세션 조회 */
     @Transactional(readOnly = true)
     public Optional<VoteSessionDto> getActiveVoteSession(Long boardId) {
-        VoteSessionDto sessionDto = voteSessionRedisManager.getActiveVoteSession(boardId)
-                .orElseGet(() -> {
-                    return voteSessionRepository.findByBoardIdAndIsFinishedFalse(boardId)
-                            .map(session -> {
-                                VoteSessionDto dto = VoteSessionDto.from(session);
-                                voteSessionRedisManager.saveVoteSession(boardId, dto);
-                                return dto;
-                            }).orElse(null);
-                });
+        Optional<VoteSessionDto> sessionDtoOpt = voteSessionRedisManager.getActiveVoteSession(boardId);
 
-        if (sessionDto == null) return Optional.empty();
+        if (sessionDtoOpt.isEmpty()) {
+            sessionDtoOpt = voteSessionRepository.findByBoardIdAndIsFinishedFalse(boardId)
+                    .map(session -> {
+                        VoteSessionDto dto = VoteSessionDto.from(session);
+                        voteSessionRedisManager.saveVoteSession(boardId, dto);
+                        return dto;
+                    });
+        }
 
+        if (sessionDtoOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        VoteSessionDto sessionDto = sessionDtoOpt.get();
         Map<String, String> realTimeCounts = voteRedisManager.getVoteCounts(sessionDto.getId());
+
         return Optional.of(assembleVoteSession(sessionDto, realTimeCounts));
     }
 
@@ -102,7 +107,7 @@ public class VoteSessionService {
     @Transactional
     public void finishVoteSession(Long boardId, Long voteSessionId, Long userId) {
         boardValidator.getBoardIfBoardManager(boardId, userId);
-        VoteSession session = voteSessionValidator.validateAndGetVoteSession(voteSessionId);
+        VoteSession session = voteSessionValidator.validateAndGetVoteSessionWithOptions(voteSessionId);
 
         session.terminate();
 
@@ -117,7 +122,8 @@ public class VoteSessionService {
 
     /** DB에서 과거 세션 데이터를 가져오는 헬퍼 메서드 */
     private Page<VoteSessionDto> fetchPastSessionsFromDb(Long boardId, Pageable pageable) {
-        Board board = boardValidator.getBoardIfOpen(boardId);
+        Board board = boardValidator.findActiveBoardByIdOrThrow(boardId);
+
         return voteSessionRepository.findByBoardAndIsFinishedTrue(board, pageable)
                 .map(VoteSessionDto::from);
     }

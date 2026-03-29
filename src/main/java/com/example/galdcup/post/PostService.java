@@ -65,7 +65,7 @@ public class PostService {
      */
     @Transactional
     public PostDto create(Long boardId, Long categoryId, Long authorId, String title, String content) {
-        Board board = boardValidator.getBoardIfOpen(boardId);
+        Board board = boardValidator.findActiveBoardByIdOrThrow(boardId);
         User author = userValidator.findByIdOrThrow(authorId);
         PostCategory category = postCategoryValidator.getIfBelongsToBoard(categoryId, boardId);
 
@@ -95,7 +95,7 @@ public class PostService {
             return cachedPostDto.get();
         }
 
-        Post post = postValidator.findByIdOrThrow(postId);
+        Post post = postValidator.findPostWithCategoryOrThrow(postId);
         PostDto dto = PostDto.from(post);
         postRedisManager.savePostDetail(dto);
         return dto;
@@ -106,7 +106,7 @@ public class PostService {
      */
     @Transactional
     public PostDto update(Long postId, Long categoryId, Long authorId, String title, String content) {
-        Post post = postValidator.findByIdOrThrow(postId);
+        Post post = postValidator.findPostWithDetailsOrThrow(postId);
         User user = userValidator.findByIdOrThrow(authorId);
 
         postValidator.validateIsAuthor(post, authorId);
@@ -202,6 +202,7 @@ public class PostService {
      */
     @Transactional
     public void addReaction(Long postId, Long currentUserId, PostReaction.ReactionType type) {
+        // 단순 존재 여부와 좋아요 추가를 위해 가벼운 기본 조회 사용
         Post post = postValidator.findByIdOrThrow(postId);
         User user = userValidator.findByIdOrThrow(currentUserId);
 

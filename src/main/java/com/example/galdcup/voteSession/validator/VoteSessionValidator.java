@@ -13,16 +13,14 @@ import java.time.OffsetDateTime;
 public class VoteSessionValidator {
     private final VoteSessionRepository voteSessionRepository;
 
-    /**
-     * 게시판에 진행 중인 VoteSession이 있는지 검증하고 반환
-     */
+    /** 게시판에 진행 중인 VoteSession이 있는지 검증하고 반환 */
     public VoteSession validateAndGetActiveVoteSession(Long boardId) {
         return voteSessionRepository.findByBoardIdAndIsFinishedFalse(boardId)
                 .orElseThrow(() -> new IllegalStateException("현재 진행 중인 투표 세션이 존재하지 않습니다."));
     }
 
     /**
-     * 게시판에 진행 중인 VoteSession이 있는지 검증
+     * 게시판에 진행 중인 VoteSession 존재 여부 확인
      */
     public void validateNoActiveVoteSession(Board board) {
         if (voteSessionRepository.existsByBoardAndIsFinishedFalse(board)) {
@@ -30,25 +28,15 @@ public class VoteSessionValidator {
         }
     }
 
-    /**
-     * 투표 세션이 존재하는지 검증
-     */
+    /** VoteSession의 존재를 검증하고 반환 */
     public VoteSession validateAndGetVoteSession(Long voteSessionId) {
         return voteSessionRepository.findById(voteSessionId)
                 .orElseThrow(() -> new IllegalArgumentException("투표 세션을 찾을 수 없습니다."));
     }
 
-    /**
-     * 올바른 투표인지 검증
-     */
-    public void validateVote(VoteSession voteSession, int selectedOptionIndex, OffsetDateTime now) {
-
-        if (now.isBefore(voteSession.getStartTime()) || now.isAfter(voteSession.getEndTime())) {
-            throw new IllegalStateException("현재는 투표 가능 시간이 아닙니다.");
-        }
-
-        if (selectedOptionIndex < 0 || selectedOptionIndex >= voteSession.getOptions().size()) {
-            throw new IllegalArgumentException("잘못된 투표 옵션입니다.");
-        }
+    /** 투표 세션 및 옵션 목록을 한꺼번에 조회 */
+    public VoteSession validateAndGetVoteSessionWithOptions(Long voteSessionId) {
+        return voteSessionRepository.findVoteSessionWithOptionsById(voteSessionId)
+                .orElseThrow(() -> new IllegalArgumentException("투표 세션을 찾을 수 없습니다."));
     }
 }

@@ -32,12 +32,11 @@ public class VoteService {
      * 투표 생성 및 실시간 카운트 처리
      */
     @Transactional
-    public VoteDto createVote(Long voteSessionId, Long userId, int selectedOptionIndex) {
-        VoteSession session = voteSessionValidator.validateAndGetVoteSession(voteSessionId);
+    public VoteDto createVote(Long boardId, Long voteSessionId, Long userId, int selectedOptionIndex) {
+        VoteSession session = voteSessionValidator.validateAndGetActiveVoteSession(boardId);
         userValidator.findByIdOrThrow(userId);
 
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Asia/Seoul"));
-        voteSessionValidator.validateVote(session, selectedOptionIndex, now);
 
         ensureVoteCountsInRedis(session, now);
 

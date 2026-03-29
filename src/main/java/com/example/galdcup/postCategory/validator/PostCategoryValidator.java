@@ -20,6 +20,14 @@ public class PostCategoryValidator {
     }
 
     /**
+     * 특정 게시판의 '일반' 카테고리를 조회
+     */
+    public PostCategory findGeneralCategoryOrThrowByBoardId(Long boardId) {
+        return postCategoryRepository.findByBoardIdAndType(boardId, PostCategory.CategoryType.GENERAL)
+                .orElseThrow(() -> new IllegalStateException("해당 게시판에 일반 카테고리가 존재하지 않습니다."));
+    }
+
+    /**
      * 시스템 카테고리(NOTICE, GENERAL)인지 확인 (수정/삭제 방지)
      */
     public void validateRemovable(PostCategory postCategory) {

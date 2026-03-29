@@ -15,9 +15,11 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> findByStatus(Board.Status status, Pageable pageable);
 
     @Query("SELECT b FROM Board b " +
-            "JOIN FETCH b.boardPolicy " +
-            "WHERE b.id = :id AND b.status = 'OPEN'")
-    Optional<Board> findBoardWithPolicyById(@Param("id") Long id);
+            "JOIN FETCH b.boardPolicy bp " +
+            "LEFT JOIN FETCH bp.boardManager " +
+            "LEFT JOIN FETCH bp.subManagers " +
+            "WHERE b.id = :id")
+    Optional<Board> findBoardWithFullPolicyByBoardId(@Param("id") Long boardId);
 
     @Modifying
     @Query("UPDATE Board b SET b.boardPolicy.boardManager.id = NULL WHERE b.boardPolicy.boardManager.id = :userId")

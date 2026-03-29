@@ -127,6 +127,7 @@ public class VoteSessionController {
                                               @AuthenticationPrincipal CustomUserDetails principal) {
 
         VoteDto vote = voteService.createVote(
+                boardId,
                 voteSessionId,
                 principal.getId(),
                 request.selectedOptionIndex()

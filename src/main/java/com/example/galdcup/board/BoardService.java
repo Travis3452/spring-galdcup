@@ -80,7 +80,7 @@ public class BoardService {
     public BoardDetailResponse getBoardDetail(Long boardId) {
         return boardRedisManager.getBoardDetail(boardId)
                 .orElseGet(() -> {
-                    Board board = boardValidator.findBoardWithPolicyById(boardId);
+                    Board board = boardValidator.findBoardWithFullPolicyOrThrow(boardId);
                     List<PostCategoryDto> categories = postCategoryService.findByBoardId(boardId);
                     BoardDetailResponse response = BoardDetailResponse.builder()
                             .board(BoardDto.from(board))
@@ -155,7 +155,7 @@ public class BoardService {
      */
     @Transactional
     public BoardManagerRequestDto applyForManager(Long boardId, Long userId) {
-        Board board = boardValidator.findBoardWithPolicyById(boardId);
+        Board board = boardValidator.findBoardWithFullPolicyOrThrow(boardId);
         User applicant = userValidator.findByIdOrThrow(userId);
 
         boardValidator.validateNoPendingRequest(userId, boardId);

@@ -31,7 +31,7 @@ public class DummyDataController {
             @PathVariable Long boardId,
             @AuthenticationPrincipal CustomUserDetails principal) {
         try {
-            dummyDataService.generateDummyPosts(boardId);
+            dummyDataService.generateDummyPosts(boardId, principal.getId());
             return ResponseEntity.ok("게시판에 AI 기획 더미 게시글 10개가 생성되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("❌ 생성 실패: " + e.getMessage());
@@ -48,7 +48,7 @@ public class DummyDataController {
             @PathVariable Long boardId,
             @AuthenticationPrincipal CustomUserDetails principal) {
         try {
-            dummyDataService.generateDummyComments(boardId);
+            dummyDataService.generateDummyComments(boardId, principal.getId());
             return ResponseEntity.ok("게시판에 20개의 더미 댓글이 생성되었습니다.");
         } catch (Exception e) {
             log.error("댓글 생성 실패: {}", e.getMessage());
