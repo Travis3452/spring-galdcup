@@ -31,7 +31,7 @@ public class Board {
     @Column(nullable = false, length = 100)
     private String topic;
 
-    @Column(length = 500)
+    @Column(length = 1000)
     private String description;
 
     @OneToOne(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)

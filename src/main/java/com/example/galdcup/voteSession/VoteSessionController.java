@@ -1,12 +1,12 @@
 package com.example.galdcup.voteSession;
 
+import com.example.galdcup.OpinionAnalysis.OpinionAnalysisService;
 import com.example.galdcup.common.rateLimit.RateLimit;
 import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.gemini.GeminiService;
-import com.example.galdcup.gemini.response.GeminiResponse;
 import com.example.galdcup.gemini.response.OpinionAnalysisResponse;
-import com.example.galdcup.opinionAnalysis.OpinionAnalysisService;
+import com.example.galdcup.gemini.response.VoteSessionContextResponse;
 import com.example.galdcup.vote.VoteService;
 import com.example.galdcup.vote.request.CreateVoteRequest;
 import com.example.galdcup.vote.response.VoteDto;
@@ -88,8 +88,8 @@ public class VoteSessionController {
      */
     @RateLimit(type = RateLimitType.EXTERNAL)
     @GetMapping("/recommend")
-    public ResponseEntity<GeminiResponse> recommendVoteSession(@PathVariable Long boardId) {
-        GeminiResponse recommendation = geminiService.getRecommendation(boardId);
+    public ResponseEntity<VoteSessionContextResponse> recommendVoteSession(@PathVariable Long boardId) {
+        VoteSessionContextResponse recommendation = geminiService.getRecommendation(boardId);
 
         return ResponseEntity.ok(recommendation);
     }
@@ -108,6 +108,7 @@ public class VoteSessionController {
      * [AI 분석] 현재 수집된 댓글을 바탕으로 실시간 여론(지지율) 분석
      */
     @RateLimit(type = RateLimitType.EXTERNAL)
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{voteSessionId}/opinion-analysis")
     public ResponseEntity<OpinionAnalysisResponse> opinionAnalysis(@PathVariable Long voteSessionId) {
         OpinionAnalysisResponse newAnalysis = opinionAnalysisService.performAnalysisAndCache(voteSessionId);

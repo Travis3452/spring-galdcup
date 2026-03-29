@@ -2,8 +2,10 @@ package com.example.galdcup.gemini;
 
 import com.example.galdcup.board.domain.Board;
 import com.example.galdcup.board.validator.BoardValidator;
-import com.example.galdcup.gemini.response.GeminiResponse;
+import com.example.galdcup.gemini.response.CommentContextResponse;
 import com.example.galdcup.gemini.response.OpinionAnalysisResponse;
+import com.example.galdcup.gemini.response.PostContextResponse;
+import com.example.galdcup.gemini.response.VoteSessionContextResponse;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -42,12 +45,12 @@ public class GeminiService {
     /**
      * 게시판 주제와 설명을 바탕으로 AI가 기획한 갈드컵 투표 세션 추천
      */
-    public GeminiResponse getRecommendation(Long boardId) {
-
+    public VoteSessionContextResponse getRecommendation(Long boardId) {
         Board board = boardValidator.findByIdOrThrow(boardId);
 
         String prompt = String.format(
-                "당신은 대한민국 2030 남성들이 이용하는 주요 온라인 커뮤니티 정서와 '근본' 문화를 꿰뚫어 보는 갈드컵 설계자입니다.\n\n" +
+                "### [System Seed: %s]\n" +
+                        "당신은 대한민국 2030 남성들이 이용하는 주요 온라인 커뮤니티 정서와 '근본' 문화를 꿰뚫어 보는 갈드컵 설계자입니다.\n\n" +
                         "### [데이터 제약 사항 (필수 준수)]\n" +
                         "1. 주제(topic): 공백 포함 **50자 이내** (자극적이고 핵심적인 제목)\n" +
                         "2. 전체 설명(description): 공백 포함 **255자 이내** (모든 선택지에 대한 조건이나 페널티, 부연 설명을 여기에 몰아서 작성하십시오)\n" +
@@ -71,74 +74,148 @@ public class GeminiService {
                         "  \"description\": \"255자 이내의 상세 조건 및 설명\",\n" +
                         "  \"options\": [\"투표 선택지 명칭1\", \"투표 선택지 명칭2\"]\n" +
                         "}",
-                board.getTopic(), board.getDescription()
+                LocalDateTime.now(), board.getTopic(), board.getDescription()
         );
 
+        return callGeminiForJson(prompt, VoteSessionContextResponse.class, 0.8F);
+    }
+
+    /**
+     * 수집된 여론(댓글)을 분석하여 후보별 예상 지지율 및 AI 분석평 산출
+     */
+    public OpinionAnalysisResponse analyzeOpinion(String topic, String description, List<String> candidates, String comments) {
+        String prompt = String.format("""
+            ### [Analysis Seed: %s]
+            당신은 대한민국 온라인 커뮤니티의 민심을 꿰뚫어 보는 '갈드컵 전문 분석관'입니다.
+            제공된 댓글 데이터를 바탕으로 현재의 여론 지형을 분석하세요.
+    
+            ### [데이터]
+            - 주제: %s
+            - 설명: %s
+            - 후보: %s
+            - 수집된 댓글 소스:
+            %s
+    
+            ### [미션]
+            1. 각 후보의 지지율(%%)을 예측하세요. (합계 100%% 필수)
+            2. 현재 커뮤니티 여론의 핵심 흐름과 논쟁 포인트를 짚어주는 **분석 요약(summary)**을 작성하세요.
+    
+            ### [요약 작성 가이드라인]
+            - 톤앤매너: 커뮤니티 유저들이 공감할 수 있는 날카롭고 재치 있는 문체 (예: "~하는 분위기가 지배적임", "~가 치명타로 작용한 듯함")
+            - 분량: 공백 포함 100~150자 내외로 강렬하게 작성하십시오.
+    
+            ### [응답 형식 - JSON 출력만 허용]
+            {
+              "results": [
+                { "label": "후보1", "supportRate": 60.0 },
+                { "label": "후보2", "supportRate": 40.0 }
+              ],
+              "summary": "현재 여론은 후보1의 압승 분위기입니다..."
+            }
+            """,
+                LocalDateTime.now(), topic, description, String.join(", ", candidates), comments
+        );
+
+        return callGeminiForJson(prompt, OpinionAnalysisResponse.class, 0.3F);
+    }
+
+    /**
+     * [게시글 전용] 커뮤니티 이슈 메이커 페르소나 주입 (제목+내용 세트 10개)
+     */
+    public PostContextResponse getPostContext(String topic, String description, List<String> candidates) {
+        String prompt = String.format("""
+           ### [Generation Seed: %s]
+           당신은 대한민국 커뮤니티의 '이슈 메이커'입니다. [%s] 주제로 게시글 **10세트**를 생성하세요.
+            
+           ### [데이터 제약 사항]
+           1. 수량: 반드시 **10개의 제목-본문 세트**를 생성하십시오.
+           2. 제목(title): 15자 이내 / 내용(content): 50자 이내.
+    
+            ### [미션: 여론 점화용 게시글 기획]
+            투표 주제 [%s]와 상세 설명 [%s]을 분석하여, 유저들이 투표장에 달려오게 할 만한 다양한 성격의 글을 작성하세요.
+    
+            ### [설계 가이드라인 - 3가지 페르소나 혼합]
+            - [선동가형]: "솔직히 %s 지지하는 애들은 능지 문제 아님?", "방금 뜬 뉴스인데 %s 실체 실화냐?" 같이 감정을 자극하는 글.
+            - [분석가형]: "객관적인 수치로 정리해줌", "팩트체크) %s vs %s, 누가 더 우위인가?" 같이 데이터(가상의 데이터 포함)를 제시하는 척하는 글.
+            - [공감유도형]: "나만 이거 불편함?", "요즘 대세는 무조건 %s 아님? 주변 봐도 다 이거임" 같이 여론에 호소하는 글.
+    
+            ### [출력 규칙 (CRITICAL)]
+            - **리얼리티**: 커뮤니티 특유의 구어체, 줄임말(닥전, 닥후, 뇌절 등), 적절한 신조어와 비속어를 필터링된 수준(매운맛 톤앤매너)으로 사용하세요.
+            - **일관성**: 각 객체의 'title'과 'content'는 반드시 하나의 맥락으로 이어져야 합니다.
+            - **가독성**: 본문은 모바일 앱 가독성을 고려하여 줄바꿈(\\n)을 적절히 포함하십시오.
+    
+            ### [응답 형식 - JSON 출력만 허용]
+            {
+              "posts": [
+                { "title": "...", "content": "..." }
+              ]
+            }
+            """,
+                LocalDateTime.now(), topic, topic, description,
+                candidates.get(0), candidates.get(1),
+                candidates.get(0), candidates.get(1),
+                candidates.get(0)
+        );
+
+        return callGeminiForJson(prompt, PostContextResponse.class, 0.9F);
+    }
+
+    /**
+     * [댓글 전용] 커뮤니티 페르소나 기반 실시간 댓글 20개 직접 생성
+     */
+    public CommentContextResponse getCommentContext(String topic, String description, List<String> candidates) {
+        String prompt = String.format("""
+            ### [Comment Seed: %s]
+            당신은 대한민국 온라인 커뮤니티의 '갈드컵' 현장에서 치열하게 키보드 배틀을 벌이는 20명의 유저들입니다.
+            진행 중인 투표 주제 [%s]에 대해, 각자의 페르소나에 맞춰 생생하고 날카로운 댓글 20개를 작성하세요.
+    
+            ### [데이터 제약 사항 (필수 준수)]
+            1. 수량: 반드시 **20개의 독립적인 댓글**을 생성하십시오.
+            2. 길이: 각 댓글당 공백 포함 **30자 이내**.
+            3. 대상: 후보군 [%s] 중 하나 이상을 반드시 언급하거나 비교해야 합니다.
+    
+            ### [미션: 리얼한 커뮤니티 민심 재현]
+            투표 주제 [%s]와 상세 설명 [%s]을 바탕으로 아래 3가지 유형의 유저들이 뒤섞여 싸우는 난장판을 만드세요.
+    
+            ### [설계 가이드라인 - 페르소나 분포]
+            - [극성 팬층 (약 7개)], [안티 (약 7개)], [중립 (약 6개)]
+    
+            ### [출력 규칙 (CRITICAL)]
+            - **리얼리티**: 구어체, 'ㄹㅇ', 'ㅋㅋ', 'ㄷ후', '능지' 등 리얼한 용어 사용.
+            - **맥락 일치**: 투표 설명 제약 조건 활용.
+    
+            ### [응답 형식 - JSON 출력만 허용]
+            {
+              "comments": ["..."]
+            }
+            """,
+                LocalDateTime.now(), topic, String.join(", ", candidates), topic, description
+        );
+
+        return callGeminiForJson(prompt, CommentContextResponse.class, 0.8F);
+    }
+
+    /**
+     * Gemini API 호출 및 JSON 파싱 처리
+     */
+    private <T> T callGeminiForJson(String prompt, Class<T> responseType, float temperature) {
         try {
-            // JSON 응답 강제 및 답변 확산도(Temperature) 설정
             GenerateContentConfig config = GenerateContentConfig.builder()
                     .responseMimeType("application/json")
-                    .temperature(0.8F)
+                    .temperature(temperature)
                     .build();
 
-            // Gemini 3 Flash 모델 호출
-            GenerateContentResponse response = client.models.generateContent("gemini-3-flash-preview", prompt, config);
+            GenerateContentResponse response = client.models.generateContent("gemini-3.1-flash-lite-preview", prompt, config);
 
             String jsonResponse = response.text();
             if (jsonResponse == null || jsonResponse.isBlank()) {
                 throw new IllegalStateException("Gemini API로부터 빈 응답 수신");
             }
 
-            // 수신한 JSON 텍스트를 DTO 객체로 변환
-            return objectMapper.readValue(jsonResponse, GeminiResponse.class);
-
+            return objectMapper.readValue(jsonResponse, responseType);
         } catch (Exception e) {
-            log.error("AI 추천 콘텐츠 생성 실패 (게시판 ID: {}): {}", boardId, e.getMessage());
-
-            // API 호출 실패 시 기본 데이터 반환
-            return new GeminiResponse(
-                    "추천 주제를 불러올 수 없음",
-                    "직접 창의적인 투표를 만들어보세요",
-                    List.of("직접 입력 1", "직접 입력 2")
-            );
-        }
-    }
-
-    /**
-     * 수집된 여론(댓글)을 분석하여 후보별 예상 지지율 산출
-     */
-    public OpinionAnalysisResponse analyzeOpinion(String topic, String description, List<String> candidates, String comments) {
-        String prompt = String.format(
-                "당신은 온라인 커뮤니티의 민심을 분석하는 '갈드컵 여론 조사관'입니다.\n\n" +
-                        "### [데이터]\n" +
-                        "- 주제: %s\n" +
-                        "- 설명: %s\n" +
-                        "- 후보: %s\n" +
-                        "- 수집된 댓글:\n%s\n\n" +
-                        "### [미션]\n" +
-                        "제공된 댓글을 바탕으로 각 후보의 현재 지지율(%%)을 예측하세요. 합계는 반드시 100%%여야 합니다.\n" +
-                        "오직 JSON 데이터만 반환하십시오.\n\n" +
-                        "### [응답 형식]\n" +
-                        "{\n" +
-                        "  \"results\": [\n" +
-                        "    { \"label\": \"후보1\", \"supportRate\": 60.0 },\n" +
-                        "    { \"label\": \"후보2\", \"supportRate\": 40.0 }\n" +
-                        "  ]\n" +
-                        "}",
-                topic, description, candidates, comments
-        );
-
-        try {
-            GenerateContentConfig config = GenerateContentConfig.builder()
-                    .responseMimeType("application/json")
-                    .temperature(0.3F)
-                    .build();
-
-            GenerateContentResponse response = client.models.generateContent("gemini-3-flash-preview", prompt, config);
-            return objectMapper.readValue(response.text(), OpinionAnalysisResponse.class);
-        } catch (Exception e) {
-            log.error("여론 분석 실패: {}", e.getMessage());
-            return OpinionAnalysisResponse.defaultResponse(candidates);
+            log.warn("Gemini 호출 또는 JSON 변환 오류 [Type: {}]: {}", responseType.getSimpleName(), e.getMessage());
+            throw new RuntimeException("AI 서비스 통신 오류", e);
         }
     }
 }

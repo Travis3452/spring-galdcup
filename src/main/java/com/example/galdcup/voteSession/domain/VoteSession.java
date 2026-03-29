@@ -32,7 +32,7 @@ public class VoteSession {
     @Column(nullable = false, length = 100)
     private String topic;
 
-    @Column(length = 255)
+    @Column(length = 1000)
     private String description;
 
     private OffsetDateTime startTime;

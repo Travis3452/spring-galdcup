@@ -59,4 +59,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying
     @Query("UPDATE Post post SET post.viewCount = post.viewCount + :views WHERE post.id = :id")
     void incrementViewCount(@Param("id") Long id, @Param("views") long views);
+
+    @EntityGraph(attributePaths = {"postCategory"})
+    Page<Post> findByBoardIdOrderByCreatedAtDesc(Long boardId, Pageable pageable);
 }

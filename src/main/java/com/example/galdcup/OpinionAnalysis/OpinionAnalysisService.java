@@ -1,4 +1,4 @@
-package com.example.galdcup.opinionAnalysis;
+package com.example.galdcup.OpinionAnalysis;
 
 import com.example.galdcup.comment.domain.Comment;
 import com.example.galdcup.comment.domain.CommentRepository;
@@ -51,11 +51,11 @@ public class OpinionAnalysisService {
                 .map(VoteOption::getLabel)
                 .toList();
 
-        // 2. DB에서 유저별 최신 댓글 500개 로드
-        Pageable top500 = PageRequest.of(0, 500);
+        // 2. DB에서 유저별 최신 댓글 50개 로드
+        Pageable top50 = PageRequest.of(0, 50);
         List<Comment> rawComments = commentRepository.findTopUniqueUsersByBoardId(
                 session.getBoard().getId(),
-                top500
+                top50
         );
 
         // 3. 토큰 최적화
@@ -88,11 +88,11 @@ public class OpinionAnalysisService {
     }
 
     /**
-     * 텍스트 최적화 (3,000자 제한)
+     * 텍스트 최적화 (1,500자 제한)
      */
     private String optimizeComments(List<Comment> comments) {
         StringBuilder sb = new StringBuilder();
-        int MAX_CHARS = 3000;
+        int MAX_CHARS = 1500;
 
         for (Comment comment : comments) {
             String content = comment.getContent();

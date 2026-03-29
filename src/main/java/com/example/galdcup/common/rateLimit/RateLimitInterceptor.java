@@ -60,7 +60,6 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     private void applyL2Limit(RateLimitType type) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        // 인증되지 않은 사용자가 @RateLimit API 접근 시 차단
         if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
             throw new RateLimitExceededException("로그인이 필요한 서비스입니다.");
         }

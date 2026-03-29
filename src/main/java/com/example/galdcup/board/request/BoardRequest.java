@@ -14,7 +14,7 @@ public class BoardRequest {
             String topic,
 
             @NotBlank(message = "갈드컵의 설명을 입력해야 합니다.")
-            @Size(min = 5, max = 200, message = "설명을 5자 이상 200자 이하로 입력하세요.")
+            @Size(min = 5, max = 1000, message = "설명을 5자 이상 1000자 이하로 입력하세요.")
             String description
     ) {}
 

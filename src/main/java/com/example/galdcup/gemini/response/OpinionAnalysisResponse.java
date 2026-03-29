@@ -17,6 +17,7 @@ import java.util.List;
 public class OpinionAnalysisResponse {
 
     private List<AnalysisResult> results;
+    private String summary;
 
     @Getter
     @NoArgsConstructor
@@ -32,6 +33,6 @@ public class OpinionAnalysisResponse {
         List<AnalysisResult> results = candidates.stream()
                 .map(label -> new AnalysisResult(label, equalRate))
                 .toList();
-        return new OpinionAnalysisResponse(results);
+        return new OpinionAnalysisResponse(results, "데이터를 분석할 수 없습니다.");
     }
 }

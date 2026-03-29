@@ -11,10 +11,10 @@ import java.util.List;
 
 public record CreateVoteSessionRequest(
         @NotBlank(message = "투표 주제를 입력해야 합니다.")
-        @Size(max = 50, message = "투표 주제는 50자를 초과할 수 없습니다.")
+        @Size(max = 100, message = "투표 주제는 100자를 초과할 수 없습니다.")
         String topic,
 
-        @Size(max = 255, message = "투표 설명은 255자를 초과할 수 없습니다.")
+        @Size(max = 1000, message = "투표 설명은 1000자를 초과할 수 없습니다.")
         String description,
 
         @NotNull(message = "투표 시작 시간을 설정해야 합니다.")

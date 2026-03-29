@@ -15,4 +15,8 @@ public interface PostCategoryRepository extends JpaRepository<PostCategory, Long
     Optional<Integer> findMaxSortOrderByBoardId(@Param("boardId") Long boardId);
 
     boolean existsByBoardIdAndName(Long boardId, String name);
+
+    Optional<PostCategory> findByBoardIdAndName(Long boardId, String name);
+
+    List<PostCategory> findAllByBoardId(Long boardId);
 }
