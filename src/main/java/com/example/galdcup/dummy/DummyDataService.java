@@ -17,6 +17,7 @@ import com.example.galdcup.voteSession.validator.VoteSessionValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,8 +50,13 @@ public class DummyDataService {
                 .orElseThrow(() -> new IllegalStateException("일반 카테고리가 없습니다."));
         List<String> labels = getLabels(session);
 
+        String latestTitle = postRepository.findByBoardIdOrderByCreatedAtDesc(boardId, PageRequest.of(0, 1))
+                .getContent().stream()
+                .map(Post::getTitle)
+                .findFirst().orElse("최초 게시글 생성");
+
         PostContextResponse ctx = geminiService.getPostContext(
-                session.getTopic(), session.getDescription(), labels);
+                session.getTopic(), session.getDescription(), labels, latestTitle);
 
         int postCount = ctx.posts().size();
         List<User> authors = getRandomDummyUsers(postCount);
@@ -87,8 +93,14 @@ public class DummyDataService {
 
         if (targetPosts.isEmpty()) throw new IllegalStateException("댓글을 작성할 게시글이 없습니다.");
 
+        String latestComment = commentRepository.findAll(
+                        PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "createdAt")))
+                .getContent().stream()
+                .map(Comment::getContent)
+                .findFirst().orElse("새로운 댓글 환영");
+
         CommentContextResponse ctx = geminiService.getCommentContext(
-                session.getTopic(), session.getDescription(), labels);
+                session.getTopic(), session.getDescription(), labels, latestComment);
 
         List<String> aiComments = ctx.comments();
         int commentCount = aiComments.size();
