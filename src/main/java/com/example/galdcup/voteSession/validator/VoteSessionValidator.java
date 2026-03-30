@@ -13,6 +13,12 @@ import java.time.OffsetDateTime;
 public class VoteSessionValidator {
     private final VoteSessionRepository voteSessionRepository;
 
+    /** VoteSession의 존재를 검증하고 반환 */
+    public VoteSession validateAndGetVoteSessionWithOptionsAndBoard(Long voteSessionId) {
+        return voteSessionRepository.findWithOptionsAndBoardById(voteSessionId)
+                .orElseThrow(() -> new IllegalArgumentException("투표 세션을 찾을 수 없습니다."));
+    }
+
     /** 게시판에 진행 중인 VoteSession이 있는지 검증하고 반환 */
     public VoteSession validateAndGetActiveVoteSession(Long boardId) {
         return voteSessionRepository.findByBoardIdAndIsFinishedFalse(boardId)
@@ -26,12 +32,6 @@ public class VoteSessionValidator {
         if (voteSessionRepository.existsByBoardAndIsFinishedFalse(board)) {
             throw new IllegalStateException("지금 진행 중인 투표 세션이 존재합니다.");
         }
-    }
-
-    /** VoteSession의 존재를 검증하고 반환 */
-    public VoteSession validateAndGetVoteSession(Long voteSessionId) {
-        return voteSessionRepository.findById(voteSessionId)
-                .orElseThrow(() -> new IllegalArgumentException("투표 세션을 찾을 수 없습니다."));
     }
 
     /** 투표 세션 및 옵션 목록을 한꺼번에 조회 */

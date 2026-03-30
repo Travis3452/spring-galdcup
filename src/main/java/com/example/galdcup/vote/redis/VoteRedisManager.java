@@ -79,6 +79,16 @@ public class VoteRedisManager {
                 ));
     }
 
+    /** 실시간 총 투표 수 조회 */
+    public long getTotalVoteCount(Long voteSessionId) {
+        String countKey = String.format(VOTE_COUNT_KEY, voteSessionId);
+        List<Object> values = redisTemplate.opsForHash().values(countKey);
+
+        return values.stream()
+                .mapToLong(val -> Long.parseLong(val.toString()))
+                .sum();
+    }
+
     /** 메모리 정리 */
     public void deleteVoteCounts(Long voteSessionId) {
         redisTemplate.unlink(String.format(VOTE_COUNT_KEY, voteSessionId));

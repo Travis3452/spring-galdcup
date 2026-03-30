@@ -18,6 +18,13 @@ public interface VoteSessionRepository extends JpaRepository<VoteSession, Long> 
 
     boolean existsByBoardAndIsFinishedFalse(Board board);
 
+    @EntityGraph(attributePaths = {"options", "board"})
+    Optional<VoteSession> findWithOptionsAndBoardById(Long id);
+
+    /** 게시판의 가장 최신 투표 세션 1개 조회 */
+    @EntityGraph(attributePaths = {"options"})
+    Optional<VoteSession> findTopByBoardIdOrderByEndTimeDesc(Long boardId);
+
     /** 진행 중인 세션 조회 */
     @EntityGraph(attributePaths = {"options"})
     Optional<VoteSession> findByBoardIdAndIsFinishedFalse(Long boardId);

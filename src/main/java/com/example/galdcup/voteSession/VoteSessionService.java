@@ -5,7 +5,6 @@ import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.vote.domain.VoteOption;
 import com.example.galdcup.vote.redis.VoteRedisManager;
-import com.example.galdcup.vote.response.VoteOptionDto;
 import com.example.galdcup.voteSession.domain.VoteSession;
 import com.example.galdcup.voteSession.domain.VoteSessionRepository;
 import com.example.galdcup.voteSession.redis.VoteSessionRedisManager;
@@ -22,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 @Slf4j
 @Service
@@ -51,33 +49,34 @@ public class VoteSessionService {
         voteSessionRepository.save(voteSession);
 
         // 진행 중인 세션 캐시 무효화
-        voteSessionRedisManager.deleteVoteSession(boardId);
+        voteSessionRedisManager.deleteLatestVoteSession(boardId);
 
         return VoteSessionDto.from(voteSession);
     }
 
-    /** 진행 중인 세션 조회 */
+    /** 게시판의 최신 투표 세션 조회 */
     @Transactional(readOnly = true)
-    public Optional<VoteSessionDto> getActiveVoteSession(Long boardId) {
-        Optional<VoteSessionDto> sessionDtoOpt = voteSessionRedisManager.getActiveVoteSession(boardId);
+    public Optional<VoteSessionDto> getLatestVoteSession(Long boardId) {
+        Optional<VoteSessionDto> sessionDtoOpt = voteSessionRedisManager.getLatestVoteSession(boardId);
 
         if (sessionDtoOpt.isEmpty()) {
-            sessionDtoOpt = voteSessionRepository.findByBoardIdAndIsFinishedFalse(boardId)
+            sessionDtoOpt = voteSessionRepository.findTopByBoardIdOrderByEndTimeDesc(boardId)
                     .map(session -> {
                         VoteSessionDto dto = VoteSessionDto.from(session);
-                        voteSessionRedisManager.saveVoteSession(boardId, dto);
+                        voteSessionRedisManager.saveLatestVoteSession(boardId, dto);
                         return dto;
                     });
         }
 
-        if (sessionDtoOpt.isEmpty()) {
-            return Optional.empty();
-        }
+        // 진행 중인 투표의 경우, Redis의 실시간 투표 데이터를 합산하여 totalVotes 갱신
+        sessionDtoOpt
+                .filter(VoteSessionDto::isActive)
+                .ifPresent(dto -> {
+                    Long realTimeTotal = voteRedisManager.getTotalVoteCount(dto.getId());
+                    dto.setTotalVotes(realTimeTotal);
+                });
 
-        VoteSessionDto sessionDto = sessionDtoOpt.get();
-        Map<String, String> realTimeCounts = voteRedisManager.getVoteCounts(sessionDto.getId());
-
-        return Optional.of(assembleVoteSession(sessionDto, realTimeCounts));
+        return sessionDtoOpt;
     }
 
     /** 종료된 투표 세션 목록 조회 (캐싱) */
@@ -116,7 +115,7 @@ public class VoteSessionService {
 
         // 기존 캐시 무효화
         voteRedisManager.deleteVoteCounts(voteSessionId);
-        voteSessionRedisManager.deleteVoteSession(boardId);
+        voteSessionRedisManager.deleteLatestVoteSession(boardId);
         voteSessionRedisManager.deletePastVoteSessions(boardId);
     }
 
@@ -142,32 +141,5 @@ public class VoteSessionService {
                 session.getOptions().get(idx).updateCount(count);
             }
         });
-    }
-
-    /** 실시간 수치 병합 */
-    private VoteSessionDto assembleVoteSession(VoteSessionDto cached, Map<String, String> counts) {
-        List<VoteOptionDto> mergedOptions = IntStream.range(0, cached.getOptions().size())
-                .mapToObj(i -> {
-                    VoteOptionDto opt = cached.getOptions().get(i);
-                    String redisVal = counts.get(String.valueOf(i));
-                    long currentCount = (redisVal != null) ? Long.parseLong(redisVal) : opt.getCount();
-
-                    return VoteOptionDto.builder()
-                            .label(opt.getLabel())
-                            .imageUrl(opt.getImageUrl())
-                            .count(currentCount)
-                            .build();
-                })
-                .toList();
-
-        return VoteSessionDto.builder()
-                .id(cached.getId())
-                .boardId(cached.getBoardId())
-                .topic(cached.getTopic())
-                .description(cached.getDescription())
-                .startTime(cached.getStartTime())
-                .endTime(cached.getEndTime())
-                .options(mergedOptions)
-                .build();
     }
 }

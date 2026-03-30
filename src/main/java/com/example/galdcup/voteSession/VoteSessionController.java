@@ -52,11 +52,11 @@ public class VoteSessionController {
     }
 
     /**
-     * 투표 세션 조회
+     * 최신 투표 세션 조회
      */
     @GetMapping
-    public ResponseEntity<Optional<VoteSessionDto>> getVoteSession(@PathVariable Long boardId) {
-        Optional<VoteSessionDto> voteSessionDto = voteSessionService.getActiveVoteSession(boardId);
+    public ResponseEntity<Optional<VoteSessionDto>> getLatestVoteSession(@PathVariable Long boardId) {
+        Optional<VoteSessionDto> voteSessionDto = voteSessionService.getLatestVoteSession(boardId);
         return ResponseEntity.ok(voteSessionDto);
     }
 

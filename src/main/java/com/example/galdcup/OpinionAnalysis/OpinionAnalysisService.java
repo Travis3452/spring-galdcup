@@ -37,8 +37,7 @@ public class OpinionAnalysisService {
      * 실시간 여론 분석 수행 및 결과 캐싱
      */
     public OpinionAnalysisResponse performAnalysisAndCache(Long sessionId) {
-
-        VoteSession session = voteSessionValidator.validateAndGetVoteSession(sessionId);
+        VoteSession session = voteSessionValidator.validateAndGetVoteSessionWithOptionsAndBoard(sessionId);
 
         // 1. 후보자 리스트 추출
         List<String> candidateLabels = session.getOptions().stream()

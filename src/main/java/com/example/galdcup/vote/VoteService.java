@@ -67,11 +67,10 @@ public class VoteService {
         }
     }
 
-    /**
-     * Redis에서 현재 누적된 전체 투표 카운트를 읽어와 WebSocket으로 전송
-     */
+    /** Redis에서 현재 누적된 전체 투표 카운트를 읽어와 총 투표수로 합산한 뒤 WebSocket으로 전송 */
     private void broadcastVoteResults(Long voteSessionId) {
-        Map<String, String> results = voteRedisManager.getVoteCounts(voteSessionId);
-        messagingTemplate.convertAndSend("/topic/votes/" + voteSessionId, results);
+        long totalVotes = voteRedisManager.getTotalVoteCount(voteSessionId);
+
+        messagingTemplate.convertAndSend("/topic/votes/" + voteSessionId, totalVotes);
     }
 }

@@ -21,7 +21,7 @@ public class VoteSessionRedisManager {
     private final RedisTemplate<String, Object> redisTemplate;
     private final StringRedisTemplate stringRedisTemplate;
 
-    private static final String KEY_ACTIVE = "galdcup:vote:session:%d:active";
+    private static final String KEY_ACTIVE = "galdcup:vote:session:%d:latest";
     private static final String KEY_PAST_PAGE = "galdcup:vote:session:%d:past:v:%s:p:%d:s:%d";
     private static final String KEY_PAST_VERSION = "galdcup:vote:session:%d:past:version";
     private static final String KEY_ANALYSIS = "galdcup:vote:session:%d:analysis";
@@ -51,15 +51,15 @@ public class VoteSessionRedisManager {
         stringRedisTemplate.opsForValue().increment(String.format(KEY_PAST_VERSION, boardId));
     }
 
-    public Optional<VoteSessionDto> getActiveVoteSession(Long boardId) {
+    public Optional<VoteSessionDto> getLatestVoteSession(Long boardId) {
         return Optional.ofNullable((VoteSessionDto) redisTemplate.opsForValue().get(String.format(KEY_ACTIVE, boardId)));
     }
 
-    public void saveVoteSession(Long boardId, VoteSessionDto dto) {
+    public void saveLatestVoteSession(Long boardId, VoteSessionDto dto) {
         redisTemplate.opsForValue().set(String.format(KEY_ACTIVE, boardId), dto, Duration.ofHours(1));
     }
 
-    public void deleteVoteSession(Long boardId) {
+    public void deleteLatestVoteSession(Long boardId) {
         redisTemplate.unlink(String.format(KEY_ACTIVE, boardId));
     }
 
