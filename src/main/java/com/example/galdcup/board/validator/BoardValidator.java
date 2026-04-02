@@ -78,4 +78,9 @@ public class BoardValidator {
             throw new IllegalStateException("이미 처리를 기다리고 있는 신청 내역이 있습니다.");
         }
     }
+
+    public Board findDeatilById(Long boardId) {
+        return boardRepository.findDetailById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
+    }
 }

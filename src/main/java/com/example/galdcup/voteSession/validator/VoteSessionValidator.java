@@ -6,8 +6,6 @@ import com.example.galdcup.voteSession.domain.VoteSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.OffsetDateTime;
-
 @Component
 @RequiredArgsConstructor
 public class VoteSessionValidator {

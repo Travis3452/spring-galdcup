@@ -214,6 +214,7 @@ public class PostService {
         postReactionRepository.save(reaction);
 
         post.addReaction(reaction);
+        eventPublisher.publishEvent(new PostChangedEvent(post.getBoard().getId(), postId));
     }
 
     @Transactional

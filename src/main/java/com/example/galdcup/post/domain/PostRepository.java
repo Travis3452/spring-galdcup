@@ -56,10 +56,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @EntityGraph(attributePaths = {"postCategory"})
     Optional<Post> findPostWithCategoryById(Long id);
 
-    /**
-     * 💡 [최적화] 수정/삭제 권한 체크용 통합 조회
-     * Post + Category + Board + BoardPolicy를 한 번에 FETCH JOIN
-     */
+    /** Post + Category + Board + BoardPolicy를 한 번에 FETCH JOIN */
     @Query("SELECT p FROM Post p " +
             "JOIN FETCH p.postCategory " +
             "JOIN FETCH p.board b " +

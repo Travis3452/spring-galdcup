@@ -28,4 +28,9 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     @Query("SELECT b FROM Board b WHERE b.topic LIKE %:keyword%")
     Page<Board> searchBoards(@Param("keyword") String keyword, Pageable pageable);
 
+    @Query("SELECT b FROM Board b " +
+            "JOIN FETCH b.boardPolicy " +
+            "LEFT JOIN FETCH b.postCategories " +
+            "WHERE b.id = :id")
+    Optional<Board> findDetailById(@Param("id") Long id);
 }

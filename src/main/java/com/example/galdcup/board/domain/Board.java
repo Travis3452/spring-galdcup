@@ -34,7 +34,7 @@ public class Board {
     @Column(length = 1000)
     private String description;
 
-    @OneToOne(mappedBy = "board", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToOne(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private BoardPolicy boardPolicy;
 
     @Enumerated(EnumType.STRING)

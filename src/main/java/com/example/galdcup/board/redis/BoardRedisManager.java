@@ -43,10 +43,9 @@ public class BoardRedisManager {
         }
     }
 
-    /** 최신순, 랭킹순 등 주요 목록 캐시를 일괄 삭제합니다. */
+    /** 최신순 목록 캐시를 일괄 삭제합니다. */
     public void deleteBoardListCache() {
         redisTemplate.delete(LIST_KEY + "latest");
-        redisTemplate.delete(LIST_KEY + "ranking");
     }
 
     public Optional<BoardDetailResponse> getBoardDetail(Long boardId) {

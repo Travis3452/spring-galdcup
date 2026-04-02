@@ -9,8 +9,6 @@ import com.example.galdcup.board.response.BoardDto;
 import com.example.galdcup.board.response.BoardManagerRequestDto;
 import com.example.galdcup.board.response.BoardPolicyDto;
 import com.example.galdcup.board.validator.BoardValidator;
-import com.example.galdcup.postCategory.PostCategoryService;
-import com.example.galdcup.postCategory.response.PostCategoryDto;
 import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +31,6 @@ public class BoardService {
     private final BoardManagerRequestRepository boardManagerRequestRepository;
     private final BoardValidator boardValidator;
     private final UserValidator userValidator;
-    private final PostCategoryService postCategoryService;
     private final BoardRedisManager boardRedisManager;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -80,13 +77,9 @@ public class BoardService {
     public BoardDetailResponse getBoardDetail(Long boardId) {
         return boardRedisManager.getBoardDetail(boardId)
                 .orElseGet(() -> {
-                    Board board = boardValidator.findBoardWithFullPolicyOrThrow(boardId);
-                    List<PostCategoryDto> categories = postCategoryService.findByBoardId(boardId);
-                    BoardDetailResponse response = BoardDetailResponse.builder()
-                            .board(BoardDto.from(board))
-                            .policy(BoardPolicyDto.from(board.getBoardPolicy()))
-                            .categories(categories)
-                            .build();
+                    Board board = boardValidator.findDeatilById(boardId);
+
+                    BoardDetailResponse response = BoardDetailResponse.of(board);
                     boardRedisManager.saveBoardDetail(boardId, response);
                     return response;
                 });
@@ -112,7 +105,6 @@ public class BoardService {
         board.setDefaultCategories();
 
         boardRepository.save(board);
-        clearBoardCache(null);
 
         return BoardDto.from(board);
     }
@@ -122,7 +114,8 @@ public class BoardService {
     public BoardDto updateStatus(Long boardId, BoardRequest.UpdateStatus request, Long currentUserId) {
         Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
         board.changeStatus(request.status());
-        clearBoardCache(boardId);
+
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
         return BoardDto.from(board);
     }
 
@@ -131,7 +124,7 @@ public class BoardService {
     public void delete(Long boardId, Long currentUserId) {
         Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
         board.closeBoard();
-        clearBoardCache(boardId);
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
     }
 
     // ==========================================
@@ -145,8 +138,8 @@ public class BoardService {
         User newManager = userValidator.findByNicknameOrThrow(targetNickname);
 
         board.getBoardPolicy().delegateMainManager(newManager);
-        clearBoardCache(boardId);
 
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
         return BoardPolicyDto.from(board.getBoardPolicy());
     }
 
@@ -170,7 +163,7 @@ public class BoardService {
             if (isSubManager || noSubManagers) {
                 status = BoardManagerRequest.Status.APPROVED;
                 board.getBoardPolicy().delegateMainManager(applicant);
-                clearBoardCache(boardId);
+                eventPublisher.publishEvent(new BoardChangedEvent(boardId));
             }
         }
 
@@ -183,7 +176,8 @@ public class BoardService {
     public BoardPolicyDto updatePolicy(Long boardId, BoardRequest.UpdatePolicy request, Long currentUserId) {
         Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
         board.getBoardPolicy().updateLikeThreshold(request.likeThreshold());
-        clearBoardCache(boardId);
+
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
         return BoardPolicyDto.from(board.getBoardPolicy());
     }
 
@@ -194,8 +188,8 @@ public class BoardService {
         User subManager = userValidator.findByNicknameOrThrow(nickname);
 
         board.getBoardPolicy().addSubManager(subManager);
-        clearBoardCache(boardId);
 
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
         return BoardPolicyDto.from(board.getBoardPolicy());
     }
 
@@ -206,20 +200,8 @@ public class BoardService {
         User subManager = userValidator.findByNicknameOrThrow(nickname);
 
         board.getBoardPolicy().removeSubManager(subManager);
-        clearBoardCache(boardId);
+
+        eventPublisher.publishEvent(new BoardChangedEvent(boardId));
         return BoardPolicyDto.from(board.getBoardPolicy());
-    }
-
-    // ==========================================
-    // 헬퍼 메서드
-    // ==========================================
-
-    /** 게시판 정보 변경 시 관련 Redis 캐시를 삭제하고 이벤트를 발행. */
-    private void clearBoardCache(Long boardId) {
-        boardRedisManager.deleteBoardListCache();
-        if (boardId != null) {
-            boardRedisManager.deleteBoardDetailCache(boardId);
-            eventPublisher.publishEvent(new BoardChangedEvent(boardId));
-        }
     }
 }

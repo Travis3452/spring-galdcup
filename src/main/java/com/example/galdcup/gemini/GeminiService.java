@@ -138,7 +138,7 @@ public class GeminiService {
             ### [미션: 여론 점화용 게시글 기획]
             투표 주제 [%s]와 상세 설명 [%s]을 분석하여, 유저들이 투표장에 달려오게 할 만한 다양한 성격의 글을 작성하세요.
             **가급적 비슷한 논리나 문장의 사용을 피하고 **, 완전히 새로운 관점의 글 10개를 생성하세요.
-            
+           
             ### [설계 가이드라인 - 다양한 페르소나 혼합]
             - [선동가형]: 감정을 자극하는 글.
             - [분석가형]: 데이터(가상의 데이터 포함)를 제시하는 글.
@@ -156,7 +156,7 @@ public class GeminiService {
                 { "title": "...", "content": "..." }
               ]
             }
-            """,
+           """,
                 LocalDateTime.now(), topic, latestContent, topic, description,
                 candidates.get(0), candidates.get(1),
                 candidates.get(0), candidates.get(1),

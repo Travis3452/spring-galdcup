@@ -6,7 +6,7 @@ import com.example.galdcup.gemini.GeminiService;
 import com.example.galdcup.gemini.response.OpinionAnalysisResponse;
 import com.example.galdcup.vote.domain.VoteOption;
 import com.example.galdcup.voteSession.domain.VoteSession;
-import com.example.galdcup.voteSession.redis.VoteSessionRedisManager; // 추가
+import com.example.galdcup.voteSession.redis.VoteSessionRedisManager;
 import com.example.galdcup.voteSession.validator.VoteSessionValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
