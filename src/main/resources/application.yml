@@ -71,6 +71,12 @@ spring:
       force: true
       charset: UTF-8
 
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 aes256:
   key: ${AES256_KEY}
 

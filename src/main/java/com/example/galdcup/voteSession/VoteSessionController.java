@@ -26,7 +26,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/boards/{boardId}/vote-session")
 @RequiredArgsConstructor
-public class VoteSessionController {
+public class VoteSessionController implements VoteSessionApi {
 
     private final VoteSessionService voteSessionService;
     private final VoteService voteService;

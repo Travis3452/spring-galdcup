@@ -79,4 +79,14 @@ public class AuthService {
     public void deleteRefreshTokens(Long userId) {
         refreshTokenRedisManager.deleteRefreshToken(userId);
     }
+
+    /**
+     * [테스트 전용] 이메일을 통한 즉석 로그인
+     */
+    public AuthDto loginByEmailForTest(String email) {
+        String testSub = "test_sub_" + email.split("@")[0];
+        User user = userService.getOrCreateUser(testSub, email);
+
+        return createTokens(user);
+    }
 }

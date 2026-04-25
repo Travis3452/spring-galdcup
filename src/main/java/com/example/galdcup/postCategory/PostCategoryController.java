@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/boards/{boardId}/post-categories")
 @RequiredArgsConstructor
-public class PostCategoryController {
+public class PostCategoryController implements PostCategoryApi {
 
     private final PostCategoryService postCategoryService;
 

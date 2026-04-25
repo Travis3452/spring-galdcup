@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/test/dummy")
 @RequiredArgsConstructor
 @Slf4j
-public class DummyDataController {
+public class DummyDataController implements DummyDataApi {
 
     private final DummyDataService dummyDataService;
 
     /**
-     * 게시글 10개 생성
+     * 게시글 10개 생성 (AI 기획 데이터 기반)
      */
     @RateLimit(type = RateLimitType.EXTERNAL)
     @PreAuthorize("isAuthenticated()")

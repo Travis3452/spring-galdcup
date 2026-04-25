@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -47,7 +48,23 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
+                        // Swagger UI 및 API Docs 허용
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+
+                        // 인증 관련 엔드포인트 허용
+                        .requestMatchers("/api/auth/callback/google").permitAll()
+                        .requestMatchers("/api/test/login").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+
+                        // 그 외 모든 요청은 반드시 인증(로그인) 필요
+                        .anyRequest().authenticated()
                 )
 
                 // 인증 및 인가 실패 시 예외 처리 정의
