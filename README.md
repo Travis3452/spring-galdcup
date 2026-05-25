@@ -45,11 +45,11 @@
                     │                                                                             │
                     ▼                                                                             ▼
          [Spring Boot 핵심 도메인 로직] ───────────────────────────────────────────────> [Gemini AI Engine]
-            │                        │                                                  (맥락 분석 및 추천)
-            ▼ (안전한 영속 데이터 구조) ▼ (고속 인메모리 캐싱 / Lua Script 원자 연산)
+            │                        │                                                  (여론 분석 및 AI 데이터 생성)
+            ▼ (영속 데이터 구조) ▼ (고속 인메모리 캐싱 / Lua Script 원자 연산)
      [Oracle SQL Database]     [Redis In-Memory Database]
 ```
-
+* 👉 [Galdcup 전체 API 명세 및 트러블슈팅 문서 확인하기 (Notion)](https://www.notion.so/3350e2be9aa9802baf55e83fd005ad72)
 ---
 
 ## 📑 4. API 상세 명세 및 핵심 트러블슈팅 안내
