@@ -1,4 +1,4 @@
-package com.example.galdcup.dummy;
+package com.example.galdcup.aiagent;
 
 import com.example.galdcup.common.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,7 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @Tag(name = "Test Utils", description = "개발 및 테스트용 더미 데이터 생성 API")
-public interface DummyDataApi {
+public interface AiAgentApi {
 
     @Operation(summary = "더미 게시글 생성", description = "Gemini API를 기반으로 특정 게시판에 10개의 게시글을 생성합니다.")
     ResponseEntity<String> createDummyPosts(

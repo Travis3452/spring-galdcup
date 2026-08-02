@@ -58,7 +58,7 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // 인증 관련 엔드포인트 허용
-                        .requestMatchers("/api/auth/callback/google").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/login").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/**").permitAll()

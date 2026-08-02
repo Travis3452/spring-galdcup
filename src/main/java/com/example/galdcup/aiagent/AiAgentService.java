@@ -1,4 +1,4 @@
-package com.example.galdcup.dummy;
+package com.example.galdcup.aiagent;
 
 import com.example.galdcup.board.validator.BoardValidator;
 import com.example.galdcup.comment.domain.Comment;
@@ -25,7 +25,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DummyDataService {
+public class AiAgentService {
     private final GeminiService geminiService;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
@@ -33,7 +33,7 @@ public class DummyDataService {
     private final PostCategoryValidator postCategoryValidator;
     private final VoteSessionValidator voteSessionValidator;
     private final BoardValidator boardValidator;
-    private final DummyDataWriter dummyDataWriter;
+    private final AiAgentWriter dummyDataWriter;
 
     private final Random random = new Random();
     private static final int DUMMY_USER_START_ID = 9001;

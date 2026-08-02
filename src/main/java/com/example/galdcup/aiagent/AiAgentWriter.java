@@ -1,4 +1,4 @@
-package com.example.galdcup.dummy;
+package com.example.galdcup.aiagent;
 
 import com.example.galdcup.comment.domain.Comment;
 import com.example.galdcup.comment.domain.CommentRepository;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class DummyDataWriter {
+public class AiAgentWriter {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;

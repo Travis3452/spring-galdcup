@@ -1,7 +1,7 @@
 package com.example.galdcup.auth;
 
 import com.example.galdcup.auth.response.AuthDto;
-import com.example.galdcup.auth.response.AuthProfileResponse;
+import com.example.galdcup.auth.response.AuthResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -27,25 +27,20 @@ public class TestAuthController {
     @Value("${cookie.sameSite}")
     private String cookieSameSite;
 
-    @Value("${jwt.access-expiration:3600}")
-    private long accessTokenMaxAge;
-
     /**
      * 이메일 프리패스 로그인
      * Swagger에서 Execute만 누르면 브라우저에 쿠키가 구워집니다.
      */
     @Operation(summary = "이메일 프리패스 로그인", description = "이메일을 입력하면 해당 유저의 권한으로 즉시 쿠키를 발급합니다.")
     @PostMapping("/login")
-    public ResponseEntity<AuthProfileResponse> bypassLogin(@RequestParam String email) {
+    public ResponseEntity<AuthResponse> bypassLogin(@RequestParam String email) {
 
         AuthDto result = authService.loginByEmailForTest(email);
 
         ResponseCookie refreshCookie = createCookie("refreshToken", result.refreshToken(), result.refreshTokenMaxAge());
-        ResponseCookie accessCookie = createCookie("accessToken", result.accessToken(), accessTokenMaxAge);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .body(result.profile());
     }
 

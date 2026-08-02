@@ -1,4 +1,4 @@
-package com.example.galdcup.dummy;
+package com.example.galdcup.aiagent;
 
 import com.example.galdcup.common.rateLimit.RateLimit;
 import com.example.galdcup.common.rateLimit.RateLimitType;
@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/test/dummy")
 @RequiredArgsConstructor
 @Slf4j
-public class DummyDataController implements DummyDataApi {
+public class AiAgentController implements AiAgentApi {
 
-    private final DummyDataService dummyDataService;
+    private final AiAgentService aiAgentService;
 
     /**
      * 게시글 10개 생성 (AI 기획 데이터 기반)
@@ -31,7 +31,7 @@ public class DummyDataController implements DummyDataApi {
             @PathVariable Long boardId,
             @AuthenticationPrincipal CustomUserDetails principal) {
         try {
-            dummyDataService.generateDummyPosts(boardId, principal.getId());
+            aiAgentService.generateDummyPosts(boardId, principal.getId());
             return ResponseEntity.ok("게시판에 AI 기획 더미 게시글 10개가 생성되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("❌ 생성 실패: " + e.getMessage());
@@ -48,7 +48,7 @@ public class DummyDataController implements DummyDataApi {
             @PathVariable Long boardId,
             @AuthenticationPrincipal CustomUserDetails principal) {
         try {
-            dummyDataService.generateDummyComments(boardId, principal.getId());
+            aiAgentService.generateDummyComments(boardId, principal.getId());
             return ResponseEntity.ok("게시판에 20개의 더미 댓글이 생성되었습니다.");
         } catch (Exception e) {
             log.error("댓글 생성 실패: {}", e.getMessage());

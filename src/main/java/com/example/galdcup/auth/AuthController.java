@@ -1,7 +1,7 @@
 package com.example.galdcup.auth;
 
 import com.example.galdcup.auth.response.AuthDto;
-import com.example.galdcup.auth.response.AuthProfileResponse;
+import com.example.galdcup.auth.response.AuthResponse;
 import com.example.galdcup.common.rateLimit.RateLimit;
 import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
@@ -27,31 +27,25 @@ public class AuthController implements AuthApi {
     @Value("${cookie.sameSite}")
     private String cookieSameSite;
 
-    @Value("${jwt.access-expiration:3600}")
-    private long accessTokenMaxAge;
-
     /**
      * 구글 OAuth 콜백
      */
     @PostMapping("/callback/google")
-    public ResponseEntity<AuthProfileResponse> googleCallback(@RequestParam("code") String code) {
+    public ResponseEntity<AuthResponse> googleCallback(@RequestParam("code") String code) {
         AuthDto result = authService.handleGoogleCallback(code);
 
         ResponseCookie refreshCookie = createCookie("refreshToken", result.refreshToken(), result.refreshTokenMaxAge());
-        ResponseCookie accessCookie = createCookie("accessToken", result.accessToken(), accessTokenMaxAge);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .body(result.profile());
     }
 
     /**
      * 토큰 재발급 (Refresh)
      */
-    @RateLimit(type = RateLimitType.INTERNAL)
     @PostMapping("/refresh")
-    public ResponseEntity<AuthProfileResponse> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
+    public ResponseEntity<AuthResponse> refresh(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
         if (refreshToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -59,18 +53,15 @@ public class AuthController implements AuthApi {
         AuthDto result = authService.refreshTokens(refreshToken);
 
         ResponseCookie refreshCookie = createCookie("refreshToken", result.refreshToken(), result.refreshTokenMaxAge());
-        ResponseCookie accessCookie = createCookie("accessToken", result.accessToken(), accessTokenMaxAge);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .body(result.profile());
     }
 
     /**
      * 로그아웃
      */
-    @RateLimit(type = RateLimitType.INTERNAL)
     @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails user) {
         if (user != null) {
@@ -78,11 +69,9 @@ public class AuthController implements AuthApi {
         }
 
         ResponseCookie refreshCookie = createCookie("refreshToken", "", 0);
-        ResponseCookie accessCookie = createCookie("accessToken", "", 0);
 
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
                 .build();
     }
 
