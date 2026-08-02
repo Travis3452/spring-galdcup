@@ -57,6 +57,9 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
+                        // 웹소켓 엔드포인트 허용
+                        .requestMatchers("/ws-galdcup", "/ws-galdcup/**").permitAll()
+
                         // 인증 관련 엔드포인트 허용
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/login").permitAll()
