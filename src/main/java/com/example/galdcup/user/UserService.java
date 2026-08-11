@@ -1,6 +1,6 @@
 package com.example.galdcup.user;
 
-import com.example.galdcup.board.domain.BoardRepository;
+import com.example.galdcup.board.board.domain.BoardRepository;
 import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.domain.UserNicknameGenerator;
 import com.example.galdcup.user.domain.UserRepository;

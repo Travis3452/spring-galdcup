@@ -1,7 +1,7 @@
 package com.example.galdcup.gemini;
 
-import com.example.galdcup.board.domain.Board;
-import com.example.galdcup.board.validator.BoardValidator;
+import com.example.galdcup.board.board.domain.Board;
+import com.example.galdcup.board.board.validator.BoardValidator;
 import com.example.galdcup.gemini.response.CommentContextResponse;
 import com.example.galdcup.gemini.response.OpinionAnalysisResponse;
 import com.example.galdcup.gemini.response.PostContextResponse;
