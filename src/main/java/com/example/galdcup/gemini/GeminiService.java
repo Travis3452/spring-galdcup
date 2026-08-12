@@ -212,7 +212,7 @@ public class GeminiService {
                     .temperature(temperature)
                     .build();
 
-            GenerateContentResponse response = client.models.generateContent("gemini-3.1-flash-lite-preview", prompt, config);
+            GenerateContentResponse response = client.models.generateContent("gemini-3.5-flash-lite-preview", prompt, config);
 
             String jsonResponse = response.text();
             if (jsonResponse == null || jsonResponse.isBlank()) {
