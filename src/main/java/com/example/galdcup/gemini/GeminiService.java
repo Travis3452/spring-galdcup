@@ -123,86 +123,6 @@ public class GeminiService {
     }
 
     /**
-     * [게시글 전용] 커뮤니티 이슈 메이커 페르소나 주입 (제목+내용 세트 10개)
-     */
-    public PostContextResponse getPostContext(String topic, String description, List<String> candidates, String latestContent) {
-        String prompt = String.format("""
-           ### [Generation Seed: %s]
-           당신은 대한민국 커뮤니티의 '이슈 메이커'입니다. [%s] 주제로 게시글 **10세트**를 생성하세요.
-           해당 게시판에서 최근 생성된 게시글 제목: [%s]
-           
-           ### [데이터 제약 사항]
-           1. 수량: 반드시 **10개의 제목-본문 세트**를 생성하십시오.
-           2. 제목(title): 15자 이내 / 내용(content): 50자 이내.
-    
-            ### [미션: 여론 점화용 게시글 기획]
-            투표 주제 [%s]와 상세 설명 [%s]을 분석하여, 유저들이 투표장에 달려오게 할 만한 다양한 성격의 글을 작성하세요.
-            **가급적 비슷한 논리나 문장의 사용을 피하고 **, 완전히 새로운 관점의 글 10개를 생성하세요.
-           
-            ### [설계 가이드라인 - 다양한 페르소나 혼합]
-            - [선동가형]: 감정을 자극하는 글.
-            - [분석가형]: 데이터(가상의 데이터 포함)를 제시하는 글.
-            - [공감유도형]: 여론에 호소하는 글.
-            - [기타 유형]
-    
-            ### [출력 규칙 (CRITICAL)]
-            - **리얼리티**: 커뮤니티 특유의 구어체, 줄임말(닥전, 닥후, 뇌절 등), 적절한 신조어와 비속어를 필터링된 수준(매운맛 톤앤매너)으로 사용하세요.
-            - **일관성**: 각 객체의 'title'과 'content'는 반드시 하나의 맥락으로 이어져야 합니다.
-            - **가독성**: 본문은 모바일 앱 가독성을 고려하여 줄바꿈(\\n)을 적절히 포함하십시오.
-    
-            ### [응답 형식 - JSON 출력만 허용]
-            {
-              "posts": [
-                { "title": "...", "content": "..." }
-              ]
-            }
-           """,
-                LocalDateTime.now(), topic, latestContent, topic, description,
-                candidates.get(0), candidates.get(1),
-                candidates.get(0), candidates.get(1),
-                candidates.get(0)
-        );
-
-        return callGeminiForJson(prompt, PostContextResponse.class, 1.2F);
-    }
-
-    /**
-     * [댓글 전용] 커뮤니티 페르소나 기반 실시간 댓글 20개 직접 생성
-     */
-    public CommentContextResponse getCommentContext(String topic, String description, List<String> candidates, String latestContent) {
-        String prompt = String.format("""
-            ### [Comment Seed: %s]
-            당신은 대한민국 온라인 커뮤니티의 '갈드컵' 현장에서 치열하게 키보드 배틀을 벌이는 20명의 유저들입니다.
-            진행 중인 투표 주제 [%s]에 대해, 각자의 페르소나에 맞춰 생생하고 날카로운 댓글 20개를 작성하세요.
-            해당 게시판에서 최근 작성된 댓글: [%s]
-    
-            ### [데이터 제약 사항 (필수 준수)]
-            1. 수량: 반드시 **20개의 독립적인 댓글**을 생성하십시오.
-            2. 길이: 각 댓글당 공백 포함 **30자 이내**.
-            3. 대상: 후보군 [%s]들을 직접적 혹은 간접적으로 언급하거나 대상과 관련된 내용을 포함해야 합니다.
-    
-            ### [미션: 리얼한 커뮤니티 민심 재현]
-            투표 주제 [%s]와 상세 설명 [%s]을 바탕으로 아래 3가지 유형의 유저들이 뒤섞여 싸우는 난장판을 만드세요.
-    
-            ### [설계 가이드라인 - 페르소나 분포]
-            - [극성 팬층 (약 7개)], [안티 (약 7개)], [중립 (약 6개)]
-    
-            ### [출력 규칙 (CRITICAL)]
-            - **리얼리티**: 구어체, 'ㄹㅇ', 'ㅋㅋ', 'ㄷ후', '능지' 등 리얼한 용어 사용.
-            - **맥락 일치**: 투표 설명 제약 조건 활용.
-    
-            ### [응답 형식 - JSON 출력만 허용]
-            {
-              "comments": ["..."]
-            }
-            """,
-                LocalDateTime.now(), topic, latestContent, String.join(", ", candidates), topic, description
-        );
-
-        return callGeminiForJson(prompt, CommentContextResponse.class, 1.2F);
-    }
-
-    /**
      * Gemini API 호출 및 JSON 파싱 처리
      */
     private <T> T callGeminiForJson(String prompt, Class<T> responseType, float temperature) {
@@ -212,7 +132,7 @@ public class GeminiService {
                     .temperature(temperature)
                     .build();
 
-            GenerateContentResponse response = client.models.generateContent("gemini-3.5-flash-lite-preview", prompt, config);
+            GenerateContentResponse response = client.models.generateContent("gemini-3.5-flash-lite", prompt, config);
 
             String jsonResponse = response.text();
             if (jsonResponse == null || jsonResponse.isBlank()) {

@@ -21,7 +21,7 @@ public class UserAiAgentGeminiClient {
 
     private final ObjectMapper objectMapper;
     private static final ZoneId KST_ZONE = ZoneId.of("Asia/Seoul");
-    private static final String MODEL_NAME = "gemini-3.5-flash-lite-preview";
+    private static final String MODEL_NAME = "gemini-3.5-flash-lite";
 
     /**
      * Gemini API Key 유효성 검증
