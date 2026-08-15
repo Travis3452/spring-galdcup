@@ -11,12 +11,13 @@ import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
+    List<Comment> findTop5ByPostIdOrderByCreatedAtDesc(Long postId);
+
+    List<Comment> findTop10ByAuthorIdOrderByCreatedAtDesc(Long authorId);
+
     Page<Comment> findByPostIdAndParentCommentIsNull(Long postId, Pageable pageable);
 
     Page<Comment> findByAuthorNickname(String nickname, Pageable pageable);
-
-    /** 특정 게시판 내의 최신 댓글 1개를 조회 */
-    Optional<Comment> findTopByPostBoardIdOrderByCreatedAtDesc(Long boardId);
 
     /** 게시판 내 유저별 최신 댓글을 하나씩 추출하여 조회 */
     @Query(value = """

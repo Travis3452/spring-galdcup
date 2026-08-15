@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+    List<Post> findTop5ByBoardIdOrderByLikeCountDescCreatedAtDesc(Long boardId);
+
+    List<Post> findTop5ByBoardIdOrderByCreatedAtDesc(Long boardId);
+
+    List<Post> findTop10ByAuthorIdOrderByCreatedAtDesc(Long authorId);
 
     // 더미 데이터용 최적화 쿼리
     Optional<Post> findTopByBoardIdOrderByCreatedAtDesc(Long boardId);
