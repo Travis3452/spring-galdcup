@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/test")
 @RequiredArgsConstructor
-@Profile("!prod")
+@Profile("dev & !prod")
 @Tag(name = "Test Auth", description = "개발용 인증 (쿠키 자동 설정)")
 public class TestAuthController {
 

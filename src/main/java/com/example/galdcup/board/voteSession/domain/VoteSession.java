@@ -42,6 +42,7 @@ public class VoteSession {
     private boolean isFinished = false;
 
     @OneToMany(mappedBy = "voteSession", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     @Builder.Default
     private List<VoteOption> options = new ArrayList<>();
 
@@ -70,8 +71,7 @@ public class VoteSession {
 
     /** 세션 강제 종료 (관리자용) */
     public void terminate() {
-        this.isFinished = true;
-        this.endTime = OffsetDateTime.now();
+        finishAt(OffsetDateTime.now());
     }
 
     /** 시간이 만료되어 자동 종료 처리 */
@@ -79,9 +79,20 @@ public class VoteSession {
         this.isFinished = true;
     }
 
+    /** 접수 차단 시각을 반영하며 종료 처리 재시도 시 종료 시각을 연장하지 않음 */
+    public void finishAt(OffsetDateTime closedAt) {
+        if (closedAt.isBefore(this.endTime)) {
+            this.endTime = closedAt;
+        }
+        this.isFinished = true;
+    }
+
     /** 현재 투표 가능한 상태인지 확인 */
     public boolean isActive() {
-        OffsetDateTime now = OffsetDateTime.now();
-        return !isFinished && now.isAfter(startTime) && now.isBefore(endTime);
+        return isActiveAt(OffsetDateTime.now());
+    }
+
+    public boolean isActiveAt(OffsetDateTime now) {
+        return !isFinished && !now.isBefore(startTime) && now.isBefore(endTime);
     }
 }

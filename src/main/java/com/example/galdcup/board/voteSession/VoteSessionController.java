@@ -123,8 +123,12 @@ public class VoteSessionController implements VoteSessionApi {
     @PostMapping("/{voteSessionId}/votes")
     public ResponseEntity<VoteDto> createVote(@PathVariable Long boardId,
                                               @PathVariable Long voteSessionId,
-                                              @RequestBody CreateVoteRequest request,
+                                              @Valid @RequestBody CreateVoteRequest request,
                                               @AuthenticationPrincipal CustomUserDetails principal) {
+
+        if (request.voteSessionId() != null && !request.voteSessionId().equals(voteSessionId)) {
+            throw new IllegalArgumentException("요청 경로와 본문의 투표 세션이 일치하지 않습니다.");
+        }
 
         VoteDto vote = voteService.createVote(
                 boardId,

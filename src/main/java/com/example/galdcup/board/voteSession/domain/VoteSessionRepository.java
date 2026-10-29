@@ -1,18 +1,25 @@
 package com.example.galdcup.board.voteSession.domain;
 
 import com.example.galdcup.board.board.domain.Board;
-import io.lettuce.core.dynamic.annotation.Param;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface VoteSessionRepository extends JpaRepository<VoteSession, Long> {
+
+    /** 동기화와 종료 작업끼리 직렬화. 옵션은 같은 트랜잭션 안에서 로딩 */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT v FROM VoteSession v WHERE v.id = :id")
+    Optional<VoteSession> findForUpdateById(@Param("id") Long id);
 
     List<VoteSession> findByEndTimeBeforeAndIsFinishedFalse(OffsetDateTime now);
 
