@@ -21,6 +21,7 @@ import org.owasp.html.PolicyFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -144,13 +145,23 @@ public class PostService {
      * 게시글 삭제 (관리자)
      */
     @Transactional
-    public void deleteForBoardManager(Long postId, Long boardId, Long managerId) {
+    public void deleteForBoardManager(
+            Long postId, Long boardId, Long managerId) {
+
         Post post = postValidator.findByIdOrThrow(postId);
-        boardValidator.getBoardIfManager(boardId, managerId);
+        Long actualBoardId = post.getBoard().getId();
+
+        if (!actualBoardId.equals(boardId)) {
+            throw new AccessDeniedException(
+                    "해당 게시판에 속하지 않는 게시글입니다.");
+        }
+
+        boardValidator.getBoardIfManager(actualBoardId, managerId);
 
         postRepository.delete(post);
         postRedisManager.deleteViewCache(postId);
-        eventPublisher.publishEvent(new PostChangedEvent(boardId, postId));
+        eventPublisher.publishEvent(
+                new PostChangedEvent(actualBoardId, postId));
     }
 
     /**

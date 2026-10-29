@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,7 +107,18 @@ public class VoteSessionService {
     @Transactional
     public void finishVoteSession(Long boardId, Long voteSessionId, Long userId) {
         boardValidator.getBoardIfBoardManager(boardId, userId);
-        VoteSession session = voteSessionValidator.validateAndGetVoteSessionWithOptions(voteSessionId);
+        VoteSession session =
+            voteSessionValidator
+                .validateAndGetVoteSessionWithOptions(voteSessionId);
+
+        Long actualBoardId = session.getBoard().getId();
+
+        if (!actualBoardId.equals(boardId)) {
+            throw new AccessDeniedException(
+                    "해당 게시판에 속하지 않는 투표 세션입니다.");
+        }
+
+        boardValidator.getBoardIfBoardManager(actualBoardId, userId);
 
         session.terminate();
 
