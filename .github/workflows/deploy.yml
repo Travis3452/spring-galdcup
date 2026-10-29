@@ -3,10 +3,32 @@ name: Galdcup CI/CD
 on:
   push:
     branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  verify:
+    name: Unit and Redis integration tests
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7.2-alpine
+        ports:
+          - 16379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      GALDCUP_VOTE_TEST_REDIS_PORT: '16379'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,11 +38,43 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
-      - name: Build with Gradle
+      - name: Test and build deployable JAR
         run: |
           chmod +x ./gradlew
-          ./gradlew clean bootJar -x test
+          ./gradlew --no-daemon --console=plain clean test redisIntegrationTest bootJar
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build/reports/tests/
+            build/test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload verified JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar-${{ github.sha }}
+          path: build/libs/galdcup-0.0.1-SNAPSHOT.jar
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Deploy verified JAR
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download verified JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar-${{ github.sha }}
+          path: build/libs
 
       # 빌드된 파일을 서버로 전송
       - name: Copy JAR to Server

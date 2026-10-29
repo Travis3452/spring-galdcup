@@ -61,8 +61,68 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+tasks.withType(Test).configureEach {
+    failOnNoDiscoveredTests = true
+    reports {
+        junitXml.required = true
+        html.required = true
+    }
+    testLogging {
+        events 'failed', 'skipped'
+        exceptionFormat = 'full'
+    }
+}
+
+// 기본 test는 DB나 Redis 접속 없이 실행하는 단위 테스트만 포함한다.
 tasks.named('test') {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'redis-integration', 'application-context'
+    }
+}
+
+def voteTestRedisPort = providers.environmentVariable('GALDCUP_VOTE_TEST_REDIS_PORT')
+
+tasks.register('redisIntegrationTest', Test) {
+    description = '전용 로컬 Redis에서 투표 원자성 및 동기화 통합 테스트를 실행한다.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'redis-integration'
+    }
+    shouldRunAfter tasks.named('test')
+    inputs.property('voteTestRedisPort', voteTestRedisPort.orElse(''))
+    // 외부 테스트 Redis의 상태는 Gradle 입력만으로 판단할 수 없으므로 항상 실행한다.
+    outputs.upToDateWhen { false }
+    outputs.cacheIf { false }
+    doFirst {
+        def configuredPort = voteTestRedisPort.orNull
+        def port = configuredPort?.isInteger() ? configuredPort.toInteger() : -1
+        if (port <= 1024 || port > 65535 || port == 6379) {
+            throw new GradleException(
+                    'GALDCUP_VOTE_TEST_REDIS_PORT에 전용 로컬 테스트 Redis 포트(6379 제외)를 지정해야 합니다.')
+        }
+    }
+}
+
+tasks.register('applicationContextTest', Test) {
+    description = '명시적으로 준비한 통합 환경에서 전체 애플리케이션 기동을 검증한다.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'application-context'
+    }
+    shouldRunAfter tasks.named('test')
+    outputs.upToDateWhen { false }
+    outputs.cacheIf { false }
+    doFirst {
+        if (System.getenv('GALDCUP_RUN_CONTEXT_TESTS') != 'true') {
+            throw new GradleException(
+                    '격리된 DB·Redis 및 환경변수를 준비한 뒤 GALDCUP_RUN_CONTEXT_TESTS=true를 지정해야 합니다.')
+        }
+    }
 }
