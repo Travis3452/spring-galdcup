@@ -63,10 +63,9 @@ public class AuthService {
      * 리프레시 토큰을 갱신합니다. 기존 토큰을 삭제한 후 새 토큰을 발급합니다.(RTR 전략)
      */
     public AuthDto refreshTokens(String refreshTokenStr) {
-        Long userId = jwtTokenProvider.getUserIdFromToken(refreshTokenStr);
-        User user = userValidator.findByIdOrThrow(userId);
-
+        Long userId = jwtTokenProvider.getUserIdFromRefreshToken(refreshTokenStr);
         refreshTokenRedisManager.validateRefreshToken(userId, refreshTokenStr);
+        User user = userValidator.findByIdOrThrow(userId);
 
         refreshTokenRedisManager.deleteRefreshToken(user.getId());
 

@@ -2,6 +2,7 @@ package com.example.galdcup.auth.redis;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -25,7 +26,7 @@ public class RefreshTokenRedisManager {
         String storedToken = redisTemplate.opsForValue().get(REFRESH_TOKEN_PREFIX + userId);
 
         if (storedToken == null || !storedToken.equals(refreshTokenStr)) {
-            throw new IllegalArgumentException("유효하지 않거나 만료된 리프레시 토큰입니다.");
+            throw new BadCredentialsException("유효하지 않거나 만료된 리프레시 토큰입니다.");
         }
     }
 

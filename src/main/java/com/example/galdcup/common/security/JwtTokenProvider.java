@@ -6,6 +6,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -18,16 +19,20 @@ import java.util.List;
 @Component
 public class JwtTokenProvider {
 
+    private static final String TOKEN_USE = "token_use";
+    private static final String ACCESS = "access";
+    private static final String REFRESH = "refresh";
+
     private final SecretKey secretKey;
+    private final long expirationMillis;
+    private final int refreshExpDays;
 
-    @Value("${jwt.expiration}")
-    private long expirationMillis;
-
-    @Value("${jwt.refresh-expiration-days}")
-    private int refreshExpDays;
-
-    public JwtTokenProvider(@Value("${jwt.secret}") String secret) {
+    public JwtTokenProvider(@Value("${jwt.secret}") String secret,
+                            @Value("${jwt.expiration}") long expirationMillis,
+                            @Value("${jwt.refresh-expiration-days}") int refreshExpDays) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.expirationMillis = expirationMillis;
+        this.refreshExpDays = refreshExpDays;
     }
 
     /**
@@ -36,6 +41,7 @@ public class JwtTokenProvider {
     public String createAccessToken(Long userId, List<String> roles) {
         return Jwts.builder()
                 .subject(userId.toString())
+                .claim(TOKEN_USE, ACCESS)
                 .claim("roles", roles)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMillis))
@@ -50,6 +56,7 @@ public class JwtTokenProvider {
         long refreshMillis = System.currentTimeMillis() + (refreshExpDays * 24L * 60L * 60L * 1000L);
         return Jwts.builder()
                 .subject(userId.toString())
+                .claim(TOKEN_USE, REFRESH)
                 .issuedAt(new Date())
                 .expiration(new Date(refreshMillis))
                 .signWith(secretKey)
@@ -57,31 +64,27 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 토큰 유효성 검사
+     * AccessToken의 서명, 만료, 용도 및 권한을 검증하고 Authentication 생성
      */
-    public boolean validateToken(String token) {
-        try {
-            parseClaims(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
+    public Authentication getAccessAuthentication(String token) {
+        Claims claims = parseClaims(token, ACCESS);
+        Long userId = getUserId(claims);
+
+        List<?> roles = claims.get("roles", List.class);
+        if (roles == null || roles.isEmpty() || !(roles.get(0) instanceof String roleName)) {
+            throw new JwtException("유효한 권한 정보가 없는 액세스 토큰입니다.");
         }
-    }
 
-    /**
-     * 토큰에서 Authentication 추출
-     */
-    public Authentication getAuthentication(String token) {
-        Claims claims = parseClaims(token);
-        Long userId = Long.parseLong(claims.getSubject());
-
-        List<String> roles = claims.get("roles", List.class);
-
-        String roleName = (roles != null && !roles.isEmpty()) ? roles.get(0) : User.Role.USER.name();
+        User.Role role;
+        try {
+            role = User.Role.valueOf(roleName);
+        } catch (IllegalArgumentException e) {
+            throw new JwtException("유효하지 않은 액세스 토큰 권한입니다.", e);
+        }
 
         User dummyUser = User.builder()
                 .id(userId)
-                .role(User.Role.valueOf(roleName))
+                .role(role)
                 .build();
 
         CustomUserDetails userDetails = new CustomUserDetails(dummyUser);
@@ -90,24 +93,45 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Claims 파싱
+     * 용도 정보가 없는 기존 토큰도 거부하여 토큰 혼용 방지
      */
-    public Claims parseClaims(String token) {
-        return Jwts.parser()
+    private Claims parseClaims(String token, String expectedUse) {
+        Claims claims = Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+
+        if (!expectedUse.equals(claims.get(TOKEN_USE, String.class))) {
+            throw new JwtException("잘못된 토큰 용도입니다.");
+        }
+        if (claims.getExpiration() == null) {
+            throw new JwtException("만료 정보가 없는 토큰입니다.");
+        }
+
+        return claims;
     }
 
     /**
-     * 토큰에서 userId 추출
+     * RefreshToken만 허용하며 인증 실패는 401 처리 대상 예외로 변환
      */
-    public Long getUserIdFromToken(String token) {
+    public Long getUserIdFromRefreshToken(String token) {
         try {
-            return Long.parseLong(parseClaims(token).getSubject());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("유효하지 않은 토큰입니다.");
+            return getUserId(parseClaims(token, REFRESH));
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new BadCredentialsException("유효하지 않은 리프레시 토큰입니다.", e);
+        }
+    }
+
+    private Long getUserId(Claims claims) {
+        try {
+            long userId = Long.parseLong(claims.getSubject());
+            if (userId <= 0) {
+                throw new JwtException("유효하지 않은 사용자 식별자입니다.");
+            }
+            return userId;
+        } catch (NumberFormatException e) {
+            throw new JwtException("유효하지 않은 사용자 식별자입니다.", e);
         }
     }
 

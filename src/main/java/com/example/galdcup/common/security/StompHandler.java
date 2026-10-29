@@ -1,5 +1,6 @@
 package com.example.galdcup.common.security;
 
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -33,10 +34,14 @@ public class StompHandler implements ChannelInterceptor {
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String jwt = extractToken(accessor);
 
-            if (jwt != null && jwtTokenProvider.validateToken(jwt)) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(jwt);
-                accessor.setUser(authentication);
-                log.info("웹소켓 연결 성공 - 인증 회원(ID: {})", jwtTokenProvider.getUserIdFromToken(jwt));
+            if (jwt != null) {
+                try {
+                    Authentication authentication = jwtTokenProvider.getAccessAuthentication(jwt);
+                    accessor.setUser(authentication);
+                    log.info("웹소켓 연결 성공 - 인증 회원(ID: {})", authentication.getName());
+                } catch (JwtException | IllegalArgumentException e) {
+                    throw new AccessDeniedException("유효하지 않은 액세스 토큰입니다.");
+                }
             } else {
                 log.info("웹소켓 연결 성공 - 비회원 게스트");
             }

@@ -28,14 +28,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = resolveTokenFromHeader(request);
 
-            if (token != null && jwtTokenProvider.validateToken(token)) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(token);
+            if (token != null) {
+                Authentication authentication = jwtTokenProvider.getAccessAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (ExpiredJwtException e) {
-            logger.debug("Access Token is expired: " + e.getMessage());
+            SecurityContextHolder.clearContext();
+            logger.debug("Access Token is expired.");
         } catch (JwtException | IllegalArgumentException e) {
-            logger.debug("Invalid Access Token: " + e.getMessage());
+            SecurityContextHolder.clearContext();
+            logger.debug("Invalid Access Token.");
         }
 
         filterChain.doFilter(request, response);
