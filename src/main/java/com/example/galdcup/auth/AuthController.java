@@ -2,8 +2,6 @@ package com.example.galdcup.auth;
 
 import com.example.galdcup.auth.response.AuthDto;
 import com.example.galdcup.auth.response.AuthResponse;
-import com.example.galdcup.common.rateLimit.RateLimit;
-import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

@@ -2,9 +2,7 @@ package com.example.galdcup.gemini;
 
 import com.example.galdcup.board.board.domain.Board;
 import com.example.galdcup.board.board.validator.BoardValidator;
-import com.example.galdcup.gemini.response.CommentContextResponse;
 import com.example.galdcup.gemini.response.OpinionAnalysisResponse;
-import com.example.galdcup.gemini.response.PostContextResponse;
 import com.example.galdcup.gemini.response.VoteSessionContextResponse;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentConfig;

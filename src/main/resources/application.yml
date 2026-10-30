@@ -33,7 +33,7 @@ spring:
     web:
       pageable:
         default-page-size: 30
-        one-indexed-parameters: true
+        one-indexed-parameters: false
 
     redis:
       host: ${REDIS_HOST}
