@@ -48,6 +48,11 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
+                        // 관리 서버 전용 경로는 일반 API 포트에서 제공하지 않는다.
+                        .requestMatchers("/actuator", "/actuator/**").denyAll()
+
+                        .requestMatchers("/api/admin/monitoring", "/api/admin/monitoring/**").hasRole("ADMIN")
+
                         // Swagger UI 및 API Docs 허용
                         .requestMatchers(
                                 "/v3/api-docs/**",
