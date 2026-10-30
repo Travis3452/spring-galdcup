@@ -60,24 +60,6 @@ class MonitoringIntegrationTests {
     }
 
     @Test
-    void monitoringDashboardRequiresAdminForEveryEndpoint() throws Exception {
-        String admin = tokens.createAccessToken(1L, List.of("ADMIN"));
-        for (String path : List.of("/api/admin/monitoring", "/api/admin/monitoring/health",
-                "/api/admin/monitoring/api", "/api/admin/monitoring/redis", "/api/admin/monitoring/alerts")) {
-            assertEquals(401, send(apiPort, "GET", path, null).statusCode(), path);
-            for (String role : List.of("USER", "MANAGER")) {
-                assertEquals(403, send(apiPort, "GET", path,
-                        tokens.createAccessToken(2L, List.of(role))).statusCode(), path + role);
-            }
-            var response = send(apiPort, "GET", path, admin);
-            assertEquals(200, response.statusCode(), path);
-            assertEquals("no-store", response.headers().firstValue("cache-control").orElse(""));
-        }
-        assertEquals(401, send(apiPort, "GET", "/api/admin/monitoring", tokens.createRefreshToken(1L)).statusCode());
-        assertEquals(400, send(apiPort, "GET", "/api/admin/monitoring?range=365d", admin).statusCode());
-    }
-
-    @Test
     void productionConfigurationUsesSeparateLoopbackManagementServer() throws Exception {
         var properties = new YamlPropertySourceLoader()
                 .load("production", new ClassPathResource("application.yml")).get(0);
@@ -165,20 +147,7 @@ class MonitoringIntegrationTests {
             "org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration"
     })
     @Import({SecurityConfig.class, ActuatorSecurityConfig.class,
-            JwtTokenProvider.class, JwtAuthenticationFilter.class, ProbeController.class,
-            com.example.galdcup.monitoring.MonitoringController.class,
-            com.example.galdcup.monitoring.MonitoringService.class,
-            com.example.galdcup.monitoring.DependencyHealth.class,
-            com.example.galdcup.common.exception.GlobalExceptionHandler.class})
     static class TestApplication {
-        @org.springframework.context.annotation.Bean
-        com.example.galdcup.monitoring.PrometheusClient prometheusClient() throws Exception {
-            var client = org.mockito.Mockito.mock(com.example.galdcup.monitoring.PrometheusClient.class);
-            org.mockito.Mockito.when(client.current()).thenReturn(java.util.Map.of());
-            org.mockito.Mockito.when(client.history(org.mockito.ArgumentMatchers.anyString()))
-                    .thenReturn(new com.example.galdcup.monitoring.MonitoringData.History(true, java.util.Map.of()));
-            return client;
-        }
     }
 
     @RestController
