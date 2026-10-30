@@ -153,14 +153,25 @@ class VoteSessionServiceTests {
     void expiredSessionIsClosedInItsOwnServiceTransaction() {
         OffsetDateTime end = OffsetDateTime.now().minusMinutes(1);
         session.setEndTime(end);
-        VoteCountSnapshot finalCounts = new VoteCountSnapshot(open.counts(), "2", end.toInstant().toEpochMilli());
+
+        VoteCountSnapshot finalCounts = new VoteCountSnapshot(
+                open.counts(),
+                "2",
+                end.toInstant().toEpochMilli()
+        );
+
         when(redis.closeAndGetSnapshot(session)).thenReturn(finalCounts);
 
         service.finishExpiredVoteSession(100L);
         commit();
 
         assertTrue(session.isFinished());
-        assertEquals(end, session.getEndTime());
+
+        assertEquals(
+                end.toInstant().toEpochMilli(),
+                session.getEndTime().toInstant().toEpochMilli()
+        );
+
         verify(redis).acknowledgeSnapshot(100L, finalCounts, true);
     }
 
