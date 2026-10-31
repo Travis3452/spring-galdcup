@@ -60,6 +60,40 @@ class MonitoringIntegrationTests {
     }
 
     @Test
+    void statisticsAndActivityEndpointsEnforceRolesAndNeverTrustClientUserIds() throws Exception {
+        var writer = application.getBean(com.example.galdcup.statistics.ActivityWriter.class);
+        org.mockito.Mockito.clearInvocations(writer);
+        String path = "/api/admin/statistics";
+        assertEquals(401, send(apiPort, "GET", path, null).statusCode());
+        for (String role : List.of("USER", "MANAGER")) {
+            assertEquals(403, send(apiPort, "GET", path, tokens.createAccessToken(9L, List.of(role))).statusCode());
+        }
+        String admin = tokens.createAccessToken(1L, List.of("ADMIN"));
+        var result = send(apiPort, "GET", path + "?days=7", admin);
+        assertEquals(200, result.statusCode());
+        assertEquals("no-store", result.headers().firstValue("cache-control").orElse(""));
+        var json = application.getBean(tools.jackson.databind.ObjectMapper.class).readTree(result.body());
+        assertEquals("Asia/Seoul", json.path("timezone").asString());
+        assertTrue(json.path("asOfDate").asString().matches("\\d{4}-\\d{2}-\\d{2}"));
+        assertEquals(7, json.path("signups").path("points").size());
+        assertTrue(json.path("signups").path("points").path(0).path("date").asString()
+                .matches("\\d{4}-\\d{2}-\\d{2}"));
+        assertTrue(json.path("activeUsers").path("dau").isNull());
+        for (String invalid : List.of("0", "365", "bad")) {
+            assertEquals(400, send(apiPort, "GET", path + "?days=" + invalid, admin).statusCode());
+        }
+        assertEquals(401, send(apiPort, "POST", "/api/activity", null).statusCode());
+        assertEquals(401, send(apiPort, "POST", "/api/activity", tokens.createRefreshToken(9L)).statusCode());
+        for (String role : List.of("USER", "MANAGER", "ADMIN")) {
+            assertEquals(204, send(apiPort, "POST", "/api/activity?userId=999&day=1900-01-01",
+                    tokens.createAccessToken(9L, List.of(role))).statusCode());
+        }
+        org.mockito.Mockito.verify(writer, org.mockito.Mockito.times(3)).record(
+                org.mockito.ArgumentMatchers.eq(9L), org.mockito.ArgumentMatchers.any(java.time.LocalDate.class));
+        org.mockito.Mockito.verifyNoMoreInteractions(writer);
+    }
+
+    @Test
     void monitoringDashboardRequiresAdminForEveryEndpoint() throws Exception {
         String admin = tokens.createAccessToken(1L, List.of("ADMIN"));
         for (String path : List.of("/api/admin/monitoring", "/api/admin/monitoring/health",
@@ -169,8 +203,29 @@ class MonitoringIntegrationTests {
             com.example.galdcup.monitoring.MonitoringController.class,
             com.example.galdcup.monitoring.MonitoringService.class,
             com.example.galdcup.monitoring.DependencyHealth.class,
+            com.example.galdcup.statistics.StatisticsController.class,
+            com.example.galdcup.statistics.StatisticsService.class,
+            com.example.galdcup.statistics.StatisticsConfig.class,
+            com.example.galdcup.statistics.ActivityController.class,
+            com.example.galdcup.statistics.ActivityService.class,
             com.example.galdcup.common.exception.GlobalExceptionHandler.class})
     static class TestApplication {
+        @org.springframework.context.annotation.Bean
+        com.example.galdcup.statistics.StatisticsRepository statisticsRepository() {
+            var repo = org.mockito.Mockito.mock(com.example.galdcup.statistics.StatisticsRepository.class);
+            org.mockito.Mockito.when(repo.totals()).thenReturn(new com.example.galdcup.statistics.StatisticsData.Totals(10, 2, 3, 4));
+            org.mockito.Mockito.when(repo.activeUsers(org.mockito.ArgumentMatchers.any()))
+                    .thenReturn(new com.example.galdcup.statistics.StatisticsRepository.ActivityCounts(0, 0, 0));
+            org.mockito.Mockito.when(repo.signups(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+                    .thenReturn(java.util.Map.of());
+            return repo;
+        }
+
+        @org.springframework.context.annotation.Bean
+        com.example.galdcup.statistics.ActivityWriter activityWriter() {
+            return org.mockito.Mockito.mock(com.example.galdcup.statistics.ActivityWriter.class);
+        }
+
         @org.springframework.context.annotation.Bean
         com.example.galdcup.monitoring.PrometheusClient prometheusClient() throws Exception {
             var client = org.mockito.Mockito.mock(com.example.galdcup.monitoring.PrometheusClient.class);

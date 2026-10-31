@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator", "/actuator/**").denyAll()
 
                         .requestMatchers("/api/admin/monitoring", "/api/admin/monitoring/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/statistics", "/api/admin/statistics/**").hasRole("ADMIN")
 
                         // Swagger UI 및 API Docs 허용
                         .requestMatchers(

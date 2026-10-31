@@ -5,7 +5,6 @@
 - [프로젝트 설명서·기획 및 설계](https://www.notion.so/3350e2be9aa9802baf55e83fd005ad72)
 - [API 명세 및 가이드](https://app.notion.com/p/API-3350e2be9aa9805db346e5138dda67bd)
 - 기존 운영 안내 주소: [galdcup.live](https://galdcup.live). 이번 문서 작업에서 운영 서버의 접속·설정 상태는 확인하지 않았습니다.
-- 통합 작업공간의 [프론트엔드 README](../../frontend/galdcup/README.md). 별도 저장소로 체크아웃하면 상대 경로는 배치에 맞게 확인합니다.
 
 ## 구현된 주요 기능
 

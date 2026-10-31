@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 /**
  * 서비스 이용자 계정 정보 엔티티
@@ -35,6 +37,14 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private OffsetDateTime createdAt;
+
+    @PrePersist
+    void initializeCreatedAt() {
+        if (createdAt == null) createdAt = OffsetDateTime.now(ZoneOffset.UTC);
+    }
+
     public enum Role {
         USER, MANAGER, ADMIN
     }
@@ -53,6 +63,7 @@ public class User {
                 .oauthId(oauthId)
                 .nickname(nickname)
                 .role(Role.USER)
+                .createdAt(OffsetDateTime.now(ZoneOffset.UTC))
                 .build();
     }
 

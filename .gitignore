@@ -36,3 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 .env*
+
+### Personal development configuration ###
+/src/main/resources/application-dev.yml
+
+### Local Oracle statistics migration files ###
+/db/oracle/statistics/

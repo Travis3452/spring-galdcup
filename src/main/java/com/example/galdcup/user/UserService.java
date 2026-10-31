@@ -11,6 +11,8 @@ import com.example.galdcup.user.role.RoleRequest;
 import com.example.galdcup.user.role.RoleRequestRepository;
 import com.example.galdcup.user.validator.RoleRequestValidator;
 import com.example.galdcup.user.validator.UserValidator;
+import com.example.galdcup.statistics.SignupEvent;
+import com.example.galdcup.statistics.SignupEventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +30,7 @@ public class UserService {
     private final UserValidator userValidator;
     private final RoleRequestValidator roleRequestValidator;
     private final UserNicknameGenerator nicknameGenerator;
+    private final SignupEventRepository signupEventRepository;
 
     /**
      * OAuth 정보를 바탕으로 유저를 조회하거나 새로 생성 (회원가입/로그인)
@@ -38,7 +41,9 @@ public class UserService {
                 .orElseGet(() -> {
                     String nickname = nicknameGenerator.generate();
                     User newUser = User.signup(email, oauthId, nickname);
-                    return userRepository.save(newUser);
+                    User saved = userRepository.save(newUser);
+                    signupEventRepository.save(new SignupEvent(saved.getCreatedAt()));
+                    return saved;
                 });
     }
 
