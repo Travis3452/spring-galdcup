@@ -43,7 +43,7 @@ class PostManagerAuthorizationTests {
     @Test
     void matchingBoardStillRequiresManagerPermission() {
         when(posts.findByIdOrThrow(100L)).thenReturn(post);
-        when(boards.getBoardIfManager(10L, 7L)).thenThrow(new AccessDeniedException("not a manager"));
+        when(boards.requireBoardManagementAccess(10L, 7L)).thenThrow(new AccessDeniedException("not a manager"));
 
         assertThrows(AccessDeniedException.class, () -> service.deleteForBoardManager(100L, 10L, 7L));
 
@@ -57,7 +57,7 @@ class PostManagerAuthorizationTests {
         service.deleteForBoardManager(100L, 10L, 7L);
 
         var order = inOrder(boards, repository, redis, events);
-        order.verify(boards).getBoardIfManager(10L, 7L);
+        order.verify(boards).requireBoardManagementAccess(10L, 7L);
         order.verify(repository).delete(post);
         order.verify(redis).deleteViewCache(100L);
         ArgumentCaptor<PostChangedEvent> change = ArgumentCaptor.forClass(PostChangedEvent.class);

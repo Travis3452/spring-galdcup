@@ -13,7 +13,7 @@ public class ActivityService {
     public ActivityService(ActivityWriter writer, Clock statisticsClock) { this.writer = writer; this.clock = statisticsClock; }
 
     public void record(long userId) {
-        try { writer.record(userId, LocalDate.now(clock.withZone(StatisticsRepository.KOREA))); }
+        try { writer.recordDailyActivityIfAbsent(userId, LocalDate.now(clock.withZone(StatisticsRepository.KOREA))); }
         // The writer's own transaction has rolled back before this is caught.
         catch (DuplicateKeyException ignored) { }
     }

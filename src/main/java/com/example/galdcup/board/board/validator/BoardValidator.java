@@ -40,24 +40,24 @@ public class BoardValidator {
     }
 
     /** 관리자/서브관리자 통합 권한 확인 */
-    public Board getBoardIfManager(Long boardId, Long userId) {
+    public Board requireBoardManagementAccess(Long boardId, Long userId) {
         Board board = this.findBoardWithFullPolicyOrThrow(boardId);
         BoardPolicy policy = board.getBoardPolicy();
 
-        boolean isMain = policy.getBoardManager() != null &&
+        boolean isBoardManager = policy.getBoardManager() != null &&
                 policy.getBoardManager().getId().equals(userId);
 
-        boolean isSub = policy.getSubManagers().stream()
+        boolean isSubManager = policy.getSubManagers().stream()
                 .anyMatch(u -> u.getId().equals(userId));
 
-        if (!isMain && !isSub) {
+        if (!isBoardManager && !isSubManager) {
             throw new AccessDeniedException("해당 게시판의 관리 권한이 필요합니다.");
         }
         return board;
     }
 
     /** 게시판 관리자 권한 확인 */
-    public Board getBoardIfBoardManager(Long boardId, Long userId) {
+    public Board requireBoardManagerAccess(Long boardId, Long userId) {
         Board board = this.findBoardWithFullPolicyOrThrow(boardId);
         User boardManager = board.getBoardPolicy().getBoardManager();
 
@@ -79,7 +79,7 @@ public class BoardValidator {
         }
     }
 
-    public Board findDeatilById(Long boardId) {
+    public Board findDetailByIdOrThrow(Long boardId) {
         return boardRepository.findDetailById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시판을 찾을 수 없습니다."));
     }

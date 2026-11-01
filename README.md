@@ -26,7 +26,7 @@
 | --- | --- |
 | 언어·빌드 | Java 17, Gradle Wrapper 9.2.1 |
 | 서버 | Spring Boot **4.0.0**, Spring MVC, Spring Security, Validation, OAuth2 Client |
-| 영속성 | Spring Data JPA; 기본 Oracle JDBC·OracleDialect, dev MySQL JDBC·MySQLDialect |
+| 영속성 | Spring Data JPA; 운영·개발 Oracle JDBC·OracleDialect |
 | Redis·실시간 | Spring Data Redis, Lettuce, Lua, STOMP 내장 Simple Broker |
 | 인증·제어 | JJWT 0.12.6, Bucket4j 8.11.1, OWASP Java HTML Sanitizer |
 | AI | Google GenAI SDK 1.0.0; 코드의 모델 식별자 `gemini-3.5-flash-lite` |
@@ -41,7 +41,7 @@ Redis 7.2는 CI 테스트 이미지 버전입니다. 운영 DB·Redis 버전과 
 ```text
 브라우저(Vue SPA)
  ├─ REST /api → Security JWT → RateLimit → Controller → Service/Validator
- │                                                    ├─ JPA → Oracle / dev MySQL
+ │                                                    ├─ JPA → Oracle (운영·개발 스키마 분리)
  │                                                    ├─ Redis: 인증·캐시·집계·제한
  │                                                    └─ Google OAuth / Gemini
  ├─ STOMP /ws-galdcup ← /topic/votes/{voteSessionId}: 총참여자 수
@@ -54,7 +54,7 @@ Redis 7.2는 CI 테스트 이미지 버전입니다. 운영 DB·Redis 버전과 
 src/main/java/com/example/galdcup/  # 애플리케이션 및 도메인 코드
 src/main/resources/
 ├── application.yml                # 기본 Oracle·외부 설정
-├── application-dev.yml            # dev MySQL 및 개발 옵션
+├── application-dev.yml            # 로컬 Oracle 개발 계정 설정 (Git 제외)
 └── scripts/                       # 투표 접수·스냅샷·확인 Lua
 src/test/java/                     # 단위·Redis·컨텍스트 테스트
 .github/workflows/deploy.yml       # 검증 후 JAR 배포
@@ -79,7 +79,7 @@ RDB에는 `users`, `role_requests`, `boards`, `board_policies`, `board_manager_r
 
 ## 개발 환경과 설정
 
-JDK 17, Gradle Wrapper, 준비된 MySQL(dev) 또는 Oracle(기본), Redis가 필요합니다. Docker Compose·DB 마이그레이션 스크립트·Nginx 설정·systemd unit은 저장소에 없습니다. 운영용 기본 DDL은 `validate`이며 스키마를 자동 설치하지 않습니다.
+JDK 17, Gradle Wrapper, 준비된 Oracle 개발 전용 스키마, Redis가 필요합니다. Docker Compose·DB 마이그레이션 스크립트·Nginx 설정·systemd unit은 저장소에 없습니다. 운영용 기본 DDL은 `validate`이며 스키마를 자동 설치하지 않습니다.
 
 아래 명령은 **백엔드 저장소 루트** 기준입니다. 통합 작업공간에서는 먼저 `cd backend/galdcup`으로 이동합니다.
 
@@ -102,7 +102,7 @@ JDK 17, Gradle Wrapper, 준비된 MySQL(dev) 또는 Oracle(기본), Redis가 필
 | `HIKARI_MAX`, `HIKARI_IDLE`, `BATCH_FETCH_SIZE` | 기본 프로필 풀·배치 설정, 기본 20·10·100 |
 | `SPRING_PROFILES_ACTIVE` | 활성 프로필 선택; 개발은 dev, 운영에서 dev 혼용 금지 |
 
-dev YAML은 MySQL 로컬 접속과 고정 개발 자격값, `ddl-auto: update`, Redis localhost:6379, 쿠키 Secure=false·SameSite=Lax를 정의합니다. 공유 DB를 사용하지 말고 접속 정보는 `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` 등 표준 Spring 환경변수로 덮어씁니다. dev에서도 기본 YAML의 Redis 비밀번호 설정은 상속되므로 로컬 Redis 인증에 맞게 `REDISPASSWORD`를 설정합니다. dev DDL을 제한하려면 `SPRING_JPA_HIBERNATE_DDL_AUTO=validate` 등 표준 설정으로 덮어씁니다.
+로컬 `application-dev.yml`은 Git에서 제외하며 Oracle 개발 전용 계정과 `ddl-auto: validate`, Redis localhost:6379, 쿠키 Secure=false·SameSite=Lax를 설정합니다. 운영 계정을 개발 실행에 사용하지 않습니다. 접속 정보는 `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` 등 표준 Spring 환경변수로 덮어쓸 수 있습니다. Redis 인증 정보는 로컬 Redis 설정에 맞춥니다. 스키마 변경은 별도로 적용하고 기동 시 자동 변경하지 않습니다.
 
 프론트엔드 환경변수 `VITE_*`는 별도의 정적 빌드 설정입니다. 여기에 서버 Secret을 넣지 않습니다.
 

@@ -12,7 +12,7 @@ public class ActivityWriter {
     public ActivityWriter(StatisticsRepository repository) { this.repository = repository; }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public boolean record(long userId, LocalDate day) {
+    public boolean recordDailyActivityIfAbsent(long userId, LocalDate day) {
         if (repository.hasActivity(userId, day)) return false;
         return repository.insertActivity(userId, day);
     }

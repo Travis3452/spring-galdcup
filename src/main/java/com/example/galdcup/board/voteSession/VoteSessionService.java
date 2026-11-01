@@ -41,8 +41,8 @@ public class VoteSessionService {
 
     /** 투표 세션 생성 */
     @Transactional
-    public VoteSessionDto createVoteSession(Long boardId, Long adminId, CreateVoteSessionRequest request) {
-        Board board = boardValidator.getBoardIfBoardManager(boardId, adminId);
+    public VoteSessionDto createVoteSession(Long boardId, Long boardManagerId, CreateVoteSessionRequest request) {
+        Board board = boardValidator.requireBoardManagerAccess(boardId, boardManagerId);
         voteSessionValidator.validateNoActiveVoteSession(board);
 
         List<VoteOption> options = request.options().stream()
@@ -111,7 +111,7 @@ public class VoteSessionService {
     /** 관리자에 의한 투표 세션 수동 종료 */
     @Transactional
     public void finishVoteSession(Long boardId, Long voteSessionId, Long userId) {
-        boardValidator.getBoardIfBoardManager(boardId, userId);
+        boardValidator.requireBoardManagerAccess(boardId, userId);
         VoteSession session = findForUpdate(voteSessionId);
         Long actualBoardId = session.getBoard().getId();
         if (!actualBoardId.equals(boardId)) {

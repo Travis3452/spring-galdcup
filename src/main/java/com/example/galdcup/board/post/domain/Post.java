@@ -6,6 +6,8 @@ import com.example.galdcup.board.post.domain.embedded.Author;
 import com.example.galdcup.board.postCategory.domain.PostCategory;
 import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;
+import com.example.galdcup.common.CreationSource;
+import org.hibernate.annotations.ColumnDefault;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,6 +44,12 @@ public class Post {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_category_id", nullable = false)
     private PostCategory postCategory;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @ColumnDefault("'UNKNOWN'")
+    @Column(name = "creation_source", nullable = false, updatable = false, length = 16)
+    private CreationSource creationSource = CreationSource.UNKNOWN;
 
     @Embedded
     private Author author;
@@ -91,9 +99,14 @@ public class Post {
      * 게시글 생성 정적 팩토리 메서드
      */
     public static Post create(Board board, PostCategory category, User user, String title, String content) {
+        return create(board, category, user, title, content, CreationSource.USER);
+    }
+
+    public static Post create(Board board, PostCategory category, User user, String title, String content, CreationSource creationSource) {
         return Post.builder()
                 .board(board)
                 .postCategory(category)
+                .creationSource(java.util.Objects.requireNonNull(creationSource))
                 .author(Author.from(user))
                 .title(title)
                 .content(content)

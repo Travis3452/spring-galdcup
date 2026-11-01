@@ -36,7 +36,7 @@ public class AuthController implements AuthApi {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body(result.profile());
+                .body(result.authResponse());
     }
 
     /**
@@ -54,7 +54,7 @@ public class AuthController implements AuthApi {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body(result.profile());
+                .body(result.authResponse());
     }
 
     /**

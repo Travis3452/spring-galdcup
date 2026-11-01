@@ -32,7 +32,7 @@ public class UserAiAgentService {
      */
     @Transactional
     public UserAiAgentDto create(Long userId, CreateUserAiAgentRequest request) {
-        userAiAgentValidator.validateAlreadyExists(userId);
+        userAiAgentValidator.validateAgentDoesNotExist(userId);
         userAiAgentValidator.validateApiKey(request.apiKey());
 
         User user = userValidator.findByIdOrThrow(userId);

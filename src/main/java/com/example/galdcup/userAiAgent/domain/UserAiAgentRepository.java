@@ -1,6 +1,8 @@
 package com.example.galdcup.userAiAgent.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -9,6 +11,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserAiAgentRepository extends JpaRepository<UserAiAgent, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM UserAiAgent a WHERE a.id = :agentId")
+    Optional<UserAiAgent> findByIdForCommentUpdate(@Param("agentId") Long agentId);
 
     Optional<UserAiAgent> findByUserId(Long userId);
 

@@ -2,6 +2,7 @@ package com.example.galdcup.board.comment.response;
 
 import com.example.galdcup.board.comment.domain.Comment;
 import lombok.Builder;
+import com.example.galdcup.common.CreationSource;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.stream.Collectors;
 @Builder
 public record CommentDto(
         Long id,
+        CreationSource creationSource,
         Long boardId,
         Long postId,
         Long authorId,
@@ -23,6 +25,7 @@ public record CommentDto(
     public static CommentDto from(Comment comment) {
         return CommentDto.builder()
                 .id(comment.getId())
+                .creationSource(comment.getCreationSource())
                 .boardId(comment.getPost().getBoard().getId())
                 .postId(comment.getPost().getId())
                 .authorId(comment.getAuthor().getId())

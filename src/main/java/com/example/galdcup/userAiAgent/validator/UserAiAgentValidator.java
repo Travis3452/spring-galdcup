@@ -36,7 +36,7 @@ public class UserAiAgentValidator {
     /**
      * 이미 활성화된 AI 용병이 존재하는지 검증 (유저당 1대 제한)
      */
-    public void validateAlreadyExists(Long userId) {
+    public void validateAgentDoesNotExist(Long userId) {
         if (userAiAgentRepository.existsByUserId(userId)) {
             throw new IllegalStateException("이미 등록된 AI 용병이 존재합니다. 유저당 1대만 생성할 수 있습니다.");
         }

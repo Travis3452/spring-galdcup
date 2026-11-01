@@ -23,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import com.example.galdcup.common.CreationSource;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -55,10 +56,10 @@ public class PostService {
         Long likeThreshold = isPopular ? board.getBoardPolicy().getLikeThreshold() : null;
 
         if (keyword != null && !keyword.isBlank()) {
-            return getSearch(boardId, categoryId, likeThreshold, searchType, keyword, pageable);
+            return searchPosts(boardId, categoryId, likeThreshold, searchType, keyword, pageable);
         }
 
-        return getList(boardId, categoryId, likeThreshold, pageable);
+        return getPostPage(boardId, categoryId, likeThreshold, pageable);
     }
 
     /**
@@ -66,17 +67,26 @@ public class PostService {
      */
     @Transactional
     public PostDto create(Long boardId, Long categoryId, Long authorId, String title, String content) {
+        return createWithSource(boardId, categoryId, authorId, title, content, CreationSource.USER);
+    }
+
+    @Transactional
+    public PostDto createAiPost(Long boardId, Long categoryId, Long authorId, String title, String content) {
+        return createWithSource(boardId, categoryId, authorId, title, content, CreationSource.AI);
+    }
+
+    private PostDto createWithSource(Long boardId, Long categoryId, Long authorId, String title, String content, CreationSource source) {
         Board board = boardValidator.findActiveBoardByIdOrThrow(boardId);
         User author = userValidator.findByIdOrThrow(authorId);
-        PostCategory category = postCategoryValidator.getIfBelongsToBoard(categoryId, boardId);
+        PostCategory category = postCategoryValidator.findCategoryInBoardOrThrow(categoryId, boardId);
 
         if (category.getType() == PostCategory.CategoryType.NOTICE) {
-            boardValidator.getBoardIfManager(boardId, author.getId());
+            boardValidator.requireBoardManagementAccess(boardId, author.getId());
         }
 
         String safeContent = htmlSanitizer.sanitize(content);
 
-        Post post = Post.create(board, category, author, title, safeContent);
+        Post post = Post.create(board, category, author, title, safeContent, source);
 
         Post saved = postRepository.save(post);
         eventPublisher.publishEvent(new PostChangedEvent(boardId, saved.getId()));
@@ -112,7 +122,7 @@ public class PostService {
 
         postValidator.validateIsAuthor(post, authorId);
 
-        PostCategory newCategory = postCategoryValidator.getIfBelongsToBoard(categoryId, post.getBoard().getId());
+        PostCategory newCategory = postCategoryValidator.findCategoryInBoardOrThrow(categoryId, post.getBoard().getId());
         String safeContent = htmlSanitizer.sanitize(content);
 
         boolean isManager = post.getBoard().getBoardPolicy().isBoardManager(user);
@@ -156,7 +166,7 @@ public class PostService {
                     "해당 게시판에 속하지 않는 게시글입니다.");
         }
 
-        boardValidator.getBoardIfManager(actualBoardId, managerId);
+        boardValidator.requireBoardManagementAccess(actualBoardId, managerId);
 
         postRepository.delete(post);
         postRedisManager.deleteViewCache(postId);
@@ -175,21 +185,21 @@ public class PostService {
     /**
      * 전체 조회 (5페이지까지 캐싱)
      */
-    private Page<PostDto> getList(Long boardId, Long categoryId, Long threshold, Pageable pageable) {
+    private Page<PostDto> getPostPage(Long boardId, Long categoryId, Long likeThreshold, Pageable pageable) {
         if (pageable.getPageNumber() < 5) {
             Optional<CachedPageResponse<PostDto>> cached =
-                    postRedisManager.getPostPage(boardId, categoryId, threshold, pageable);
+                    postRedisManager.getPostPage(boardId, categoryId, likeThreshold, pageable);
 
             if (cached.isPresent()) {
                 return cached.get().toPage(pageable);
             }
         }
 
-        Page<PostDto> page = postRepository.findPostsFiltered(boardId, categoryId, threshold, pageable)
+        Page<PostDto> page = postRepository.findPostsFiltered(boardId, categoryId, likeThreshold, pageable)
                 .map(PostDto::from);
 
         if (pageable.getPageNumber() < 5 && !page.isEmpty()) {
-            postRedisManager.savePostList(boardId, categoryId, threshold, pageable, CachedPageResponse.of(page));
+            postRedisManager.savePostList(boardId, categoryId, likeThreshold, pageable, CachedPageResponse.of(page));
         }
 
         return page;
@@ -198,13 +208,13 @@ public class PostService {
     /**
      * 검색 조회
      */
-    private Page<PostDto> getSearch(Long boardId, Long categoryId, Long threshold,
+    private Page<PostDto> searchPosts(Long boardId, Long categoryId, Long likeThreshold,
                                     String searchType, String keyword, Pageable pageable) {
         if ("NICKNAME".equals(searchType)) {
-            return postRepository.searchByAuthorNickname(boardId, categoryId, threshold, keyword, pageable)
+            return postRepository.searchByAuthorNickname(boardId, categoryId, likeThreshold, keyword, pageable)
                     .map(PostDto::from);
         }
-        return postRepository.searchByTitleAndContent(boardId, categoryId, threshold, keyword, pageable)
+        return postRepository.searchByTitleAndContent(boardId, categoryId, likeThreshold, keyword, pageable)
                 .map(PostDto::from);
     }
 

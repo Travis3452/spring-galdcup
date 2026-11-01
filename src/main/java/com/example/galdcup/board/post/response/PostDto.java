@@ -2,12 +2,14 @@ package com.example.galdcup.board.post.response;
 
 import com.example.galdcup.board.post.domain.Post;
 import lombok.Builder;
+import com.example.galdcup.common.CreationSource;
 
 import java.time.OffsetDateTime;
 
 @Builder
 public record PostDto(
         Long id,
+        CreationSource creationSource,
         Long boardId,
         Long categoryId,
         String categoryName,
@@ -25,6 +27,7 @@ public record PostDto(
     public static PostDto from(Post post) {
         return PostDto.builder()
                 .id(post.getId())
+                .creationSource(post.getCreationSource())
                 .boardId(post.getBoard().getId())
                 .categoryId(post.getPostCategory().getId())
                 .categoryName(post.getPostCategory().getName())

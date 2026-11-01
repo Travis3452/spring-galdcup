@@ -1,12 +1,15 @@
 package com.example.galdcup.userAiAgent.domain;
 
 import com.example.galdcup.board.board.domain.Board;
+import com.example.galdcup.board.post.domain.Post;
 import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * 유저 맞춤형 AI 용병 엔티티
@@ -51,6 +54,18 @@ public class UserAiAgent {
 
     @Column(name = "expired_at", nullable = false)
     private OffsetDateTime expiredAt;
+
+    @Builder.Default
+    @ManyToMany
+    @JoinTable(name = "ai_agent_comment_targets",
+            joinColumns = @JoinColumn(name = "agent_id"),
+            inverseJoinColumns = @JoinColumn(name = "post_id"),
+            uniqueConstraints = @UniqueConstraint(name = "uk_agent_comment_target", columnNames = {"agent_id", "post_id"}))
+    private Set<Post> commentedPosts = new LinkedHashSet<>();
+
+    public void rememberCommentTarget(Post post) {
+        commentedPosts.add(post);
+    }
 
     /**
      * AI 용병 생성 정적 팩토리 메서드

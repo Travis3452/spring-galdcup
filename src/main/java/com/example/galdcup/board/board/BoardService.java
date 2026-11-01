@@ -77,7 +77,7 @@ public class BoardService {
     public BoardDetailResponse getBoardDetail(Long boardId) {
         return boardRedisManager.getBoardDetail(boardId)
                 .orElseGet(() -> {
-                    Board board = boardValidator.findDeatilById(boardId);
+                    Board board = boardValidator.findDetailByIdOrThrow(boardId);
 
                     BoardDetailResponse response = BoardDetailResponse.of(board);
                     boardRedisManager.saveBoardDetail(boardId, response);
@@ -112,7 +112,7 @@ public class BoardService {
     /** 게시판의 운영 상태(OPEN/CLOSED)를 변경. */
     @Transactional
     public BoardDto updateStatus(Long boardId, BoardRequest.UpdateStatus request, Long currentUserId) {
-        Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
+        Board board = boardValidator.requireBoardManagerAccess(boardId, currentUserId);
         board.changeStatus(request.status());
 
         eventPublisher.publishEvent(new BoardChangedEvent(boardId));
@@ -122,7 +122,7 @@ public class BoardService {
     /** 게시판의 운영 상태를 CLOSE로 변경하고 관련 캐시를 삭제. */
     @Transactional
     public void delete(Long boardId, Long currentUserId) {
-        Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
+        Board board = boardValidator.requireBoardManagerAccess(boardId, currentUserId);
         board.closeBoard();
         eventPublisher.publishEvent(new BoardChangedEvent(boardId));
     }
@@ -134,7 +134,7 @@ public class BoardService {
     /** 게시판 관리자 권한을 다른 유저에게 위임. */
     @Transactional
     public BoardPolicyDto delegateManager(Long boardId, String targetNickname, Long currentUserId) {
-        Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
+        Board board = boardValidator.requireBoardManagerAccess(boardId, currentUserId);
         User newManager = userValidator.findByNicknameOrThrow(targetNickname);
 
         board.getBoardPolicy().delegateMainManager(newManager);
@@ -174,7 +174,7 @@ public class BoardService {
     /** 게시판 정책을 수정. */
     @Transactional
     public BoardPolicyDto updatePolicy(Long boardId, BoardRequest.UpdatePolicy request, Long currentUserId) {
-        Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
+        Board board = boardValidator.requireBoardManagerAccess(boardId, currentUserId);
         board.getBoardPolicy().updateLikeThreshold(request.likeThreshold());
 
         eventPublisher.publishEvent(new BoardChangedEvent(boardId));
@@ -184,7 +184,7 @@ public class BoardService {
     /** 게시판의 서브 매니저 권한 임명. */
     @Transactional
     public BoardPolicyDto addSubManager(Long boardId, String nickname, Long currentUserId) {
-        Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
+        Board board = boardValidator.requireBoardManagerAccess(boardId, currentUserId);
         User subManager = userValidator.findByNicknameOrThrow(nickname);
 
         board.getBoardPolicy().addSubManager(subManager);
@@ -196,7 +196,7 @@ public class BoardService {
     /** 게시판의 서브 매니저 권한 제거. */
     @Transactional
     public BoardPolicyDto removeSubManager(Long boardId, String nickname, Long currentUserId) {
-        Board board = boardValidator.getBoardIfBoardManager(boardId, currentUserId);
+        Board board = boardValidator.requireBoardManagerAccess(boardId, currentUserId);
         User subManager = userValidator.findByNicknameOrThrow(nickname);
 
         board.getBoardPolicy().removeSubManager(subManager);

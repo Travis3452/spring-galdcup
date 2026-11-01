@@ -22,7 +22,7 @@ public class PostCategoryValidator {
     /**
      * 특정 게시판의 '일반' 카테고리를 조회
      */
-    public PostCategory findGeneralCategoryOrThrowByBoardId(Long boardId) {
+    public PostCategory findGeneralCategoryByBoardIdOrThrow(Long boardId) {
         return postCategoryRepository.findByBoardIdAndType(boardId, PostCategory.CategoryType.GENERAL)
                 .orElseThrow(() -> new IllegalStateException("해당 게시판에 일반 카테고리가 존재하지 않습니다."));
     }
@@ -48,7 +48,7 @@ public class PostCategoryValidator {
     /**
      * 특정 게시판에 속한 카테고리인지 확인 후 객체 반환 (조회 + 보안 체크 통합)
      */
-    public PostCategory getIfBelongsToBoard(Long categoryId, Long boardId) {
+    public PostCategory findCategoryInBoardOrThrow(Long categoryId, Long boardId) {
         PostCategory postCategory = this.findByIdOrThrow(categoryId);
 
         if (!postCategory.getBoard().getId().equals(boardId)) {

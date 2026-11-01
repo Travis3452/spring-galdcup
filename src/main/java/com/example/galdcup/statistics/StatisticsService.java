@@ -35,27 +35,27 @@ public class StatisticsService {
         LocalDate firstActivity = repository.firstActivityDate();
         boolean noActivity = firstActivity == null;
         ActiveUsers active = new ActiveUsers(noActivity ? null : counts.dau(), noActivity ? null : counts.wau(),
-                noActivity ? null : counts.mau(), firstActivity, partial(firstActivity, today),
-                partial(firstActivity, today.minusDays(6)), partial(firstActivity, today.minusDays(29)));
+                noActivity ? null : counts.mau(), firstActivity, isCoveragePartial(firstActivity, today),
+                isCoveragePartial(firstActivity, today.minusDays(6)), isCoveragePartial(firstActivity, today.minusDays(29)));
 
-        Map<LocalDate, Long> byDay = repository.signups(from, today.plusDays(1));
+        Map<LocalDate, Long> signupCountsByDate = repository.signups(from, today.plusDays(1));
         LocalDate firstSignup = repository.firstSignupDate();
         // A concurrent first signup can appear between these reads; only understate coverage.
-        if (firstSignup == null && !byDay.isEmpty()) firstSignup = byDay.keySet().stream().min(LocalDate::compareTo).orElse(null);
+        if (firstSignup == null && !signupCountsByDate.isEmpty()) firstSignup = signupCountsByDate.keySet().stream().min(LocalDate::compareTo).orElse(null);
         List<SignupPoint> points = new ArrayList<>();
         long total = 0;
         for (LocalDate day = from; !day.isAfter(today); day = day.plusDays(1)) {
-            Long count = byDay.get(day);
+            Long count = signupCountsByDate.get(day);
             if (count == null && firstSignup != null && !day.isBefore(firstSignup)) count = 0L;
             points.add(new SignupPoint(day, count));
             if (count != null) total += count;
         }
         Signups signups = new Signups(from, today, firstSignup, firstSignup == null ? null : total,
-                partial(firstSignup, from), List.copyOf(points));
+                isCoveragePartial(firstSignup, from), List.copyOf(points));
         Dashboard result = new Dashboard(clock.instant(), today, "Asia/Seoul", totals, active, signups);
         cache.put(days, result);
         return result;
     }
 
-    private boolean partial(LocalDate first, LocalDate from) { return first == null || !first.isBefore(from); }
+    private boolean isCoveragePartial(LocalDate firstRecordedDate, LocalDate rangeStartDate) { return firstRecordedDate == null || !firstRecordedDate.isBefore(rangeStartDate); }
 }

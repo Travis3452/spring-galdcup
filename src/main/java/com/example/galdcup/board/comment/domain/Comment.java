@@ -4,6 +4,8 @@ import com.example.galdcup.board.comment.embedded.Author;
 import com.example.galdcup.board.post.domain.Post;
 import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;
+import com.example.galdcup.common.CreationSource;
+import org.hibernate.annotations.ColumnDefault;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,6 +38,12 @@ public class Comment {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @ColumnDefault("'UNKNOWN'")
+    @Column(name = "creation_source", nullable = false, updatable = false, length = 16)
+    private CreationSource creationSource = CreationSource.UNKNOWN;
+
     @Embedded
     private Author author;
 
@@ -66,12 +74,17 @@ public class Comment {
      * 새로운 댓글 또는 대댓글을 생성
      */
     public static Comment create(Post post, User user, String content, Comment parentComment) {
+        return create(post, user, content, parentComment, CreationSource.USER);
+    }
+
+    public static Comment create(Post post, User user, String content, Comment parentComment, CreationSource creationSource) {
         if (parentComment != null && parentComment.getParentComment() != null) {
             throw new IllegalArgumentException("댓글에만 대댓글을 달 수 있습니다.");
         }
 
         Comment comment = Comment.builder()
                 .post(post)
+                .creationSource(java.util.Objects.requireNonNull(creationSource))
                 .author(new Author(user.getId(), user.getNickname()))
                 .content(content)
                 .parentComment(parentComment)

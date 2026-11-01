@@ -55,7 +55,7 @@ class AuthServiceTests {
 
         var result = service.refreshTokens(token);
 
-        assertEquals("1", provider.getAccessAuthentication(result.profile().accessToken()).getName());
+        assertEquals("1", provider.getAccessAuthentication(result.authResponse().accessToken()).getName());
         assertEquals(1L, provider.getUserIdFromRefreshToken(result.refreshToken()));
         var order = inOrder(tokens, userValidator);
         order.verify(tokens).validateRefreshToken(1L, token);

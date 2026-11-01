@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import com.example.galdcup.common.CreationSource;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -56,6 +57,15 @@ public class CommentService {
     /** 댓글 작성 */
     @Transactional
     public CommentDto create(Long postId, Long authorId, CreateCommentRequest createCommentRequest) {
+        return createWithSource(postId, authorId, createCommentRequest, CreationSource.USER);
+    }
+
+    @Transactional
+    public CommentDto createAiComment(Long postId, Long authorId, CreateCommentRequest request) {
+        return createWithSource(postId, authorId, request, CreationSource.AI);
+    }
+
+    private CommentDto createWithSource(Long postId, Long authorId, CreateCommentRequest createCommentRequest, CreationSource source) {
         Post post = postValidator.findByIdOrThrow(postId);
         User author = userValidator.findByIdOrThrow(authorId);
 
@@ -64,7 +74,7 @@ public class CommentService {
             parentComment = commentValidator.getValidatedParentComment(createCommentRequest.parentCommentId(), post.getId());
         }
 
-        Comment comment = Comment.create(post, author, createCommentRequest.content(), parentComment);
+        Comment comment = Comment.create(post, author, createCommentRequest.content(), parentComment, source);
 
         return CommentDto.from(commentRepository.save(comment));
     }

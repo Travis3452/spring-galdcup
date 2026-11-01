@@ -41,7 +41,7 @@ public class TestAuthController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body(result.profile());
+                .body(result.authResponse());
     }
 
     /**

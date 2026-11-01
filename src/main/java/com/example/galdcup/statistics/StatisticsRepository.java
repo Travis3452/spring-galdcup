@@ -1,7 +1,5 @@
 package com.example.galdcup.statistics;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -10,7 +8,8 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.sql.Date;
 import java.sql.Types;
-import java.time.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -20,20 +19,11 @@ import static com.example.galdcup.statistics.StatisticsData.Totals;
 public class StatisticsRepository {
     public static final ZoneId KOREA = ZoneId.of("Asia/Seoul");
     private final NamedParameterJdbcTemplate jdbc;
-    private final boolean oracle;
 
-    @Autowired
-    public StatisticsRepository(DataSource dataSource, @Value("${spring.jpa.database-platform}") String dialect) {
+    public StatisticsRepository(DataSource dataSource) {
         JdbcTemplate template = new JdbcTemplate(dataSource);
         template.setQueryTimeout(5);
         this.jdbc = new NamedParameterJdbcTemplate(template);
-        this.oracle = dialect.contains("Oracle");
-        if (!oracle && !dialect.contains("MySQL")) throw new IllegalArgumentException("Unsupported statistics database");
-    }
-
-    StatisticsRepository(NamedParameterJdbcTemplate jdbc, boolean oracle) {
-        this.jdbc = jdbc;
-        this.oracle = oracle;
     }
 
     public Totals totals() {
@@ -69,23 +59,16 @@ public class StatisticsRepository {
     }
 
     public LocalDate firstSignupDate() {
-        String day = oracle ? "TO_CHAR(MIN(created_at) AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD')"
-                : "DATE_FORMAT(CONVERT_TZ(MIN(created_at), '+00:00', '+09:00'), '%Y-%m-%d')";
+        String day = "TO_CHAR(MIN(created_at) AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD')";
         return jdbc.queryForObject("SELECT " + day + " FROM user_signup_events", Map.of(),
                 (rs, row) -> rs.getString(1) == null ? null : LocalDate.parse(rs.getString(1)));
     }
 
     public Map<LocalDate, Long> signups(LocalDate from, LocalDate until) {
-        String day = oracle ? "TO_CHAR(created_at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD')"
-                : "DATE_FORMAT(CONVERT_TZ(created_at, '+00:00', '+09:00'), '%Y-%m-%d')";
+        String day = "TO_CHAR(created_at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD')";
         var parameters = new MapSqlParameterSource();
-        if (oracle) {
-            parameters.addValue("from", from.atStartOfDay(KOREA).toOffsetDateTime(), Types.TIMESTAMP_WITH_TIMEZONE);
-            parameters.addValue("until", until.atStartOfDay(KOREA).toOffsetDateTime(), Types.TIMESTAMP_WITH_TIMEZONE);
-        } else {
-            parameters.addValue("from", LocalDateTime.ofInstant(from.atStartOfDay(KOREA).toInstant(), ZoneOffset.UTC), Types.TIMESTAMP);
-            parameters.addValue("until", LocalDateTime.ofInstant(until.atStartOfDay(KOREA).toInstant(), ZoneOffset.UTC), Types.TIMESTAMP);
-        }
+        parameters.addValue("from", from.atStartOfDay(KOREA).toOffsetDateTime(), Types.TIMESTAMP_WITH_TIMEZONE);
+        parameters.addValue("until", until.atStartOfDay(KOREA).toOffsetDateTime(), Types.TIMESTAMP_WITH_TIMEZONE);
         return jdbc.query("SELECT " + day + " AS signup_day, COUNT(*) AS signups FROM user_signup_events "
                         + "WHERE created_at >= :from AND created_at < :until GROUP BY " + day + " ORDER BY signup_day",
                 parameters, rs -> {

@@ -11,6 +11,9 @@ import com.example.galdcup.board.post.domain.PostRepository;
 import com.example.galdcup.board.postCategory.domain.PostCategory;
 import com.example.galdcup.board.postCategory.validator.PostCategoryValidator;
 import com.example.galdcup.userAiAgent.domain.UserAiAgent;
+import com.example.galdcup.userAiAgent.domain.UserAiAgentRepository;
+import com.example.galdcup.userAiAgent.domain.AgentMode;
+import org.springframework.data.domain.PageRequest;
 import com.example.galdcup.userAiAgent.gemini.UserAiAgentGeminiClient;
 import com.example.galdcup.userAiAgent.gemini.response.UserAiAgentCommentResponse;
 import com.example.galdcup.userAiAgent.gemini.response.UserAiAgentPostResponse;
@@ -30,6 +33,7 @@ public class UserAiAgentExecutor {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final PostCategoryValidator postCategoryValidator;
+    private final UserAiAgentRepository userAiAgentRepository;
 
     /**
      * AI 용병 게시글 작성 실행
@@ -40,7 +44,7 @@ public class UserAiAgentExecutor {
         Long boardId = targetBoard.getId();
         Long authorId = agent.getUser().getId();
 
-        PostCategory generalCategory = postCategoryValidator.findGeneralCategoryOrThrowByBoardId(boardId);
+        PostCategory generalCategory = postCategoryValidator.findGeneralCategoryByBoardIdOrThrow(boardId);
 
         // 1. 게시판 인기 게시글 5개 조회 (제목 + 본문)
         List<String> popularPosts = postRepository.findTop5ByBoardIdOrderByLikeCountDescCreatedAtDesc(boardId)
@@ -71,7 +75,7 @@ public class UserAiAgentExecutor {
         );
 
         // 5. 게시글 등록
-        postService.create(
+        postService.createAiPost(
                 boardId,
                 generalCategory.getId(),
                 authorId,
@@ -88,12 +92,16 @@ public class UserAiAgentExecutor {
      */
     @Transactional
     public void executeCommentCreation(UserAiAgent agent, String rawApiKey) {
-        Board targetBoard = agent.getTargetBoard();
-        Long authorId = agent.getUser().getId();
-
-        // 1. 댓글을 작성할 대상 최신 게시글 조회
-        Post targetPost = postRepository.findTopByBoardIdOrderByCreatedAtDesc(targetBoard.getId())
-                .orElseThrow(() -> new IllegalStateException("댓글을 작성할 최신 게시글이 없습니다."));
+        // Reload and lock the managed agent: history and comment must commit together.
+        UserAiAgent currentAgent = userAiAgentRepository.findByIdForCommentUpdate(agent.getId()).orElse(null);
+        if (currentAgent == null || !currentAgent.isActive() || currentAgent.isExpired()
+                || currentAgent.getAgentMode() != AgentMode.COMMENT) return;
+        Board targetBoard = currentAgent.getTargetBoard();
+        Long authorId = currentAgent.getUser().getId();
+        List<Post> candidates = postRepository.findUncommentedPostsForAgent(
+                targetBoard.getId(), currentAgent.getId(), authorId, PageRequest.of(0, 1));
+        if (candidates.isEmpty()) return;
+        Post targetPost = candidates.get(0);
 
         // 2. 해당 게시글에 이미 달린 최근 댓글 5개 조회 (타인 멘트 중복 방지)
         List<String> recentCommentsOnPost = commentRepository.findTop5ByPostIdOrderByCreatedAtDesc(targetPost.getId())
@@ -110,7 +118,7 @@ public class UserAiAgentExecutor {
         // 4. Gemini API 호출
         UserAiAgentCommentResponse commentResponse = geminiClient.generateComment(
                 rawApiKey,
-                agent.getPersonaPrompt(),
+                currentAgent.getPersonaPrompt(),
                 targetPost.getTitle(),
                 targetPost.getContent(),
                 recentCommentsOnPost,
@@ -119,9 +127,10 @@ public class UserAiAgentExecutor {
 
         // 5. 댓글 등록
         CreateCommentRequest request = new CreateCommentRequest(null, commentResponse.content());
-        commentService.create(targetPost.getId(), authorId, request);
+        commentService.createAiComment(targetPost.getId(), authorId, request);
 
         // 6. 실행 시각 업데이트 (Dirty Checking 정상 동작)
-        agent.updateLastExecutedAt();
+        currentAgent.rememberCommentTarget(targetPost);
+        currentAgent.updateLastExecutedAt();
     }
 }

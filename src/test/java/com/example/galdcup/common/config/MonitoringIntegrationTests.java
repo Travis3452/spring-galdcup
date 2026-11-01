@@ -88,7 +88,7 @@ class MonitoringIntegrationTests {
             assertEquals(204, send(apiPort, "POST", "/api/activity?userId=999&day=1900-01-01",
                     tokens.createAccessToken(9L, List.of(role))).statusCode());
         }
-        org.mockito.Mockito.verify(writer, org.mockito.Mockito.times(3)).record(
+        org.mockito.Mockito.verify(writer, org.mockito.Mockito.times(3)).recordDailyActivityIfAbsent(
                 org.mockito.ArgumentMatchers.eq(9L), org.mockito.ArgumentMatchers.any(java.time.LocalDate.class));
         org.mockito.Mockito.verifyNoMoreInteractions(writer);
     }

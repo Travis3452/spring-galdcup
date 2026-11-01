@@ -46,7 +46,7 @@ public class PostCategoryService {
      */
     @Transactional
     public PostCategoryDto createCustomPostCategory(PostCategoryRequest request, Long boardId, Long boardManagerId) {
-        Board board = boardValidator.getBoardIfBoardManager(boardId, boardManagerId);
+        Board board = boardValidator.requireBoardManagerAccess(boardId, boardManagerId);
         postCategoryValidator.validateUniqueNameInBoard(boardId, request.name());
 
         int maxOrder = postCategoryRepository.findMaxSortOrderByBoardId(boardId).orElse(0);
@@ -65,8 +65,8 @@ public class PostCategoryService {
      */
     @Transactional
     public PostCategoryDto updateCategory(Long boardId, UpdatePostCategoryRequest request, Long boardManagerId) {
-        boardValidator.getBoardIfBoardManager(boardId, boardManagerId);
-        PostCategory postCategory = postCategoryValidator.getIfBelongsToBoard(request.id(), boardId);
+        boardValidator.requireBoardManagerAccess(boardId, boardManagerId);
+        PostCategory postCategory = postCategoryValidator.findCategoryInBoardOrThrow(request.id(), boardId);
 
         if (request.name() != null && !postCategory.getName().equals(request.name())) {
             postCategoryValidator.validateUniqueNameInBoard(boardId, request.name());
@@ -84,10 +84,10 @@ public class PostCategoryService {
      */
     @Transactional
     public void updateCategoryBatch(Long boardId, List<UpdatePostCategoryRequest> requests, Long boardManagerId) {
-        boardValidator.getBoardIfBoardManager(boardId, boardManagerId);
+        boardValidator.requireBoardManagerAccess(boardId, boardManagerId);
 
         for (UpdatePostCategoryRequest req : requests) {
-            PostCategory category = postCategoryValidator.getIfBelongsToBoard(req.id(), boardId);
+            PostCategory category = postCategoryValidator.findCategoryInBoardOrThrow(req.id(), boardId);
 
             if (req.sortOrder() != null) {
                 category.changeSortOrder(req.sortOrder());
@@ -102,10 +102,10 @@ public class PostCategoryService {
      */
     @Transactional
     public void deleteAndMigrate(Long boardId, Long categoryId, Long moveToId, Long boardManagerId) {
-        boardValidator.getBoardIfBoardManager(boardId, boardManagerId);
+        boardValidator.requireBoardManagerAccess(boardId, boardManagerId);
 
-        PostCategory target = postCategoryValidator.getIfBelongsToBoard(categoryId, boardId);
-        PostCategory destination = postCategoryValidator.getIfBelongsToBoard(moveToId, boardId);
+        PostCategory target = postCategoryValidator.findCategoryInBoardOrThrow(categoryId, boardId);
+        PostCategory destination = postCategoryValidator.findCategoryInBoardOrThrow(moveToId, boardId);
 
         postCategoryValidator.validateMigration(target, destination);
 

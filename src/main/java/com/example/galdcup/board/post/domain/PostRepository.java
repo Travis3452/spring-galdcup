@@ -13,6 +13,25 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+    @Query("""
+            SELECT p FROM Post p
+            WHERE p.board.id = :boardId
+              AND NOT EXISTS (
+                  SELECT a.id FROM UserAiAgent a JOIN a.commentedPosts target
+                  WHERE a.id = :agentId AND target.id = p.id
+              )
+              AND NOT EXISTS (
+                  SELECT c.id FROM Comment c
+                  WHERE c.post = p AND c.author.id = :authorId
+                    AND c.creationSource = com.example.galdcup.common.CreationSource.AI
+              )
+            ORDER BY p.createdAt DESC, p.id DESC
+            """)
+    List<Post> findUncommentedPostsForAgent(@Param("boardId") Long boardId,
+                                          @Param("agentId") Long agentId,
+                                          @Param("authorId") Long authorId,
+                                          Pageable pageable);
+
     List<Post> findTop5ByBoardIdOrderByLikeCountDescCreatedAtDesc(Long boardId);
 
     List<Post> findTop5ByBoardIdOrderByCreatedAtDesc(Long boardId);
