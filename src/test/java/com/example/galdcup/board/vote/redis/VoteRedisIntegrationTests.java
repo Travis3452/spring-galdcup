@@ -177,7 +177,7 @@ class VoteRedisIntegrationTests {
 
     @Test
     void expiredSessionIsRejectedAtRedisEvenWithoutJavaValidation() {
-        session.setEndTime(OffsetDateTime.now().minusSeconds(1));
+        session = session.toBuilder().endTime(OffsetDateTime.now().minusSeconds(1)).build();
 
         assertThrows(IllegalStateException.class, () -> cast(1L, 0));
         assertTrue(manager.getSnapshot(sessionId).counts().isEmpty());
@@ -185,7 +185,7 @@ class VoteRedisIntegrationTests {
 
     @Test
     void futureSessionIsRejectedAtRedisEvenWithoutJavaValidation() {
-        session.setStartTime(OffsetDateTime.now().plusMinutes(1));
+        session = session.toBuilder().startTime(OffsetDateTime.now().plusMinutes(1)).build();
 
         assertThrows(IllegalStateException.class, () -> cast(1L, 0));
         assertTrue(manager.getSnapshot(sessionId).counts().isEmpty());

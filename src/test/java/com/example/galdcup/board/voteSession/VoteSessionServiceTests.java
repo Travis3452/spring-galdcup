@@ -32,7 +32,7 @@ class VoteSessionServiceTests {
     private final VoteRedisManager redis = mock(VoteRedisManager.class);
     private final VoteSessionService service = new VoteSessionService(repository, boards,
             mock(VoteSessionValidator.class), cache, redis);
-    private final VoteSession session = VoteSession.builder().id(100L)
+    private VoteSession session = VoteSession.builder().id(100L)
             .board(Board.builder().id(10L).status(Board.Status.OPEN).build())
             .startTime(OffsetDateTime.now().minusHours(1)).endTime(OffsetDateTime.now().plusHours(1))
             .options(List.of(VoteOption.create("A", "a.png"), VoteOption.create("B", "b.png")))
@@ -152,7 +152,8 @@ class VoteSessionServiceTests {
     @Test
     void expiredSessionIsClosedInItsOwnServiceTransaction() {
         OffsetDateTime end = OffsetDateTime.now().minusMinutes(1);
-        session.setEndTime(end);
+        session = session.toBuilder().endTime(end).build();
+        when(repository.findForUpdateById(100L)).thenReturn(Optional.of(session));
 
         VoteCountSnapshot finalCounts = new VoteCountSnapshot(
                 open.counts(),
@@ -191,6 +192,22 @@ class VoteSessionServiceTests {
         assertTrue(TransactionSynchronizationManager.getSynchronizations().isEmpty());
     }
 
+    @Test
+    void invalidCountsDoNotPartiallyChangeSession() {
+        Map<Integer, Long> counts = new java.util.LinkedHashMap<>();
+        counts.put(0, 4L);
+        counts.put(1, -1L);
+
+        assertThrows(IllegalStateException.class, () -> session.applyVoteCounts(counts));
+        assertEquals(0L, session.getOptions().get(0).getCount());
+        assertEquals(0L, session.getOptions().get(1).getCount());
+    }
+
+    @Test
+    void optionMembershipCannotBeChangedThroughGetter() {
+        assertThrows(UnsupportedOperationException.class, () -> session.getOptions().clear());
+        assertEquals(2, session.getOptions().size());
+    }
     private void commit() {
         TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
     }

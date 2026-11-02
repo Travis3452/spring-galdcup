@@ -8,6 +8,8 @@ import lombok.*;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Collections;
 
 /**
  * 특정 게시판 내에서 진행되는 투표 세션의 생명주기 및 상태 관리 엔티티
@@ -19,7 +21,7 @@ import java.util.List;
                 @Index(name = "idx_vote_session_board_status", columnList = "board_id, isFinished")
         }
 )
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true)
 public class VoteSession {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -69,6 +71,19 @@ public class VoteSession {
         option.assignSession(this);
     }
 
+    public List<VoteOption> getOptions() {
+        return Collections.unmodifiableList(options);
+    }
+
+    /** 선택지별 누적 집계를 검증한 뒤 반영합니다. */
+    public void applyVoteCounts(Map<Integer, Long> counts) {
+        counts.forEach((index, count) -> {
+            if (index < 0 || index >= options.size() || count < 0) {
+                throw new IllegalStateException("유효하지 않은 투표 집계입니다.");
+            }
+        });
+        counts.forEach((index, count) -> options.get(index).updateCount(count));
+    }
     /** 세션 강제 종료 (관리자용) */
     public void terminate() {
         finishAt(OffsetDateTime.now());

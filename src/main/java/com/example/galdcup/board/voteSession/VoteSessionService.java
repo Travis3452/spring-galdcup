@@ -176,14 +176,11 @@ public class VoteSessionService {
     }
 
     private void applyVoteCounts(VoteSession session, Map<String, String> entries) {
-        entries.forEach((optionIndex, countStr) -> {
-            int index = Integer.parseInt(optionIndex);
-            long count = Long.parseLong(countStr);
-            if (index < 0 || index >= session.getOptions().size() || count < 0) {
-                throw new IllegalStateException("유효하지 않은 투표 집계입니다.");
-            }
-            session.getOptions().get(index).updateCount(count);
-        });
+        Map<Integer, Long> counts = entries.entrySet().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        entry -> Integer.parseInt(entry.getKey()),
+                        entry -> Long.parseLong(entry.getValue())));
+        session.applyVoteCounts(counts);
     }
 
     private void acknowledgeAfterCommit(VoteSession session, VoteCountSnapshot snapshot, boolean finished) {
