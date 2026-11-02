@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 게시판 관련 데이터의 Redis 캐싱 및 실시간 통계(조회수) 관리를 담당합니다.
@@ -74,5 +75,34 @@ public class BoardRedisManager {
         } catch (Exception e) {
             log.error("게시판 조회수 증가 처리 중 Redis 오류 발생 (ID: {}): {}", boardId, e.getMessage());
         }
+    }
+
+    public List<Long> getTopViewBoardIds(int limit) {
+        if (limit <= 0) {
+            return List.of();
+        }
+
+        Set<Object> members = redisTemplate.opsForZSet()
+                .reverseRange(BOARD_VIEWS_KEY, 0, limit - 1);
+
+        if (members == null || members.isEmpty()) {
+            return List.of();
+        }
+
+        return members.stream()
+                .map(value -> Long.valueOf(value.toString()))
+                .toList();
+    }
+
+    public void saveRanking(List<BoardDto> boardDtos) {
+        redisTemplate.opsForValue().set(
+                LIST_KEY + "ranking",
+                new BoardListResponse(boardDtos),
+                LIST_TTL
+        );
+    }
+
+    public void resetViewCounts() {
+        redisTemplate.unlink(BOARD_VIEWS_KEY);
     }
 }

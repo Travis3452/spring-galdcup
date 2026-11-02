@@ -1,17 +1,18 @@
 package com.example.galdcup.board.post.redis;
 
-import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.board.post.response.PostDto;
+import com.example.galdcup.common.redis.CachedPageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -113,5 +114,49 @@ public class PostRedisManager {
         String type = (threshold == null) ? "normal" : "popular";
         return String.format("%s%d:%s:%s:%d:%d",
                 LIST_KEY_PREFIX, boardId, cat, type, pageable.getPageNumber(), pageable.getPageSize());
+    }
+
+    /**
+     * 동기화할 조회수가 존재하는 게시글 ID를 조회
+     */
+    public List<Long> findPendingViewPostIds() {
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(VIEW_KEY_PREFIX + "*")
+                .count(100)
+                .build();
+
+        Set<Long> postIds = new LinkedHashSet<>();
+
+        try (Cursor<String> cursor = stringRedisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                String key = cursor.next();
+
+                Long postId = Long.valueOf(
+                        key.substring(VIEW_KEY_PREFIX.length())
+                );
+
+                postIds.add(postId);
+            }
+        }
+
+        return new ArrayList<>(postIds);
+    }
+
+    /**
+     * 누적 조회수를 가져오면서 Redis에서 제거
+     */
+    public Long takeViewCount(Long postId) {
+        String key = VIEW_KEY_PREFIX + postId;
+        String value = stringRedisTemplate.opsForValue().getAndDelete(key);
+
+        return value == null ? null : Long.valueOf(value);
+    }
+
+    /**
+     * DB 반영에 실패한 조회수를 기존 누적 값에 더해 복원
+     */
+    public void restoreViewCount(Long postId, long viewCount) {
+        String key = VIEW_KEY_PREFIX + postId;
+        stringRedisTemplate.opsForValue().increment(key, viewCount);
     }
 }
