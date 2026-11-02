@@ -61,7 +61,7 @@ class UserAiAgentCommentTests {
         assertEquals(before, agent.getLastExecutedAt());
         assertTrue(agent.getCommentedPosts().isEmpty());
         var page = ArgumentCaptor.forClass(Pageable.class);
-        verify(posts).findUncommentedPostsForAgent(eq(1L), eq(9L), eq(7L), page.capture());
+        verify(agents).findUncommentedPostsForAgent(eq(1L), eq(9L), eq(7L), page.capture());
         assertEquals(1, page.getValue().getPageSize());
     }
 
@@ -69,7 +69,7 @@ class UserAiAgentCommentTests {
     void successfulCommentRecordsTheLockedAgentsTarget() {
         var detached = UserAiAgent.builder().id(9L).build();
         when(agents.findByIdForCommentUpdate(9L)).thenReturn(Optional.of(agent));
-        when(posts.findUncommentedPostsForAgent(eq(1L), eq(9L), eq(7L), any())).thenReturn(List.of(post));
+        when(agents.findUncommentedPostsForAgent(eq(1L), eq(9L), eq(7L), any())).thenReturn(List.of(post));
         when(gemini.generateComment(eq("unused"), eq("persona"), eq("title"), eq("body"), anyList(), anyList()))
                 .thenReturn(new UserAiAgentCommentResponse("new comment"));
         executor.executeCommentCreation(detached, "unused");
@@ -82,7 +82,7 @@ class UserAiAgentCommentTests {
     @Test
     void failedGenerationOrSaveDoesNotRecordTheTarget() {
         when(agents.findByIdForCommentUpdate(9L)).thenReturn(Optional.of(agent));
-        when(posts.findUncommentedPostsForAgent(eq(1L), eq(9L), eq(7L), any())).thenReturn(List.of(post));
+        when(agents.findUncommentedPostsForAgent(eq(1L), eq(9L), eq(7L), any())).thenReturn(List.of(post));
         when(gemini.generateComment(anyString(), anyString(), anyString(), anyString(), anyList(), anyList()))
                 .thenThrow(new IllegalStateException("unavailable"));
         assertThrows(IllegalStateException.class, () -> executor.executeCommentCreation(agent, "unused"));

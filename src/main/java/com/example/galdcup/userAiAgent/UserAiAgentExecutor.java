@@ -98,7 +98,7 @@ public class UserAiAgentExecutor {
                 || currentAgent.getAgentMode() != AgentMode.COMMENT) return;
         Board targetBoard = currentAgent.getTargetBoard();
         Long authorId = currentAgent.getUser().getId();
-        List<Post> candidates = postRepository.findUncommentedPostsForAgent(
+        List<Post> candidates = userAiAgentRepository.findUncommentedPostsForAgent(
                 targetBoard.getId(), currentAgent.getId(), authorId, PageRequest.of(0, 1));
         if (candidates.isEmpty()) return;
         Post targetPost = candidates.get(0);

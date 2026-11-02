@@ -1,5 +1,7 @@
 package com.example.galdcup.userAiAgent.domain;
 
+import com.example.galdcup.board.post.domain.Post;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import jakarta.persistence.LockModeType;
@@ -28,5 +30,22 @@ public interface UserAiAgentRepository extends JpaRepository<UserAiAgent, Long> 
     """)
     List<UserAiAgent> findAllActiveAgentsWithTarget(@Param("now") OffsetDateTime now);
 
-    List<UserAiAgent> findAllByExpiredAtBefore(OffsetDateTime now);
+    @Query("""
+            SELECT p FROM Post p
+            WHERE p.board.id = :boardId
+              AND NOT EXISTS (
+                  SELECT a.id FROM UserAiAgent a JOIN a.commentedPosts target
+                  WHERE a.id = :agentId AND target.id = p.id
+              )
+              AND NOT EXISTS (
+                  SELECT c.id FROM Comment c
+                  WHERE c.post = p AND c.author.id = :authorId
+                    AND c.creationSource = com.example.galdcup.common.CreationSource.AI
+              )
+            ORDER BY p.createdAt DESC, p.id DESC
+            """)
+    List<Post> findUncommentedPostsForAgent(@Param("boardId") Long boardId,
+                                            @Param("agentId") Long agentId,
+                                            @Param("authorId") Long authorId,
+                                            Pageable pageable);
 }
