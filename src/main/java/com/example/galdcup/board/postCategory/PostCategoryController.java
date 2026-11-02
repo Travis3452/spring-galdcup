@@ -1,11 +1,11 @@
 package com.example.galdcup.board.postCategory;
 
-import com.example.galdcup.common.rateLimit.RateLimit;
-import com.example.galdcup.common.rateLimit.RateLimitType;
-import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.board.postCategory.request.PostCategoryRequest;
 import com.example.galdcup.board.postCategory.request.UpdatePostCategoryRequest;
 import com.example.galdcup.board.postCategory.response.PostCategoryDto;
+import com.example.galdcup.common.rateLimit.RateLimit;
+import com.example.galdcup.common.rateLimit.RateLimitType;
+import com.example.galdcup.common.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

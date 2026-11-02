@@ -1,10 +1,10 @@
 package com.example.galdcup.board.post;
 
-import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.board.post.domain.PostReaction;
 import com.example.galdcup.board.post.request.CreatePostRequest;
 import com.example.galdcup.board.post.request.UpdatePostRequest;
 import com.example.galdcup.board.post.response.PostDto;
+import com.example.galdcup.common.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

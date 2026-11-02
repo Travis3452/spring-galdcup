@@ -1,12 +1,12 @@
 package com.example.galdcup.board.post;
 
-import com.example.galdcup.common.rateLimit.RateLimit;
-import com.example.galdcup.common.rateLimit.RateLimitType;
-import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.board.post.domain.PostReaction;
 import com.example.galdcup.board.post.request.CreatePostRequest;
 import com.example.galdcup.board.post.request.UpdatePostRequest;
 import com.example.galdcup.board.post.response.PostDto;
+import com.example.galdcup.common.rateLimit.RateLimit;
+import com.example.galdcup.common.rateLimit.RateLimitType;
+import com.example.galdcup.common.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

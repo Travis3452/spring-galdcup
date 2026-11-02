@@ -1,9 +1,9 @@
 package com.example.galdcup.board.postCategory;
 
-import com.example.galdcup.common.security.CustomUserDetails;
 import com.example.galdcup.board.postCategory.request.PostCategoryRequest;
 import com.example.galdcup.board.postCategory.request.UpdatePostCategoryRequest;
 import com.example.galdcup.board.postCategory.response.PostCategoryDto;
+import com.example.galdcup.common.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

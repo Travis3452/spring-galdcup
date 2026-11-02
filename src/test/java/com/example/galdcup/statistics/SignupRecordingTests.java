@@ -1,7 +1,9 @@
 package com.example.galdcup.statistics;
 
 import com.example.galdcup.user.UserService;
-import com.example.galdcup.user.domain.*;
+import com.example.galdcup.user.domain.User;
+import com.example.galdcup.user.domain.UserNicknameGenerator;
+import com.example.galdcup.user.domain.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 

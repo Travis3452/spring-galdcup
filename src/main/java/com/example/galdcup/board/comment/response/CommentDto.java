@@ -1,8 +1,8 @@
 package com.example.galdcup.board.comment.response;
 
 import com.example.galdcup.board.comment.domain.Comment;
-import lombok.Builder;
 import com.example.galdcup.common.CreationSource;
+import lombok.Builder;
 
 import java.time.OffsetDateTime;
 import java.util.List;

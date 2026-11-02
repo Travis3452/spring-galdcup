@@ -2,7 +2,6 @@ package com.example.galdcup.board.post;
 
 import com.example.galdcup.board.board.domain.Board;
 import com.example.galdcup.board.board.validator.BoardValidator;
-import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.board.post.domain.Post;
 import com.example.galdcup.board.post.domain.PostReaction;
 import com.example.galdcup.board.post.domain.PostReactionRepository;
@@ -13,6 +12,8 @@ import com.example.galdcup.board.post.response.PostDto;
 import com.example.galdcup.board.post.validator.PostValidator;
 import com.example.galdcup.board.postCategory.domain.PostCategory;
 import com.example.galdcup.board.postCategory.validator.PostCategoryValidator;
+import com.example.galdcup.common.CreationSource;
+import com.example.galdcup.common.redis.CachedPageResponse;
 import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import com.example.galdcup.common.CreationSource;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;

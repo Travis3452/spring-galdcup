@@ -9,7 +9,8 @@ import com.example.galdcup.gemini.opinionAnalysis.OpinionAnalysisService;
 import com.example.galdcup.user.domain.User;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class VoteSessionControllerTests {

@@ -1,6 +1,8 @@
 package com.example.galdcup.user;
 
 import com.example.galdcup.board.board.domain.BoardRepository;
+import com.example.galdcup.statistics.SignupEvent;
+import com.example.galdcup.statistics.SignupEventRepository;
 import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.domain.UserNicknameGenerator;
 import com.example.galdcup.user.domain.UserRepository;
@@ -11,8 +13,6 @@ import com.example.galdcup.user.role.RoleRequest;
 import com.example.galdcup.user.role.RoleRequestRepository;
 import com.example.galdcup.user.validator.RoleRequestValidator;
 import com.example.galdcup.user.validator.UserValidator;
-import com.example.galdcup.statistics.SignupEvent;
-import com.example.galdcup.statistics.SignupEventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,7 +1,7 @@
 package com.example.galdcup.monitoring;
 
-import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -19,7 +19,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.galdcup.monitoring.MonitoringData.*;
+import static com.example.galdcup.monitoring.MonitoringData.History;
+import static com.example.galdcup.monitoring.MonitoringData.Point;
 
 /** 조회 대상과 PromQL은 서버에서 고정한다. 사용자 URL이나 임의 쿼리를 전달하지 않는다. */
 @Component

@@ -2,12 +2,12 @@ package com.example.galdcup.gemini.opinionAnalysis;
 
 import com.example.galdcup.board.comment.domain.Comment;
 import com.example.galdcup.board.comment.domain.CommentRepository;
-import com.example.galdcup.gemini.GeminiService;
-import com.example.galdcup.gemini.response.OpinionAnalysisResponse;
 import com.example.galdcup.board.vote.domain.VoteOption;
 import com.example.galdcup.board.voteSession.domain.VoteSession;
 import com.example.galdcup.board.voteSession.redis.VoteSessionRedisManager;
 import com.example.galdcup.board.voteSession.validator.VoteSessionValidator;
+import com.example.galdcup.gemini.GeminiService;
+import com.example.galdcup.gemini.response.OpinionAnalysisResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;

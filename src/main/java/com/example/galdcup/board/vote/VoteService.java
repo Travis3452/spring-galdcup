@@ -1,11 +1,11 @@
 package com.example.galdcup.board.vote;
 
-import com.example.galdcup.user.validator.UserValidator;
 import com.example.galdcup.board.vote.domain.Vote;
 import com.example.galdcup.board.vote.redis.VoteRedisManager;
 import com.example.galdcup.board.vote.response.VoteDto;
 import com.example.galdcup.board.voteSession.domain.VoteSession;
 import com.example.galdcup.board.voteSession.validator.VoteSessionValidator;
+import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

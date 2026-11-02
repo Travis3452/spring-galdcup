@@ -7,6 +7,7 @@ import com.example.galdcup.board.comment.response.CommentDto;
 import com.example.galdcup.board.comment.validator.CommentValidator;
 import com.example.galdcup.board.post.domain.Post;
 import com.example.galdcup.board.post.validator.PostValidator;
+import com.example.galdcup.common.CreationSource;
 import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.validator.UserValidator;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import com.example.galdcup.common.CreationSource;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service

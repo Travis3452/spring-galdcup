@@ -4,14 +4,14 @@ import com.example.galdcup.board.board.domain.Board;
 import com.example.galdcup.board.comment.domain.Comment;
 import com.example.galdcup.board.post.domain.embedded.Author;
 import com.example.galdcup.board.postCategory.domain.PostCategory;
+import com.example.galdcup.common.CreationSource;
 import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;
-import com.example.galdcup.common.CreationSource;
-import org.hibernate.annotations.ColumnDefault;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;

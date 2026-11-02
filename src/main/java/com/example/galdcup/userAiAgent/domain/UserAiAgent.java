@@ -4,7 +4,10 @@ import com.example.galdcup.board.board.domain.Board;
 import com.example.galdcup.board.post.domain.Post;
 import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;

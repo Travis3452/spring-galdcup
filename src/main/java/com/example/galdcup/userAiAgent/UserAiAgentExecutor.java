@@ -10,14 +10,14 @@ import com.example.galdcup.board.post.domain.Post;
 import com.example.galdcup.board.post.domain.PostRepository;
 import com.example.galdcup.board.postCategory.domain.PostCategory;
 import com.example.galdcup.board.postCategory.validator.PostCategoryValidator;
+import com.example.galdcup.userAiAgent.domain.AgentMode;
 import com.example.galdcup.userAiAgent.domain.UserAiAgent;
 import com.example.galdcup.userAiAgent.domain.UserAiAgentRepository;
-import com.example.galdcup.userAiAgent.domain.AgentMode;
-import org.springframework.data.domain.PageRequest;
 import com.example.galdcup.userAiAgent.gemini.UserAiAgentGeminiClient;
 import com.example.galdcup.userAiAgent.gemini.response.UserAiAgentCommentResponse;
 import com.example.galdcup.userAiAgent.gemini.response.UserAiAgentPostResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

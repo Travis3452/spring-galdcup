@@ -8,15 +8,19 @@ import com.example.galdcup.board.post.domain.Post;
 import com.example.galdcup.board.post.domain.PostRepository;
 import com.example.galdcup.board.postCategory.validator.PostCategoryValidator;
 import com.example.galdcup.user.domain.User;
-import com.example.galdcup.userAiAgent.domain.*;
+import com.example.galdcup.userAiAgent.domain.AgentMode;
+import com.example.galdcup.userAiAgent.domain.UserAiAgent;
+import com.example.galdcup.userAiAgent.domain.UserAiAgentRepository;
 import com.example.galdcup.userAiAgent.gemini.UserAiAgentGeminiClient;
 import com.example.galdcup.userAiAgent.gemini.response.UserAiAgentCommentResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Pageable;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

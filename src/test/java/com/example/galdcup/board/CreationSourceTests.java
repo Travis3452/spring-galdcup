@@ -1,24 +1,28 @@
 package com.example.galdcup.board;
 
-import com.example.galdcup.common.CreationSource;
 import com.example.galdcup.board.board.domain.Board;
 import com.example.galdcup.board.board.validator.BoardValidator;
+import com.example.galdcup.board.comment.CommentService;
+import com.example.galdcup.board.comment.domain.Comment;
+import com.example.galdcup.board.comment.domain.CommentRepository;
+import com.example.galdcup.board.comment.request.CreateCommentRequest;
+import com.example.galdcup.board.comment.validator.CommentValidator;
 import com.example.galdcup.board.post.PostService;
-import com.example.galdcup.board.post.domain.*;
+import com.example.galdcup.board.post.domain.Post;
+import com.example.galdcup.board.post.domain.PostReactionRepository;
+import com.example.galdcup.board.post.domain.PostRepository;
 import com.example.galdcup.board.post.redis.PostRedisManager;
 import com.example.galdcup.board.post.validator.PostValidator;
 import com.example.galdcup.board.postCategory.domain.PostCategory;
 import com.example.galdcup.board.postCategory.validator.PostCategoryValidator;
-import com.example.galdcup.board.comment.CommentService;
-import com.example.galdcup.board.comment.domain.*;
-import com.example.galdcup.board.comment.request.CreateCommentRequest;
-import com.example.galdcup.board.comment.validator.CommentValidator;
+import com.example.galdcup.common.CreationSource;
 import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.validator.UserValidator;
 import org.junit.jupiter.api.Test;
 import org.owasp.html.PolicyFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class CreationSourceTests {
