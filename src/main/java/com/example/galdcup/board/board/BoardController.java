@@ -26,6 +26,7 @@ import java.util.List;
 public class BoardController implements BoardApi {
 
     private final BoardService boardService;
+    private final BoardPolicyService boardPolicyService;
 
     // ==========================================
     // 1. 게시판 조회
@@ -119,7 +120,7 @@ public class BoardController implements BoardApi {
             @Valid @RequestBody BoardRequest.UpdatePolicy request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        BoardPolicyDto updated = boardService.updatePolicy(boardId, request, principal.getId());
+        BoardPolicyDto updated = boardPolicyService.updatePolicy(boardId, request, principal.getId());
         return ResponseEntity.ok(updated);
     }
 
@@ -132,7 +133,7 @@ public class BoardController implements BoardApi {
             @Valid @RequestBody BoardRequest.ManageSubManager request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        BoardPolicyDto updated = boardService.addSubManager(boardId, request.nickname(), principal.getId());
+        BoardPolicyDto updated = boardPolicyService.addSubManager(boardId, request.nickname(), principal.getId());
         return ResponseEntity.ok(updated);
     }
 
@@ -145,7 +146,7 @@ public class BoardController implements BoardApi {
             @Valid @RequestBody BoardRequest.ManageSubManager request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        BoardPolicyDto updated = boardService.removeSubManager(boardId, request.nickname(), principal.getId());
+        BoardPolicyDto updated = boardPolicyService.removeSubManager(boardId, request.nickname(), principal.getId());
         return ResponseEntity.ok(updated);
     }
 
@@ -158,7 +159,7 @@ public class BoardController implements BoardApi {
             @Valid @RequestBody BoardRequest.Delegate request,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        BoardPolicyDto updated = boardService.delegateManager(boardId, request.nickname(), principal.getId());
+        BoardPolicyDto updated = boardPolicyService.delegateManager(boardId, request.nickname(), principal.getId());
         return ResponseEntity.ok(updated);
     }
 
@@ -170,7 +171,7 @@ public class BoardController implements BoardApi {
             @PathVariable Long boardId,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        BoardManagerRequestDto response = boardService.applyForManager(boardId, principal.getId());
+        BoardManagerRequestDto response = boardPolicyService.applyForManager(boardId, principal.getId());
         return ResponseEntity.ok(response);
     }
 }

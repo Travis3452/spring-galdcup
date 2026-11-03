@@ -11,6 +11,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT b FROM Board b WHERE b.id = :id")
+    Optional<Board> lockForModeration(@Param("id") Long id);
+
     List<Board> findByStatus(Board.Status status);
     Page<Board> findByStatus(Board.Status status, Pageable pageable);
 

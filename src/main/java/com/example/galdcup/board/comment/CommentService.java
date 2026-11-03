@@ -26,6 +26,7 @@ public class CommentService {
     private final CommentValidator commentValidator;
     private final CommentRepository commentRepository;
     private final UserValidator userValidator;
+    private final com.example.galdcup.board.board.ban.BoardWriteGuard boardWriteGuard;
 
     /** 게시글별 댓글 조회 (오래된 순 정렬) */
     @Transactional(readOnly = true)
@@ -67,6 +68,7 @@ public class CommentService {
 
     private CommentDto createWithSource(Long postId, Long authorId, CreateCommentRequest createCommentRequest, CreationSource source) {
         Post post = postValidator.findByIdOrThrow(postId);
+        boardWriteGuard.requireAllowed(post.getBoard().getId(), authorId);
         User author = userValidator.findByIdOrThrow(authorId);
 
         Comment parentComment = null;

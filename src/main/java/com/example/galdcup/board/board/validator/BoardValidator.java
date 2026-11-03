@@ -44,13 +44,7 @@ public class BoardValidator {
         Board board = this.findBoardWithFullPolicyOrThrow(boardId);
         BoardPolicy policy = board.getBoardPolicy();
 
-        boolean isBoardManager = policy.getBoardManager() != null &&
-                policy.getBoardManager().getId().equals(userId);
-
-        boolean isSubManager = policy.getSubManagers().stream()
-                .anyMatch(u -> u.getId().equals(userId));
-
-        if (!isBoardManager && !isSubManager) {
+        if (!policy.isAnyManager(userId)) {
             throw new AccessDeniedException("해당 게시판의 관리 권한이 필요합니다.");
         }
         return board;
@@ -59,9 +53,7 @@ public class BoardValidator {
     /** 게시판 관리자 권한 확인 */
     public Board requireBoardManagerAccess(Long boardId, Long userId) {
         Board board = this.findBoardWithFullPolicyOrThrow(boardId);
-        User boardManager = board.getBoardPolicy().getBoardManager();
-
-        if (boardManager == null || !boardManager.getId().equals(userId)) {
+        if (!board.getBoardPolicy().isBoardManager(userId)) {
             throw new AccessDeniedException("해당 게시판의 관리자 권한이 필요합니다.");
         }
         return board;

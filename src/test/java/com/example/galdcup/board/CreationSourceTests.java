@@ -23,6 +23,7 @@ import org.owasp.html.PolicyFactory;
 import org.springframework.context.ApplicationEventPublisher;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class CreationSourceTests {
@@ -43,11 +44,16 @@ class CreationSourceTests {
         when(users.findByIdOrThrow(7L)).thenReturn(user);
         when(sanitizer.sanitize("body")).thenReturn("safe");
         when(repository.save(any(Post.class))).thenAnswer(call -> call.getArgument(0));
+        var guard = mock(com.example.galdcup.board.board.ban.BoardWriteGuard.class);
         var service = new PostService(repository, mock(PostRedisManager.class), mock(ApplicationEventPublisher.class),
-                boards, mock(PostValidator.class), categories, sanitizer, users, mock(PostReactionRepository.class));
+                boards, mock(PostValidator.class), categories, sanitizer, users, guard, mock(PostReactionRepository.class));
         assertEquals(CreationSource.USER, service.create(1L, 2L, 7L, "title", "body").creationSource());
         assertEquals(CreationSource.AI, service.createAiPost(1L, 2L, 7L, "title", "body").creationSource());
         verify(repository).save(argThat(post -> post.getCreationSource() == CreationSource.AI && post.getContent().equals("safe")));
+        doThrow(new org.springframework.security.access.AccessDeniedException("banned")).when(guard).requireAllowed(1L,7L);
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> service.create(1L,2L,7L,"title","body"));
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> service.createAiPost(1L,2L,7L,"title","body"));
+        verify(repository,times(2)).save(any());
     }
 
     @Test
@@ -62,10 +68,15 @@ class CreationSourceTests {
         when(users.findByIdOrThrow(7L)).thenReturn(user);
         when(comments.getValidatedParentComment(4L, post.getId())).thenReturn(parent);
         when(repository.save(any(Comment.class))).thenAnswer(call -> call.getArgument(0));
-        var service = new CommentService(posts, comments, repository, users);
+        var guard = mock(com.example.galdcup.board.board.ban.BoardWriteGuard.class);
+        var service = new CommentService(posts, comments, repository, users, guard);
         assertEquals(CreationSource.USER, service.create(3L, 7L, new CreateCommentRequest(4L, "reply")).creationSource());
         assertEquals(CreationSource.AI, service.createAiComment(3L, 7L, new CreateCommentRequest(null, "ai")).creationSource());
         assertEquals(1, parent.getChildrenComments().size());
+        doThrow(new org.springframework.security.access.AccessDeniedException("banned")).when(guard).requireAllowed(1L,7L);
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> service.create(3L,7L,new CreateCommentRequest(4L,"reply")));
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> service.createAiComment(3L,7L,new CreateCommentRequest(null,"ai")));
+        verify(repository,times(2)).save(any());
     }
 
     @Test

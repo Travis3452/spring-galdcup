@@ -43,6 +43,7 @@ public class PostService {
 
     private final PolicyFactory htmlSanitizer;
     private final UserValidator userValidator;
+    private final com.example.galdcup.board.board.ban.BoardWriteGuard boardWriteGuard;
     private final PostReactionRepository postReactionRepository;
 
     /**
@@ -77,6 +78,7 @@ public class PostService {
 
     private PostDto createWithSource(Long boardId, Long categoryId, Long authorId, String title, String content, CreationSource source) {
         Board board = boardValidator.findActiveBoardByIdOrThrow(boardId);
+        boardWriteGuard.requireAllowed(boardId, authorId);
         User author = userValidator.findByIdOrThrow(authorId);
         PostCategory category = postCategoryValidator.findCategoryInBoardOrThrow(categoryId, boardId);
 

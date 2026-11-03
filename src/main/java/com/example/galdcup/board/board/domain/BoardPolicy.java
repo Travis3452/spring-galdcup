@@ -93,4 +93,15 @@ public class BoardPolicy {
     public void updateLikeThreshold(long newThreshold) {
         this.likeThreshold = newThreshold;
     }
+    public boolean isBoardManager(Long userId) {
+        return userId != null && boardManager != null && userId.equals(boardManager.getId());
+    }
+    public boolean isAnyManager(Long userId) {
+        return isBoardManager(userId) || (userId != null && subManagers.stream().anyMatch(u -> userId.equals(u.getId())));
+    }
+    public boolean claimManagementIfEligible(User applicant) {
+        if (boardManager != null || (!subManagers.isEmpty() && !isSubManager(applicant))) return false;
+        delegateMainManager(applicant);
+        return true;
+    }
 }
