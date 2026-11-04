@@ -1,8 +1,8 @@
 package com.example.galdcup.board.report;
 import com.example.galdcup.board.board.domain.BoardRepository;
 import com.example.galdcup.board.board.validator.BoardValidator;
-import com.example.galdcup.board.board.BoardPolicyService;
-import com.example.galdcup.board.board.ban.BanData;
+import com.example.galdcup.board.ban.BoardBanService;
+import com.example.galdcup.board.ban.BanData;
 import com.example.galdcup.board.post.PostService;
 import com.example.galdcup.board.post.domain.PostRepository;
 import com.example.galdcup.user.validator.UserValidator;
@@ -16,7 +16,7 @@ public class ReportService {
  private final BoardRepository boards; private final BoardValidator access;
  private final PostRepository posts; private final PostReportRepository reports;
  private final ReportSubmissionRepository submissions; private final UserValidator users;
- private final BoardPolicyService policy; private final PostService postService;
+ private final BoardBanService bans; private final PostService postService;
  @Transactional public void submit(Long board,Long post,Long user,String reason){
   boards.lockForModeration(board).orElseThrow();users.findByIdOrThrow(user);
   var p=posts.findById(post).orElseThrow(()->new IllegalArgumentException("게시글이 없습니다."));
@@ -34,7 +34,7 @@ public class ReportService {
   var action=request.action();
   if(action==ReportData.Action.BAN || action==ReportData.Action.DELETE_AND_BAN){
    if(r.getAuthorId()==null)throw new IllegalArgumentException("작성자를 차단할 수 없습니다.");
-   policy.ban(board,actor,new BanData.Request(r.getAuthorId(),request.reason(),request.permanent(),request.expiresAt()));
+   bans.ban(board,actor,new BanData.Request(r.getAuthorId(),request.reason(),request.permanent(),request.expiresAt()));
   }
   if(action==ReportData.Action.DELETE || action==ReportData.Action.DELETE_AND_BAN){
    if(posts.existsById(r.getPostId()))postService.deleteForBoardManager(r.getPostId(),board,actor);

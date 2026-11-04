@@ -1,4 +1,5 @@
 package com.example.galdcup.board.board.response;
+import com.example.galdcup.board.policy.response.BoardPolicyDto;
 
 import com.example.galdcup.board.board.domain.Board;
 import com.example.galdcup.board.postCategory.response.PostCategoryDto;

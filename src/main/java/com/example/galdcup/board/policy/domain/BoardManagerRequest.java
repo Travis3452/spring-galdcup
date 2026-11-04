@@ -1,4 +1,5 @@
-package com.example.galdcup.board.board.domain;
+package com.example.galdcup.board.policy.domain;
+import com.example.galdcup.board.board.domain.Board;
 
 import com.example.galdcup.user.domain.User;
 import jakarta.persistence.*;

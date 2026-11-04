@@ -43,7 +43,7 @@ public class PostService {
 
     private final PolicyFactory htmlSanitizer;
     private final UserValidator userValidator;
-    private final com.example.galdcup.board.board.ban.BoardWriteGuard boardWriteGuard;
+    private final com.example.galdcup.board.ban.BoardWriteGuard boardWriteGuard;
     private final PostReactionRepository postReactionRepository;
 
     /**

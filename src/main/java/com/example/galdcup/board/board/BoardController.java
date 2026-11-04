@@ -3,8 +3,6 @@ package com.example.galdcup.board.board;
 import com.example.galdcup.board.board.request.BoardRequest;
 import com.example.galdcup.board.board.response.BoardDetailResponse;
 import com.example.galdcup.board.board.response.BoardDto;
-import com.example.galdcup.board.board.response.BoardManagerRequestDto;
-import com.example.galdcup.board.board.response.BoardPolicyDto;
 import com.example.galdcup.common.rateLimit.RateLimit;
 import com.example.galdcup.common.rateLimit.RateLimitType;
 import com.example.galdcup.common.security.CustomUserDetails;
@@ -26,7 +24,6 @@ import java.util.List;
 public class BoardController implements BoardApi {
 
     private final BoardService boardService;
-    private final BoardPolicyService boardPolicyService;
 
     // ==========================================
     // 1. 게시판 조회
@@ -107,71 +104,4 @@ public class BoardController implements BoardApi {
         return ResponseEntity.noContent().build();
     }
 
-    // ==========================================
-    // 3. 게시판 정책 및 권한 관리
-    // ==========================================
-
-    /** 게시판 정책 수정 */
-    @RateLimit(type = RateLimitType.INTERNAL)
-    @PreAuthorize("isAuthenticated()")
-    @PatchMapping("/{boardId}/policy")
-    public ResponseEntity<BoardPolicyDto> updateBoardPolicy(
-            @PathVariable Long boardId,
-            @Valid @RequestBody BoardRequest.UpdatePolicy request,
-            @AuthenticationPrincipal CustomUserDetails principal) {
-
-        BoardPolicyDto updated = boardPolicyService.updatePolicy(boardId, request, principal.getId());
-        return ResponseEntity.ok(updated);
-    }
-
-    /** 서브 매니저 추가 */
-    @RateLimit(type = RateLimitType.INTERNAL)
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping("/{boardId}/policy/sub-managers")
-    public ResponseEntity<BoardPolicyDto> addSubManager(
-            @PathVariable Long boardId,
-            @Valid @RequestBody BoardRequest.ManageSubManager request,
-            @AuthenticationPrincipal CustomUserDetails principal) {
-
-        BoardPolicyDto updated = boardPolicyService.addSubManager(boardId, request.nickname(), principal.getId());
-        return ResponseEntity.ok(updated);
-    }
-
-    /** 서브 매니저 해임 */
-    @RateLimit(type = RateLimitType.INTERNAL)
-    @PreAuthorize("isAuthenticated()")
-    @DeleteMapping("/{boardId}/policy/sub-managers")
-    public ResponseEntity<BoardPolicyDto> removeSubManager(
-            @PathVariable Long boardId,
-            @Valid @RequestBody BoardRequest.ManageSubManager request,
-            @AuthenticationPrincipal CustomUserDetails principal) {
-
-        BoardPolicyDto updated = boardPolicyService.removeSubManager(boardId, request.nickname(), principal.getId());
-        return ResponseEntity.ok(updated);
-    }
-
-    /** 게시판 관리자 권한 위임 */
-    @RateLimit(type = RateLimitType.INTERNAL)
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping("/{boardId}/delegate")
-    public ResponseEntity<BoardPolicyDto> delegateManager(
-            @PathVariable Long boardId,
-            @Valid @RequestBody BoardRequest.Delegate request,
-            @AuthenticationPrincipal CustomUserDetails principal) {
-
-        BoardPolicyDto updated = boardPolicyService.delegateManager(boardId, request.nickname(), principal.getId());
-        return ResponseEntity.ok(updated);
-    }
-
-    /** 게시판 관리자 권한 신청 */
-    @RateLimit(type = RateLimitType.INTERNAL)
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping("/{boardId}/apply")
-    public ResponseEntity<BoardManagerRequestDto> applyForManager(
-            @PathVariable Long boardId,
-            @AuthenticationPrincipal CustomUserDetails principal) {
-
-        BoardManagerRequestDto response = boardPolicyService.applyForManager(boardId, principal.getId());
-        return ResponseEntity.ok(response);
-    }
 }

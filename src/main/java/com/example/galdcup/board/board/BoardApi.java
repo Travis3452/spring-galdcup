@@ -1,10 +1,9 @@
 package com.example.galdcup.board.board;
+import com.example.galdcup.board.board.domain.Board;
 
 import com.example.galdcup.board.board.request.BoardRequest;
 import com.example.galdcup.board.board.response.BoardDetailResponse;
 import com.example.galdcup.board.board.response.BoardDto;
-import com.example.galdcup.board.board.response.BoardManagerRequestDto;
-import com.example.galdcup.board.board.response.BoardPolicyDto;
 import com.example.galdcup.common.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -53,32 +52,4 @@ public interface BoardApi {
             @PathVariable Long boardId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails principal);
 
-    @Operation(summary = "게시판 정책 수정", description = "게시판 운영 정책을 수정합니다.")
-    ResponseEntity<BoardPolicyDto> updateBoardPolicy(
-            @PathVariable Long boardId,
-            @RequestBody BoardRequest.UpdatePolicy request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails principal);
-
-    @Operation(summary = "서브 매니저 추가", description = "게시판 관리를 도울 서브 매니저를 임명합니다.")
-    ResponseEntity<BoardPolicyDto> addSubManager(
-            @PathVariable Long boardId,
-            @RequestBody BoardRequest.ManageSubManager request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails principal);
-
-    @Operation(summary = "서브 매니저 해임", description = "임명된 서브 매니저의 권한을 취소합니다.")
-    ResponseEntity<BoardPolicyDto> removeSubManager(
-            @PathVariable Long boardId,
-            @RequestBody BoardRequest.ManageSubManager request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails principal);
-
-    @Operation(summary = "관리자 권한 위임", description = "게시판의 소유 관리자 권한을 다른 유저에게 넘깁니다.")
-    ResponseEntity<BoardPolicyDto> delegateManager(
-            @PathVariable Long boardId,
-            @RequestBody BoardRequest.Delegate request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails principal);
-
-    @Operation(summary = "관리자 권한 신청", description = "비어있는 게시판의 관리자 권한을 신청합니다.")
-    ResponseEntity<BoardManagerRequestDto> applyForManager(
-            @PathVariable Long boardId,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails principal);
 }

@@ -1,7 +1,9 @@
 package com.example.galdcup.board.board.validator;
+import com.example.galdcup.board.policy.domain.BoardManagerRequestRepository;
+import com.example.galdcup.board.policy.domain.BoardManagerRequest;
+import com.example.galdcup.board.policy.domain.BoardPolicy;
 
 import com.example.galdcup.board.board.domain.*;
-import com.example.galdcup.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;

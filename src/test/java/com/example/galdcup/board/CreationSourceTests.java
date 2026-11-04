@@ -44,7 +44,7 @@ class CreationSourceTests {
         when(users.findByIdOrThrow(7L)).thenReturn(user);
         when(sanitizer.sanitize("body")).thenReturn("safe");
         when(repository.save(any(Post.class))).thenAnswer(call -> call.getArgument(0));
-        var guard = mock(com.example.galdcup.board.board.ban.BoardWriteGuard.class);
+        var guard = mock(com.example.galdcup.board.ban.BoardWriteGuard.class);
         var service = new PostService(repository, mock(PostRedisManager.class), mock(ApplicationEventPublisher.class),
                 boards, mock(PostValidator.class), categories, sanitizer, users, guard, mock(PostReactionRepository.class));
         assertEquals(CreationSource.USER, service.create(1L, 2L, 7L, "title", "body").creationSource());
@@ -68,7 +68,7 @@ class CreationSourceTests {
         when(users.findByIdOrThrow(7L)).thenReturn(user);
         when(comments.getValidatedParentComment(4L, post.getId())).thenReturn(parent);
         when(repository.save(any(Comment.class))).thenAnswer(call -> call.getArgument(0));
-        var guard = mock(com.example.galdcup.board.board.ban.BoardWriteGuard.class);
+        var guard = mock(com.example.galdcup.board.ban.BoardWriteGuard.class);
         var service = new CommentService(posts, comments, repository, users, guard);
         assertEquals(CreationSource.USER, service.create(3L, 7L, new CreateCommentRequest(4L, "reply")).creationSource());
         assertEquals(CreationSource.AI, service.createAiComment(3L, 7L, new CreateCommentRequest(null, "ai")).creationSource());

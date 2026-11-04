@@ -29,7 +29,7 @@ class PostManagerAuthorizationTests {
     private final PostValidator posts = mock(PostValidator.class);
     private final PostService service = new PostService(repository, redis, events, boards, posts,
             mock(PostCategoryValidator.class), mock(PolicyFactory.class),
-            mock(UserValidator.class), mock(com.example.galdcup.board.board.ban.BoardWriteGuard.class), mock(PostReactionRepository.class));
+            mock(UserValidator.class), mock(com.example.galdcup.board.ban.BoardWriteGuard.class), mock(PostReactionRepository.class));
     private final Post post = Post.builder().id(100L).board(Board.builder().id(10L).build()).build();
 
     @Test

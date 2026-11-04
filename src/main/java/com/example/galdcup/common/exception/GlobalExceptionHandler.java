@@ -1,6 +1,7 @@
 package com.example.galdcup.common.exception;
 
 import jakarta.persistence.EntityNotFoundException;
+import com.example.galdcup.board.ban.BoardBannedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -17,6 +18,19 @@ import static com.example.galdcup.common.exception.ExceptionResponse.buildBody;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BoardBannedException.class)
+    public ResponseEntity<Map<String, Object>> handleBoardBanned(BoardBannedException ex) {
+        Map<String, Object> body = buildBody(HttpStatus.FORBIDDEN, "BOARD_BANNED", ex.getMessage());
+        Map<String, Object> ban = new HashMap<>();
+        ban.put("boardId", ex.getBoardId());
+        ban.put("reason", ex.getReason());
+        ban.put("startsAt", ex.getStartsAt());
+        ban.put("expiresAt", ex.getExpiresAt());
+        ban.put("permanent", ex.getExpiresAt() == null);
+        body.put("ban", ban);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
 
     /** 인증 실패 시 내부 원인을 노출하지 않고 401 반환 */
     @ExceptionHandler(AuthenticationException.class)

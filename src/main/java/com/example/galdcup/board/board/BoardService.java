@@ -1,4 +1,5 @@
 package com.example.galdcup.board.board;
+import com.example.galdcup.board.policy.domain.BoardPolicy;
 
 import com.example.galdcup.board.board.domain.*;
 import com.example.galdcup.board.board.event.BoardChangedEvent;

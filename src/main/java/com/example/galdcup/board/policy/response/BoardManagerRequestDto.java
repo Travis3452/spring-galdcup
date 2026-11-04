@@ -1,6 +1,6 @@
-package com.example.galdcup.board.board.response;
+package com.example.galdcup.board.policy.response;
 
-import com.example.galdcup.board.board.domain.BoardManagerRequest;
+import com.example.galdcup.board.policy.domain.BoardManagerRequest;
 
 public record BoardManagerRequestDto(
         Long id,

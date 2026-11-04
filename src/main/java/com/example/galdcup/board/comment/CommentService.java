@@ -26,7 +26,7 @@ public class CommentService {
     private final CommentValidator commentValidator;
     private final CommentRepository commentRepository;
     private final UserValidator userValidator;
-    private final com.example.galdcup.board.board.ban.BoardWriteGuard boardWriteGuard;
+    private final com.example.galdcup.board.ban.BoardWriteGuard boardWriteGuard;
 
     /** 게시글별 댓글 조회 (오래된 순 정렬) */
     @Transactional(readOnly = true)

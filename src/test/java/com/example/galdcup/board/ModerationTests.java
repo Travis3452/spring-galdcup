@@ -1,8 +1,9 @@
 package com.example.galdcup.board;
+import com.example.galdcup.board.policy.domain.BoardPolicy;
 import com.example.galdcup.board.board.*;
 import com.example.galdcup.board.board.domain.*;
 import com.example.galdcup.board.board.validator.BoardValidator;
-import com.example.galdcup.board.board.ban.*;
+import com.example.galdcup.board.ban.*;
 import com.example.galdcup.board.report.*;
 import com.example.galdcup.board.post.PostService;
 import com.example.galdcup.board.post.domain.*;
@@ -25,7 +26,7 @@ class ModerationTests {
  final PostReportRepository reports=mock(PostReportRepository.class);
  final ReportSubmissionRepository submissions=mock(ReportSubmissionRepository.class);
  final UserValidator users=mock(UserValidator.class);
- final BoardPolicyService policy=mock(BoardPolicyService.class);
+ final BoardBanService policy=mock(BoardBanService.class);
  final PostService postService=mock(PostService.class);
  final ReportService service=new ReportService(boards,access,posts,reports,submissions,users,policy,postService);
  PostReport report;
@@ -52,6 +53,6 @@ class ModerationTests {
  @Test void handledReportRejectsRepeatedAction(){report.handle(PostReport.Status.RESOLVED,10L,"done");assertThrows(IllegalStateException.class,()->service.handle(1L,10L,7L,new ReportData.Handle(ReportData.Action.DELETE,"reason",false,null)));verifyNoInteractions(postService);}
  @Test void newReporterReopensHandledCase(){report.handle(PostReport.Status.DISMISSED,10L,"done");report.recordSubmission();assertEquals(PostReport.Status.OPEN,report.getStatus());assertNull(report.getHandledAt());}
  @Test void timedBanExpiresAtExactBoundaryAndPermanentBanCanBeRevoked(){var now=OffsetDateTime.now();var ban=BoardBan.create(board,20L,"author","reason",now.plusHours(1),10L,now);assertTrue(ban.isActiveAt(now));assertFalse(ban.isActiveAt(now.plusHours(1)));var permanent=BoardBan.create(board,20L,"author","reason",null,10L,now);assertTrue(permanent.isActiveAt(now.plusYears(10)));permanent.revoke(10L,now);assertFalse(permanent.isActiveAt(now));assertThrows(IllegalArgumentException.class,()->BoardBan.create(board,20L,"author","reason",now,10L,now));}
- @Test void blockedWriterIsDeniedButOtherBoardsAreAllowed(){var bans=mock(BoardBanRepository.class);var guard=new BoardWriteGuard(bans);when(bans.countActive(eq(1L),eq(20L),any())).thenReturn(1L);assertThrows(AccessDeniedException.class,()->guard.requireAllowed(1L,20L));assertDoesNotThrow(()->guard.requireAllowed(2L,20L));}
+ @Test void blockedWriterIsDeniedButOtherBoardsAreAllowed(){var bans=mock(BoardBanRepository.class);var guard=new BoardWriteGuard(bans);when(bans.findActive(eq(1L),eq(20L),any(),any())).thenReturn(List.of(BoardBan.create(board,20L,"author","reason",null,10L,OffsetDateTime.now())));assertThrows(AccessDeniedException.class,()->guard.requireAllowed(1L,20L));assertDoesNotThrow(()->guard.requireAllowed(2L,20L));}
  @Test void vacancyClaimAndManagementUsePolicy(){var p=BoardPolicy.create(board,null);p.addSubManager(manager);assertFalse(p.claimManagementIfEligible(author));assertTrue(p.claimManagementIfEligible(manager));assertTrue(p.isBoardManager(10L));assertFalse(p.claimManagementIfEligible(author));}
 }

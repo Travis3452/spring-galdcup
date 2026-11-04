@@ -1,6 +1,6 @@
-package com.example.galdcup.board.board.response;
+package com.example.galdcup.board.policy.response;
 
-import com.example.galdcup.board.board.domain.BoardPolicy;
+import com.example.galdcup.board.policy.domain.BoardPolicy;
 import com.example.galdcup.user.response.UserDto;
 import lombok.Builder;
 
