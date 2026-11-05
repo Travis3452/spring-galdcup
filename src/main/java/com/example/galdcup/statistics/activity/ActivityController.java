@@ -1,4 +1,4 @@
-package com.example.galdcup.statistics;
+package com.example.galdcup.statistics.activity;
 
 import com.example.galdcup.common.security.CustomUserDetails;
 import org.springframework.dao.DataAccessException;

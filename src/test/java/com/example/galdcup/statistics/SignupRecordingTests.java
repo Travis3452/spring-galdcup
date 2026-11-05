@@ -1,6 +1,9 @@
 package com.example.galdcup.statistics;
+import com.example.galdcup.statistics.signup.domain.SignupEventRepository;
+import com.example.galdcup.statistics.signup.domain.SignupEvent;
 
 import com.example.galdcup.user.UserService;
+import com.example.galdcup.statistics.signup.SignupEventService;
 import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.domain.UserNicknameGenerator;
 import com.example.galdcup.user.domain.UserRepository;
@@ -18,7 +21,7 @@ class SignupRecordingTests {
         UserRepository users = mock(UserRepository.class);
         SignupEventRepository events = mock(SignupEventRepository.class);
         UserNicknameGenerator names = mock(UserNicknameGenerator.class);
-        UserService service = new UserService(users, null, null, null, null, names, events);
+        UserService service = new UserService(users, null, null, null, null, names, new SignupEventService(events));
         when(users.findByOauthId("new-account")).thenReturn(Optional.empty());
         when(names.generate()).thenReturn("새회원");
         when(users.save(any())).thenAnswer(call -> call.getArgument(0));

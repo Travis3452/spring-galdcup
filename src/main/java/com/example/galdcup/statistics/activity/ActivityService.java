@@ -1,4 +1,5 @@
-package com.example.galdcup.statistics;
+package com.example.galdcup.statistics.activity;
+import com.example.galdcup.statistics.domain.StatisticsRepository;
 
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;

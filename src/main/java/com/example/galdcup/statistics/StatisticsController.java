@@ -1,4 +1,5 @@
 package com.example.galdcup.statistics;
+import com.example.galdcup.statistics.response.StatisticsData;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.CacheControl;

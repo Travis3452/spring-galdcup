@@ -1,8 +1,7 @@
 package com.example.galdcup.user;
 
-import com.example.galdcup.board.board.domain.BoardRepository;
-import com.example.galdcup.statistics.SignupEvent;
-import com.example.galdcup.statistics.SignupEventRepository;
+import com.example.galdcup.board.policy.BoardPolicyService;
+import com.example.galdcup.statistics.signup.SignupEventService;
 import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.domain.UserNicknameGenerator;
 import com.example.galdcup.user.domain.UserRepository;
@@ -25,12 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final BoardRepository boardRepository;
+    private final BoardPolicyService boardPolicyService;
     private final RoleRequestRepository roleRequestRepository;
     private final UserValidator userValidator;
     private final RoleRequestValidator roleRequestValidator;
     private final UserNicknameGenerator nicknameGenerator;
-    private final SignupEventRepository signupEventRepository;
+    private final SignupEventService signupEventService;
 
     /**
      * OAuth 정보를 바탕으로 유저를 조회하거나 새로 생성 (회원가입/로그인)
@@ -42,7 +41,7 @@ public class UserService {
                     String nickname = nicknameGenerator.generate();
                     User newUser = User.signup(email, oauthId, nickname);
                     User saved = userRepository.save(newUser);
-                    signupEventRepository.save(new SignupEvent(saved.getCreatedAt()));
+                    signupEventService.recordSignup(saved.getCreatedAt());
                     return saved;
                 });
     }
@@ -95,7 +94,7 @@ public class UserService {
         userValidator.validateOwnership(id, currentUserId);
         User user = userValidator.findByIdOrThrow(id);
 
-        boardRepository.removeBoardManagerByUserId(user.getId());
+        boardPolicyService.releaseManagerOnWithdrawal(user.getId());
 
         userRepository.delete(user);
     }

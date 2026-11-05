@@ -1,4 +1,5 @@
 package com.example.galdcup.statistics;
+import com.example.galdcup.statistics.domain.StatisticsRepository;
 
 import org.springframework.stereotype.Service;
 
@@ -9,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.galdcup.statistics.StatisticsData.*;
+import static com.example.galdcup.statistics.response.StatisticsData.*;
 
 @Service
 public class StatisticsService {

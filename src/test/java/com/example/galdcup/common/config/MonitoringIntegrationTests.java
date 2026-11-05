@@ -61,7 +61,7 @@ class MonitoringIntegrationTests {
 
     @Test
     void statisticsAndActivityEndpointsEnforceRolesAndNeverTrustClientUserIds() throws Exception {
-        var writer = application.getBean(com.example.galdcup.statistics.ActivityWriter.class);
+        var writer = application.getBean(com.example.galdcup.statistics.activity.ActivityWriter.class);
         org.mockito.Mockito.clearInvocations(writer);
         String path = "/api/admin/statistics";
         assertEquals(401, send(apiPort, "GET", path, null).statusCode());
@@ -205,25 +205,25 @@ class MonitoringIntegrationTests {
             com.example.galdcup.monitoring.DependencyHealth.class,
             com.example.galdcup.statistics.StatisticsController.class,
             com.example.galdcup.statistics.StatisticsService.class,
-            com.example.galdcup.statistics.StatisticsConfig.class,
-            com.example.galdcup.statistics.ActivityController.class,
-            com.example.galdcup.statistics.ActivityService.class,
+            com.example.galdcup.statistics.config.StatisticsConfig.class,
+            com.example.galdcup.statistics.activity.ActivityController.class,
+            com.example.galdcup.statistics.activity.ActivityService.class,
             com.example.galdcup.common.exception.GlobalExceptionHandler.class})
     static class TestApplication {
         @org.springframework.context.annotation.Bean
-        com.example.galdcup.statistics.StatisticsRepository statisticsRepository() {
-            var repo = org.mockito.Mockito.mock(com.example.galdcup.statistics.StatisticsRepository.class);
-            org.mockito.Mockito.when(repo.totals()).thenReturn(new com.example.galdcup.statistics.StatisticsData.Totals(10, 2, 3, 4));
+        com.example.galdcup.statistics.domain.StatisticsRepository statisticsRepository() {
+            var repo = org.mockito.Mockito.mock(com.example.galdcup.statistics.domain.StatisticsRepository.class);
+            org.mockito.Mockito.when(repo.totals()).thenReturn(new com.example.galdcup.statistics.response.StatisticsData.Totals(10, 2, 3, 4));
             org.mockito.Mockito.when(repo.activeUsers(org.mockito.ArgumentMatchers.any()))
-                    .thenReturn(new com.example.galdcup.statistics.StatisticsRepository.ActivityCounts(0, 0, 0));
+                    .thenReturn(new com.example.galdcup.statistics.domain.StatisticsRepository.ActivityCounts(0, 0, 0));
             org.mockito.Mockito.when(repo.signups(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
                     .thenReturn(java.util.Map.of());
             return repo;
         }
 
         @org.springframework.context.annotation.Bean
-        com.example.galdcup.statistics.ActivityWriter activityWriter() {
-            return org.mockito.Mockito.mock(com.example.galdcup.statistics.ActivityWriter.class);
+        com.example.galdcup.statistics.activity.ActivityWriter activityWriter() {
+            return org.mockito.Mockito.mock(com.example.galdcup.statistics.activity.ActivityWriter.class);
         }
 
         @org.springframework.context.annotation.Bean

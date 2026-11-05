@@ -6,7 +6,6 @@ import com.example.galdcup.board.policy.domain.BoardManagerRequest;
 import com.example.galdcup.board.board.domain.*;
 import com.example.galdcup.board.board.event.BoardChangedEvent;
 import com.example.galdcup.board.policy.request.BoardPolicyRequest;
-import com.example.galdcup.board.board.response.*;
 import com.example.galdcup.board.board.validator.BoardValidator;
 import com.example.galdcup.user.domain.User;
 import com.example.galdcup.user.validator.UserValidator;
@@ -16,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
 @Service @RequiredArgsConstructor
 public class BoardPolicyService {
+ private final BoardRepository boardRepository;
  private final BoardValidator boardValidator;
  private final UserValidator userValidator;
  private final BoardManagerRequestRepository boardManagerRequestRepository;
@@ -87,5 +87,11 @@ public class BoardPolicyService {
         return BoardPolicyDto.from(board.getBoardPolicy());
     }
 
+
+    /** 회원 탈퇴 시 기존 메인 관리자 관계를 해제합니다. */
+    @Transactional
+    public void releaseManagerOnWithdrawal(Long userId) {
+        boardRepository.removeBoardManagerByUserId(userId);
+    }
 
 }

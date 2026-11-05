@@ -1,4 +1,4 @@
-package com.example.galdcup.statistics;
+package com.example.galdcup.statistics.signup.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;

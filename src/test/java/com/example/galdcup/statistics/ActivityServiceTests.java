@@ -1,4 +1,7 @@
 package com.example.galdcup.statistics;
+import com.example.galdcup.statistics.domain.StatisticsRepository;
+import com.example.galdcup.statistics.activity.ActivityWriter;
+import com.example.galdcup.statistics.activity.ActivityService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;

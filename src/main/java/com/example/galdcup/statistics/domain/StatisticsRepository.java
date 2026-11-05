@@ -1,4 +1,4 @@
-package com.example.galdcup.statistics;
+package com.example.galdcup.statistics.domain;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -13,7 +13,7 @@ import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static com.example.galdcup.statistics.StatisticsData.Totals;
+import static com.example.galdcup.statistics.response.StatisticsData.Totals;
 
 @Repository
 public class StatisticsRepository {

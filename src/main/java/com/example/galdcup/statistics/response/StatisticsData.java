@@ -1,4 +1,4 @@
-package com.example.galdcup.statistics;
+package com.example.galdcup.statistics.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

@@ -1,4 +1,6 @@
 package com.example.galdcup.statistics;
+import com.example.galdcup.statistics.response.StatisticsData;
+import com.example.galdcup.statistics.domain.StatisticsRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
