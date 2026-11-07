@@ -25,7 +25,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -144,7 +143,7 @@ public class VoteSessionService {
             completeSession(session);
             return;
         }
-        applyVoteCounts(session, snapshot.counts());
+        session.applyVoteCounts(snapshot.counts());
         acknowledgeAfterCommit(session, snapshot, false);
     }
 
@@ -169,18 +168,10 @@ public class VoteSessionService {
         if (snapshot.closedAtEpochMilli() == null) {
             throw new IllegalStateException("투표 접수 종료를 확인할 수 없습니다.");
         }
-        applyVoteCounts(session, snapshot.counts());
+        session.applyVoteCounts(snapshot.counts());
         session.finishAt(OffsetDateTime.ofInstant(
                 Instant.ofEpochMilli(snapshot.closedAtEpochMilli()), session.getEndTime().getOffset()));
         acknowledgeAfterCommit(session, snapshot, true);
-    }
-
-    private void applyVoteCounts(VoteSession session, Map<String, String> entries) {
-        Map<Integer, Long> counts = entries.entrySet().stream()
-                .collect(java.util.stream.Collectors.toMap(
-                        entry -> Integer.parseInt(entry.getKey()),
-                        entry -> Long.parseLong(entry.getValue())));
-        session.applyVoteCounts(counts);
     }
 
     private void acknowledgeAfterCommit(VoteSession session, VoteCountSnapshot snapshot, boolean finished) {

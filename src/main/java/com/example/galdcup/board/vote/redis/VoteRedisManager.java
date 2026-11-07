@@ -93,9 +93,13 @@ public class VoteRedisManager {
         if (result == null || result.size() < 2 || result.size() % 2 != 0) {
             throw new IllegalStateException("투표 집계를 읽을 수 없습니다.");
         }
-        Map<String, String> counts = new HashMap<>();
+        Map<Integer, Long> counts = new HashMap<>();
         for (int i = 2; i < result.size(); i += 2) {
-            counts.put(result.get(i).toString(), result.get(i + 1).toString());
+            int optionIndex = Integer.parseInt(result.get(i).toString());
+            long count = Long.parseLong(result.get(i + 1).toString());
+            if (counts.putIfAbsent(optionIndex, count) != null) {
+                throw new IllegalStateException("중복된 투표 선택지 집계입니다: " + optionIndex);
+            }
         }
         String closedAt = result.get(1).toString();
         return new VoteCountSnapshot(counts, result.get(0).toString(),

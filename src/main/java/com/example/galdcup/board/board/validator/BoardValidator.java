@@ -61,11 +61,6 @@ public class BoardValidator {
         return board;
     }
 
-    /** applyForManager에서 사용 */
-    public boolean hasAnySubManager(Board board) {
-        return !board.getBoardPolicy().getSubManagers().isEmpty();
-    }
-
     public void validateNoPendingRequest(Long applicantId, Long boardId) {
         if (boardManagerRequestRepository.existsByApplicantIdAndBoardIdAndStatus(
                 applicantId, boardId, BoardManagerRequest.Status.PENDING)) {

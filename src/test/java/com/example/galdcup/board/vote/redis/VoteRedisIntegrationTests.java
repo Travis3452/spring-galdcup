@@ -89,8 +89,8 @@ class VoteRedisIntegrationTests {
         assertEquals(30, concurrentVotes(30, false));
 
         VoteCountSnapshot snapshot = manager.getSnapshot(sessionId);
-        assertEquals("40", snapshot.counts().get("0"));
-        assertEquals("20", snapshot.counts().get("1"));
+        assertEquals(40L, snapshot.counts().get(0));
+        assertEquals(20L, snapshot.counts().get(1));
         assertEquals("30", snapshot.revision());
     }
 
@@ -130,8 +130,8 @@ class VoteRedisIntegrationTests {
 
         VoteCountSnapshot finalCounts = manager.getSnapshot(sessionId);
         assertNotNull(finalCounts.closedAtEpochMilli());
-        assertEquals(11L + accepted, Long.parseLong(finalCounts.counts().get("0")));
-        assertEquals("20", finalCounts.counts().get("1"));
+        assertEquals(11L + accepted, finalCounts.counts().get(0));
+        assertEquals(20L, finalCounts.counts().get(1));
     }
 
     @Test

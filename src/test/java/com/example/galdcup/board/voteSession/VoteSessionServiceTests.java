@@ -37,7 +37,7 @@ class VoteSessionServiceTests {
             .startTime(OffsetDateTime.now().minusHours(1)).endTime(OffsetDateTime.now().plusHours(1))
             .options(List.of(VoteOption.create("A", "a.png"), VoteOption.create("B", "b.png")))
             .build();
-    private final VoteCountSnapshot open = new VoteCountSnapshot(Map.of("0", "4", "1", "7"), "2", null);
+    private final VoteCountSnapshot open = new VoteCountSnapshot(Map.of(0, 4L, 1, 7L), "2", null);
     private final VoteCountSnapshot closed = new VoteCountSnapshot(
             open.counts(), "2", System.currentTimeMillis());
 
@@ -184,7 +184,7 @@ class VoteSessionServiceTests {
 
     @Test
     void invalidCountIsNotAcknowledgedAsSuccessfullySaved() {
-        when(redis.getSnapshot(100L)).thenReturn(new VoteCountSnapshot(Map.of("99", "1"), "2", null));
+        when(redis.getSnapshot(100L)).thenReturn(new VoteCountSnapshot(Map.of(99, 1L), "2", null));
 
         assertThrows(IllegalStateException.class, () -> service.syncRedisVotesToDb(100L));
 
