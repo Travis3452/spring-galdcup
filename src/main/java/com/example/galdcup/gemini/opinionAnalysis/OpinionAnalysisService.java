@@ -4,7 +4,7 @@ import com.example.galdcup.board.comment.domain.Comment;
 import com.example.galdcup.board.comment.domain.CommentRepository;
 import com.example.galdcup.board.vote.domain.VoteOption;
 import com.example.galdcup.board.voteSession.domain.VoteSession;
-import com.example.galdcup.board.voteSession.redis.VoteSessionRedisManager;
+import com.example.galdcup.gemini.opinionAnalysis.redis.OpinionAnalysisRedisManager;
 import com.example.galdcup.board.voteSession.validator.VoteSessionValidator;
 import com.example.galdcup.gemini.GeminiService;
 import com.example.galdcup.gemini.response.OpinionAnalysisResponse;
@@ -24,13 +24,13 @@ public class OpinionAnalysisService {
     private final VoteSessionValidator voteSessionValidator;
     private final CommentRepository commentRepository;
     private final GeminiService geminiService;
-    private final VoteSessionRedisManager voteSessionRedisManager;
+    private final OpinionAnalysisRedisManager opinionAnalysisRedisManager;
 
     /**
      * 캐싱된 분석 결과 조회
      */
     public OpinionAnalysisResponse getCachedAnalysis(Long sessionId) {
-        return voteSessionRedisManager.getOpinionAnalysis(sessionId).orElse(null);
+        return opinionAnalysisRedisManager.getOpinionAnalysis(sessionId).orElse(null);
     }
 
     /**
@@ -63,7 +63,7 @@ public class OpinionAnalysisService {
         );
 
         // 5. Redis 캐시 저장
-        voteSessionRedisManager.saveOpinionAnalysis(sessionId, response);
+        opinionAnalysisRedisManager.saveOpinionAnalysis(sessionId, response);
 
         return response;
     }
